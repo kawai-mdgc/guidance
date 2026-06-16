@@ -539,7 +539,7 @@ const DEFAULT_SETTINGS = {
       { id:'pg4', label:null, notes:['末締め翌月20日引き落とし'] },
     ]},
   ],
-  csStaff: [{ id:'cs1', name:'留木涼花',  nameEn:'', title:'', bio:'迅速・丁寧な対応をモットーにしています。', phone:'', mission:'', personality:'', hobby:'', career:'', responseSpeed:'', oneWord:'', photoUrl:'', lineQrUrl:'' }],
+  csStaff: [{ id:'cs1', name:'留木涼花',  nameEn:'', title:'カスタマーサクセス', bio:'迅速・丁寧な対応をモットーにしています。', phone:'', mission:'', personality:'', hobby:'', career:'', responseSpeed:'', oneWord:'', photoUrl:'', lineQrUrl:'' }],
 };
 
 function getSettings() {
@@ -630,7 +630,7 @@ function csDelete(id) {
 }
 function csAdd() {
   const id = csNewId();
-  csStaff.push({ id, name: '', nameEn: '', title: '', bio: '', phone: '', mission: '', personality: '', hobby: '', career: '', responseSpeed: '', oneWord: '', photoUrl: '', lineQrUrl: '' });
+  csStaff.push({ id, name: '', nameEn: '', title: 'カスタマーサクセス', bio: '', phone: '', mission: '', personality: '', hobby: '', career: '', responseSpeed: '', oneWord: '', photoUrl: '', lineQrUrl: '' });
   checkDirty('cs');
   csEditingId = id;
   csRenderList();

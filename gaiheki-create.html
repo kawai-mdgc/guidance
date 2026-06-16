@@ -1951,7 +1951,7 @@ function renderP4() {
       <div class="p4-top">
         <div class="p4-left">
           <div class="p4-brand-text">gaiheki+</div>
-          <div class="p4-title">${staff.title ? esc(staff.title) : '<span style="opacity:.45">未設定</span>'}</div>
+          <div class="p4-title">${esc(staff.title || 'カスタマーサクセス')}</div>
           <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u3000'+staff.name.substring(2) : staff.name)}</div>
           ${staff.nameEn ? `<div class="p4-name-en">${esc(staff.nameEn)}</div>` : ''}
           ${photoHtml}
