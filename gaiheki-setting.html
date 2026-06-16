@@ -138,6 +138,7 @@ a.header-logo:hover { opacity: 0.8; }
 .cs-staff-view .btn-bact-s:last-of-type  { padding: 4px 12px; background: #ffeaea; color: #e53935; border: none; border-radius: 4px; font-size: 0; font-weight: 600; cursor: pointer; transition: opacity .12s; margin-left: 0; }
 .cs-staff-view .btn-bact-s:last-of-type::before { content: "削除"; font-size: 12px; }
 .cs-staff-view .btn-bact-s:hover { opacity: .8; }
+.field-hint { font-size: 10px; color: var(--muted); margin-top: 2px; display: block; }
 .btn-cs-add { margin-top: 8px; width: 100%; padding: 10px; border: 1px dashed var(--border); border-radius: 6px; background: none; cursor: pointer; font-size: 13px; color: var(--label); }
 .btn-cs-add:hover { border-color: var(--main); color: var(--main); background: #f7f6fb; }
 
@@ -588,18 +589,18 @@ function csRenderList() {
       <div class="field"><label>名前（漢字）</label><input type="text" value="${csEsc(st.name||'')}" oninput="csUpdate('${st.id}','name',this.value)" placeholder="例：飯塚来己"></div>
       <div class="field"><label>フルネーム英語</label><input type="text" value="${csEsc(st.nameEn||'')}" oninput="csUpdate('${st.id}','nameEn',this.value)" placeholder="例：Masafumi Onda"></div>
     </div>
-    <div class="field"><label>肩書き</label><input type="text" value="${csEsc(st.title||'')}" oninput="csUpdate('${st.id}','title',this.value)" placeholder="例：事業部 セールス"></div>
-    <div class="field"><label>ミッション</label><textarea rows="2" oninput="csUpdate('${st.id}','mission',this.value)">${csEsc(st.mission||'')}</textarea></div>
+    <div class="field"><label>肩書き <span class="field-hint" style="display:inline">10〜20文字</span></label><input type="text" value="${csEsc(st.title||'')}" oninput="csUpdate('${st.id}','title',this.value)" placeholder="例：事業部 セールス（10〜20文字）"></div>
+    <div class="field"><label>ミッション <span class="field-hint" style="display:inline">20〜40文字</span></label><textarea rows="2" oninput="csUpdate('${st.id}','mission',this.value)">${csEsc(st.mission||'')}</textarea></div>
     <div class="field-row">
-      <div class="field"><label>人柄</label><input type="text" value="${csEsc(st.personality||'')}" oninput="csUpdate('${st.id}','personality',this.value)"></div>
-      <div class="field"><label>趣味</label><input type="text" value="${csEsc(st.hobby||'')}" oninput="csUpdate('${st.id}','hobby',this.value)"></div>
+      <div class="field"><label>人柄 <span class="field-hint" style="display:inline">20〜40文字</span></label><input type="text" value="${csEsc(st.personality||'')}" oninput="csUpdate('${st.id}','personality',this.value)"></div>
+      <div class="field"><label>趣味 <span class="field-hint" style="display:inline">10〜20文字</span></label><input type="text" value="${csEsc(st.hobby||'')}" oninput="csUpdate('${st.id}','hobby',this.value)"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>対応スピード</label><input type="text" value="${csEsc(st.responseSpeed||'')}" oninput="csUpdate('${st.id}','responseSpeed',this.value)"></div>
-      <div class="field"><label>経歴</label><input type="text" value="${csEsc(st.career||'')}" oninput="csUpdate('${st.id}','career',this.value)"></div>
+      <div class="field"><label>対応スピード <span class="field-hint" style="display:inline">10〜20文字</span></label><input type="text" value="${csEsc(st.responseSpeed||'')}" oninput="csUpdate('${st.id}','responseSpeed',this.value)"></div>
+      <div class="field"><label>経歴 <span class="field-hint" style="display:inline">20〜40文字</span></label><input type="text" value="${csEsc(st.career||'')}" oninput="csUpdate('${st.id}','career',this.value)"></div>
     </div>
-    <div class="field"><label>一言</label><textarea rows="2" oninput="csUpdate('${st.id}','oneWord',this.value)">${csEsc(st.oneWord||'')}</textarea></div>
-    <div class="field"><label>電話番号</label><input type="text" value="${csEsc(st.phone||'')}" oninput="this.value=fmtPhone(this.value);csUpdate('${st.id}','phone',this.value)" placeholder="ハイフンなしで入力"></div>
+    <div class="field"><label>一言 <span class="field-hint" style="display:inline">20〜40文字</span></label><textarea rows="2" oninput="csUpdate('${st.id}','oneWord',this.value)">${csEsc(st.oneWord||'')}</textarea></div>
+    <div class="field"><label>電話番号</label><input type="text" value="${csEsc(st.phone||'')}" oninput="this.value=fmtPhone(this.value);csUpdate('${st.id}','phone',this.value)" placeholder="ハイフンなしで入力（10〜13文字）"></div>
     <div class="field-row">
       <div class="field"><label>写真URL</label><input type="text" value="${csEsc(st.photoUrl||'')}" oninput="csUpdate('${st.id}','photoUrl',this.value)" placeholder="https://..."></div>
       <div class="field"><label>LINE QR URL</label><input type="text" value="${csEsc(st.lineQrUrl||'')}" oninput="csUpdate('${st.id}','lineQrUrl',this.value)" placeholder="https://..."></div>
@@ -1062,7 +1063,30 @@ function saveTextSection() {
   } catch(e) { console.error('saveTextSection エラー:', e); }
 }
 
+function csSectionValidate() {
+  var LIMITS = {
+    title: { max: 20, label: '肩書き' },
+    mission: { max: 40, label: 'ミッション' },
+    personality: { max: 40, label: '人柄' },
+    hobby: { max: 20, label: '趣味' },
+    career: { max: 40, label: '経歴' },
+    responseSpeed: { max: 20, label: '対応スピード' },
+    oneWord: { max: 40, label: '一言' },
+    phone: { max: 13, label: '電話番号' },
+  };
+  var errors = [];
+  csStaff.forEach(function(st) {
+    Object.keys(LIMITS).forEach(function(field) {
+      var lim = LIMITS[field];
+      if (st[field] && st[field].length > lim.max) {
+        errors.push((st.name || '担当者') + ' の「' + lim.label + '」が ' + lim.max + ' 文字を超えています（' + st[field].length + ' 文字）');
+      }
+    });
+  });
+  return errors;
+}
 function saveCsSection() {
+  var errs = csSectionValidate(); if (errs.length) { alert('文字数超過\n\n' + errs.join('\n')); return; }
   try {
     clearDirty('cs');
     saveSectionData('csStaff', { csStaff: JSON.parse(JSON.stringify(csStaff)) });

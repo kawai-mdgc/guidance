@@ -1951,7 +1951,7 @@ function renderP4() {
       <div class="p4-top">
         <div class="p4-left">
           <div class="p4-brand-text">gaiheki+</div>
-          ${staff.title ? `<div class="p4-title">${esc(staff.title)}</div>` : ''}
+          <div class="p4-title">${staff.title ? esc(staff.title) : '<span style="opacity:.45">未設定</span>'}</div>
           <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u3000'+staff.name.substring(2) : staff.name)}</div>
           ${staff.nameEn ? `<div class="p4-name-en">${esc(staff.nameEn)}</div>` : ''}
           ${photoHtml}
@@ -1962,11 +1962,10 @@ function renderP4() {
           <div class="p4-bubble">${staff.oneWord ? esc(staff.oneWord) : '<span style="color:#bbb">未設定</span>'}</div>
         </div>
       </div>
-      ${(staff.phone || lineQrSrc) ? `
       <div class="p4-bottom">
-        ${staff.phone ? `<div class="p4-phone" ${phoneClick}>📞 ${esc(fmtPhoneDisplay(staff.phone))}</div>` : '<div></div>'}
+        <div class="p4-phone" ${staff.phone ? phoneClick : ''}>📞 ${staff.phone ? esc(fmtPhoneDisplay(staff.phone)) : '<span style="color:#bbb">未設定</span>'}</div>
         ${lineQrSrc ? `<div class="p4-line-wrap"><div>LINE<br>で<br>相談</div><img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'"></div>` : ''}
-      </div>` : ''}
+      </div>
     </div>
   </div>`;
 }
