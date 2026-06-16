@@ -1955,7 +1955,7 @@ function renderP4() {
           <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u3000'+staff.name.substring(2) : staff.name)}</div>
           ${staff.nameEn ? `<div class="p4-name-en">${esc(staff.nameEn)}</div>` : ''}
           ${photoHtml}
-          <div style="font-size:11px;color:#fff;background:#4B4177;margin:8px auto 0;padding:6px 12px;border-radius:999px;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center">${staff.phone ? 'tel：' + esc(fmtPhoneDisplay(staff.phone)) : ''}</div>
+          <div style="font-size:11px;color:#fff;background:#4B4177;margin:8px auto 0;padding:6px 12px;border-radius:999px;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center">${staff.phone ? `<a href="tel:${esc(staff.phone)}" style="color:#fff;text-decoration:none">tel：${esc(fmtPhoneDisplay(staff.phone))}</a>` : ''}</div>
         </div>
         <div class="p4-right">
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
