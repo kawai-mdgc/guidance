@@ -2031,8 +2031,25 @@ function populatePaymentMethodSelect() {
 }
 
 function updatePlanDefaults() {
-  const plan = document.getElementById('plan').value;
-  const d = getSettings().plans[plan] || DEFAULT_SETTINGS.plans[plan];
+  const planId = document.getElementById('plan').value;
+  const s = getSettings();
+  // Try planTypes first
+  if (s.planTypes) {
+    for (const pt of s.planTypes) {
+      const plan = pt.plans.find(p => p.id === planId);
+      if (plan) {
+        document.getElementById('monthly_fee').value  = plan.items[0]?.value || '';
+        document.getElementById('commission').value   = plan.items[1]?.value || '';
+        document.getElementById('guarantee').value    = plan.items[2]?.value || '';
+        document.getElementById('monthly_est').value  = plan.items[3]?.value || '';
+        document.getElementById('half_est').value     = plan.items[5]?.value || '';
+        return;
+      }
+    }
+  }
+  // Fall back
+  const plan = document.getElementById('plan') ? document.getElementById('plan').value : planId;
+  const d = s.plans?.[plan] || DEFAULT_SETTINGS.plans?.[plan];
   document.getElementById('monthly_fee').value = d.fee;
   document.getElementById('commission').value  = d.commission;
   document.getElementById('guarantee').value   = d.guarantee;
@@ -2040,6 +2057,28 @@ function updatePlanDefaults() {
   document.getElementById('half_est').value    = d.half;
 }
 
+function populatePlanTypes() {
+  const sel = document.getElementById('plan');
+  if (!sel) return;
+  const s = getSettings();
+  const pts = s.planTypes;
+  if (!pts || !pts.length) return;
+  const cur = sel.value || 'basic';
+  sel.innerHTML = '';
+  pts.forEach(pt => {
+    const grp = document.createElement('optgroup');
+    grp.label = pt.typeName;
+    pt.plans.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = p.planName;
+      grp.appendChild(o);
+    });
+    sel.appendChild(grp);
+  });
+  sel.value = cur;
+  if (!sel.value && sel.options.length > 0) sel.selectedIndex = 0;
+}
 function populateAssigneeSelect() {
   const list = getSettings().staffList;
   const sel = document.getElementById('assignee');
@@ -2156,6 +2195,11 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function render() {
   const planLabel = {light:'LIGHT（ライト）', basic:'BASIC（ベーシック）', pro:'PRO（プロ）'};
   const s = getSettings();
+  if (s.planTypes) {
+    s.planTypes.forEach(pt => {
+      pt.plans.forEach(p => { if (!planLabel[p.id]) planLabel[p.id] = p.planName + '（' + pt.typeName + '）'; });
+    });
+  }
   const co = v('company'), cn = v('contact_name');
   const isDefault = !co && !cn;
   const recipient = co && cn ? co + '　' + cn : (co || cn || '（会社名・担当者名）');
@@ -2181,7 +2225,16 @@ function render() {
   setVal('p-plan',       planLabel[v('plan')]);
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
-  setVal('p-period',     (s.plans[v('plan')] || s.plans.basic).contractPeriod);
+  {
+    let period2 = (s.plans?.[v('plan')] || s.plans?.basic || {}).contractPeriod || '';
+    if (s.planTypes) {
+      for (const pt3 of s.planTypes) {
+        const p3 = pt3.plans.find(p => p.id === v('plan'));
+        if (p3) { period2 = p3.items[4]?.value || ''; break; }
+      }
+    }
+    setVal('p-period', period2);
+  }
   setVal('p-monthly',    v('monthly_est'));
   setVal('p-half',       v('half_est'));
   setVal('p-guarantee',  v('guarantee'));
@@ -2312,6 +2365,8 @@ function saveCase() {
 
 (function init() {
   populateAssigneeSelect();
+  if (typeof populateVolumePlans==="function") populateVolumePlans();
+  if (typeof populatePlanTypes==="function") populatePlanTypes();
 
   const editId = new URLSearchParams(location.search).get('id');
   if (!editId) {
@@ -2587,6 +2642,13 @@ function saveCase() {
           var el = document.getElementById('cs_assignee');
           if (el) el.value = data.csAssignee;
           if (typeof renderP4 === 'function') renderP4();
+        }
+        if (data.planTypes && data.planTypes.length) {
+          try {
+            var cpPT=JSON.parse(localStorage.getItem('fuyouhin_settings')||'{}');
+            cpPT.planTypes=data.planTypes; localStorage.setItem('fuyouhin_settings',JSON.stringify(cpPT));
+          } catch(e) {}
+          if (typeof populatePlanTypes==='function') populatePlanTypes();
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {

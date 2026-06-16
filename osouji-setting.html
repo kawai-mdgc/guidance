@@ -123,6 +123,17 @@ a.header-logo:hover { opacity: 0.8; }
 .btn-pm-add { font-size: 11px; padding: 3px 10px; border: 1px dashed var(--border); border-radius: 4px; background: none; cursor: pointer; color: var(--label); margin-top: 4px; }
 .btn-pm-add:hover { border-color: var(--main); color: var(--main); }
 
+/* ── プランタイプ管理 ── */
+.pt-card { background: var(--white); border: 2px solid var(--border); border-radius: 6px; padding: 18px; margin-bottom: 16px; }
+.pt-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid var(--main); }
+.pt-name-input { flex: 1; padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-weight: 700; font-family: inherit; color: var(--main); }
+.pt-plans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-bottom: 10px; }
+.plan-card-dyn { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 12px; }
+.plan-card-dyn-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.plan-name-inp { flex: 1; padding: 4px 8px; border: 1px solid var(--main); border-radius: 4px; font-size: 13px; font-weight: 700; font-family: inherit; color: var(--main); min-width: 0; }
+.pt-item-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.pt-item-lbl { flex: 2; min-width: 0; padding: 3px 6px; border: 1px solid var(--border); border-radius: 3px; font-size: 11px; font-family: inherit; }
+.pt-item-val { flex: 1; min-width: 0; padding: 3px 6px; border: 1px solid var(--border); border-radius: 3px; font-size: 11px; font-family: inherit; }
 /* ── CS担当者設定 ── */
 .cs-staff-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
 .cs-staff-item { background: var(--white); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
@@ -336,47 +347,8 @@ a.header-logo:hover { opacity: 0.8; }
     <div class="section active" id="sec-plan">
       <div class="section-title">プラン設定</div>
       <div class="section-desc">各プランの料金・手数料・件数を設定します。</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:8px">月額プラン</div>
-      <div class="plan-grid">
-
-        <div class="plan-card">
-          <div class="plan-card-head">ライト</div>
-          <div class="field"><label>月額費用（継続特典後・税抜）</label><input type="text" id="light-fee" placeholder="8万円"></div>
-          <div class="field"><label>成約手数料</label><input type="text" id="light-commission" placeholder="10%"></div>
-          <div class="field"><label>最低補償件数</label><input type="text" id="light-guarantee" placeholder="なし"></div>
-          <div class="field"><label>月間紹介件数（想定）</label><input type="text" id="light-monthly" placeholder="25〜35件"></div>
-          <div class="field"><label>契約期間</label><input type="text" id="light-contract-period" placeholder="なし"></div>
-          <div class="field"><label>6ヶ月紹介件数（想定）</label><input type="text" id="light-half" placeholder="—"></div>
-        </div>
-
-        <div class="plan-card">
-          <div class="plan-card-head">ベーシック</div>
-          <div class="field"><label>月額費用（継続特典後・税抜）</label><input type="text" id="basic-fee" placeholder="10万円"></div>
-          <div class="field"><label>成約手数料</label><input type="text" id="basic-commission" placeholder="5%"></div>
-          <div class="field"><label>最低補償件数</label><input type="text" id="basic-guarantee" placeholder="25件"></div>
-          <div class="field"><label>月間紹介件数（想定）</label><input type="text" id="basic-monthly" placeholder="40〜55件"></div>
-          <div class="field"><label>契約期間</label><input type="text" id="basic-contract-period" placeholder="6ヶ月契約"></div>
-          <div class="field"><label>6ヶ月紹介件数（想定）</label><input type="text" id="basic-half" placeholder="40〜55件"></div>
-        </div>
-
-        <div class="plan-card">
-          <div class="plan-card-head">プロ</div>
-          <div class="field"><label>月額費用（継続特典後・税抜）</label><input type="text" id="pro-fee" placeholder="15万円"></div>
-          <div class="field"><label>成約手数料</label><input type="text" id="pro-commission" placeholder="3%"></div>
-          <div class="field"><label>最低補償件数</label><input type="text" id="pro-guarantee" placeholder="40件"></div>
-          <div class="field"><label>月間紹介件数（想定）</label><input type="text" id="pro-monthly" placeholder="65〜80件"></div>
-          <div class="field"><label>契約期間</label><input type="text" id="pro-contract-period" placeholder="6ヶ月契約"></div>
-          <div class="field"><label>6ヶ月紹介件数（想定）</label><input type="text" id="pro-half" placeholder="65〜80件"></div>
-        </div>
-
-      </div>
-      <div id="mp-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:12px"></div>
-      <button class="btn-cs-add" onclick="mpAdd()" style="margin-top:8px">＋ 月額プランを追加</button>
-      <div style="margin-top:28px">
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">従量プラン</div>
-        <div id="vp-list-in-plan"></div>
-        <button class="btn-cs-add" onclick="vpAdd()">＋ 従量プランを追加</button>
-      </div>
+      <div id="pt-list"></div>
+      <button class="btn-cs-add" onclick="ptAdd()" style="margin-top:8px">＋ プランタイプを追加する</button>
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-plan">未保存の変更があります</span>
         <button id="btn-save-plan" class="btn-save" onclick="savePlanSection()">保存</button>
@@ -880,11 +852,9 @@ const originalData = {};
 function snapshotSection(sec) {
   try {
     switch(sec) {
-      case 'plan': {
-        const st = getSettings();
-        originalData.plan = JSON.parse(JSON.stringify(st.plans));
+      case 'plan':
+        originalData.plan = JSON.parse(JSON.stringify(planTypes));
         break;
-      }
       case 'staff':
         originalData.staff = staffList.slice();
         break;
@@ -925,14 +895,8 @@ function restoreSection(sec) {
   try {
     switch(sec) {
       case 'plan':
-        ['light','basic','pro'].forEach(p => {
-          document.getElementById(`${p}-fee`).value            = d[p].fee || '';
-          document.getElementById(`${p}-commission`).value     = d[p].commission || '';
-          document.getElementById(`${p}-guarantee`).value      = d[p].guarantee || '';
-          document.getElementById(`${p}-monthly`).value        = d[p].monthly || '';
-          document.getElementById(`${p}-half`).value           = d[p].half || '';
-          document.getElementById(`${p}-contract-period`).value= d[p].contractPeriod || '';
-        });
+        planTypes = JSON.parse(JSON.stringify(d));
+        ptRenderAll();
         break;
       case 'staff':
         staffList = d.slice();
@@ -977,20 +941,8 @@ function restoreSection(sec) {
 function gatherCurrent(sec) {
   try {
     switch(sec) {
-      case 'plan': {
-        const plans = {};
-        ['light','basic','pro'].forEach(p => {
-          plans[p] = {
-            fee:            document.getElementById(`${p}-fee`)?.value || '',
-            commission:     document.getElementById(`${p}-commission`)?.value || '',
-            guarantee:      document.getElementById(`${p}-guarantee`)?.value || '',
-            monthly:        document.getElementById(`${p}-monthly`)?.value || '',
-            half:           document.getElementById(`${p}-half`)?.value || '',
-            contractPeriod: document.getElementById(`${p}-contract-period`)?.value || '',
-          };
-        });
-        return plans;
-      }
+      case 'plan':
+        return JSON.parse(JSON.stringify(planTypes));
       case 'staff':
         return staffList.slice();
       case 'text':
@@ -1054,39 +1006,152 @@ function saveSectionData(key, data) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+/* ── プランタイプ管理 ── */
+let planTypes = [];
+let ptIdCnt = 0, ppIdCnt = 0;
+const ptNewId = () => 'pt_' + (++ptIdCnt) + '_' + Date.now();
+const ppNewId = () => 'pp_' + (++ppIdCnt) + '_' + Date.now();
+
+const DEFAULT_PLAN_TYPES = [
+  { id: 'monthly', typeName: '月額プラン', isDefault: true, plans: [
+    { id: 'light', planName: 'ライト', items: [
+      { label: '月額費用（継続特典後・税抜）', value: '8万円' },
+      { label: '成約手数料', value: '10%' },
+      { label: '最低補償件数', value: 'なし' },
+      { label: '月間紹介件数（想定）', value: '25〜35件' },
+      { label: '契約期間', value: 'なし' },
+      { label: '6ヶ月紹介件数（想定）', value: '—' },
+    ]},
+    { id: 'basic', planName: 'ベーシック', items: [
+      { label: '月額費用（継続特典後・税抜）', value: '10万円' },
+      { label: '成約手数料', value: '5%' },
+      { label: '最低補償件数', value: '25件' },
+      { label: '月間紹介件数（想定）', value: '40〜55件' },
+      { label: '契約期間', value: '6ヶ月契約' },
+      { label: '6ヶ月紹介件数（想定）', value: '40〜55件' },
+    ]},
+    { id: 'pro', planName: 'プロ', items: [
+      { label: '月額費用（継続特典後・税抜）', value: '15万円' },
+      { label: '成約手数料', value: '3%' },
+      { label: '最低補償件数', value: '40件' },
+      { label: '月間紹介件数（想定）', value: '65〜80件' },
+      { label: '契約期間', value: '6ヶ月契約' },
+      { label: '6ヶ月紹介件数（想定）', value: '65〜80件' },
+    ]},
+  ]},
+];
+
+function ptRenderAll() {
+  const list = document.getElementById('pt-list');
+  if (!list) return;
+  list.innerHTML = planTypes.map(pt => ptRenderCard(pt)).join('');
+}
+
+function ptRenderCard(pt) {
+  return `<div class="pt-card" id="ptcard-${pt.id}">
+  <div class="pt-card-head">
+    <input class="pt-name-input" value="${escHtml(pt.typeName||'')}" oninput="ptUpdateName('${pt.id}',this.value)" placeholder="プランタイプ名（例：月額プラン）">
+    ${pt.isDefault ? '<span style="font-size:11px;color:var(--muted)">（デフォルト）</span>' : `<button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="ptDelete('${pt.id}')">タイプ削除</button>`}
+  </div>
+  <div class="pt-plans-grid" id="ptplans-${pt.id}">${pt.plans.map(p => ptRenderPlan(pt.id, p)).join('')}</div>
+  <button class="btn-cs-add" onclick="ptPlanAdd('${pt.id}')">＋ プランを追加</button>
+</div>`;
+}
+
+function ptRenderPlan(ptId, plan) {
+  const items = plan.items.map((item, idx) => `<div class="pt-item-row">
+    <input type="text" class="pt-item-lbl" value="${escHtml(item.label||'')}" oninput="ptItemUpdate('${ptId}','${plan.id}',${idx},'label',this.value)" placeholder="項目名">
+    <input type="text" class="pt-item-val" value="${escHtml(item.value||'')}" oninput="ptItemUpdate('${ptId}','${plan.id}',${idx},'value',this.value)" placeholder="値">
+    <button class="btn-del" style="font-size:10px;padding:2px 5px;flex-shrink:0" onclick="ptItemDelete('${ptId}','${plan.id}',${idx})">✕</button>
+  </div>`).join('');
+  return `<div class="plan-card-dyn" id="ptplan-${ptId}-${plan.id}">
+  <div class="plan-card-dyn-head">
+    <input class="plan-name-inp" value="${escHtml(plan.planName||'')}" oninput="ptPlanUpdateName('${ptId}','${plan.id}',this.value)" placeholder="プラン名">
+    <button class="btn-del" style="font-size:11px;padding:3px 9px;flex-shrink:0" onclick="ptPlanDelete('${ptId}','${plan.id}')">削除</button>
+  </div>
+  ${items}
+  <button class="btn-pm-add" onclick="ptItemAdd('${ptId}','${plan.id}')">＋ 内訳を追加</button>
+</div>`;
+}
+
+function ptGetType(id) { return planTypes.find(pt => pt.id === id); }
+function ptGetPlan(ptId, planId) { const pt = ptGetType(ptId); return pt ? pt.plans.find(p => p.id === planId) : null; }
+
+function ptUpdateName(ptId, v) { const pt=ptGetType(ptId); if(pt){pt.typeName=v;checkDirty('plan');} }
+function ptPlanUpdateName(ptId, planId, v) { const p=ptGetPlan(ptId,planId); if(p){p.planName=v;checkDirty('plan');} }
+function ptItemUpdate(ptId, planId, idx, field, v) {
+  const p=ptGetPlan(ptId,planId); if(p&&p.items[idx]){p.items[idx][field]=v;checkDirty('plan');}
+}
+function ptItemAdd(ptId, planId) {
+  const p=ptGetPlan(ptId,planId); if(!p)return;
+  p.items.push({label:'',value:''}); checkDirty('plan');
+  const el=document.getElementById(`ptplan-${ptId}-${planId}`);
+  if(el) el.outerHTML=ptRenderPlan(ptId,p);
+}
+function ptItemDelete(ptId, planId, idx) {
+  const p=ptGetPlan(ptId,planId); if(!p)return;
+  p.items.splice(idx,1); checkDirty('plan');
+  const el=document.getElementById(`ptplan-${ptId}-${planId}`);
+  if(el) el.outerHTML=ptRenderPlan(ptId,p);
+}
+function ptPlanAdd(ptId) {
+  const pt=ptGetType(ptId); if(!pt)return;
+  const id=ppNewId();
+  pt.plans.push({id,planName:'',items:[]}); checkDirty('plan');
+  ptRenderAll();
+  document.getElementById(`ptplan-${ptId}-${id}`)?.scrollIntoView({behavior:'smooth'});
+}
+function ptPlanDelete(ptId, planId) {
+  const pt=ptGetType(ptId); if(!pt)return;
+  if(!confirm('このプランを削除しますか？'))return;
+  pt.plans=pt.plans.filter(p=>p.id!==planId); checkDirty('plan');
+  ptRenderAll();
+}
+function ptAdd() {
+  const id=ptNewId();
+  planTypes.push({id,typeName:'',isDefault:false,plans:[]}); checkDirty('plan');
+  ptRenderAll();
+  document.getElementById(`ptcard-${id}`)?.scrollIntoView({behavior:'smooth'});
+}
+function ptDelete(ptId) {
+  if(!confirm('このプランタイプを削除しますか？'))return;
+  planTypes=planTypes.filter(pt=>pt.id!==ptId); checkDirty('plan');
+  ptRenderAll();
+}
+function migrateOldPlansToTypes(s) {
+  return DEFAULT_PLAN_TYPES.map(pt => {
+    if(pt.id==='monthly') {
+      return {...pt, plans: pt.plans.map(p => {
+        const old=(s.plans||{})[p.id]; if(!old) return p;
+        return {...p, items:[
+          {label:'月額費用（継続特典後・税抜）',value:old.fee||p.items[0].value},
+          {label:'成約手数料',value:old.commission||p.items[1].value},
+          {label:'最低補償件数',value:old.guarantee||p.items[2].value},
+          {label:'月間紹介件数（想定）',value:old.monthly||p.items[3].value},
+          {label:'契約期間',value:old.contractPeriod||p.items[4].value},
+          {label:'6ヶ月紹介件数（想定）',value:old.half||p.items[5].value},
+        ]};
+      })};
+    }
+    return pt;
+  });
+}
+
 function savePlanSection() {
   console.log('保存ボタンクリック：プラン設定');
   try {
-    const plans = {};
-    ['light','basic','pro'].forEach(p => {
-      const g = id => {
-        const el = document.getElementById(p + '-' + id);
-        console.log('  [plan] #' + p + '-' + id + ' =', el ? el.value : 'NOT FOUND');
-        return (el && el.value.trim()) ? el.value.trim() : DEFAULT_SETTINGS.plans[p][id];
-      };
-      plans[p] = { fee:g('fee'), commission:g('commission'), guarantee:g('guarantee'), monthly:g('monthly'), half:g('half'), contractPeriod:g('contract-period') };
-    });
     clearDirty('plan');
-    saveSectionData('plans', { plans });
+    const existing = JSON.parse(localStorage.getItem('osouji_settings') || '{}');
+    existing.planTypes = JSON.parse(JSON.stringify(planTypes));
+    localStorage.setItem('osouji_settings', JSON.stringify(existing));
     snapshotSection('plan');
-    // 追加月額プランを保存
     try {
-      const existingMp = JSON.parse(localStorage.getItem('osouji_settings') || '{}');
-      existingMp.monthlyPlans = JSON.parse(JSON.stringify(monthlyPlans));
-      localStorage.setItem('osouji_settings', JSON.stringify(existingMp));
       firebase.firestore().collection('settings').doc('osouji').set(
-        { monthlyPlans: JSON.parse(JSON.stringify(monthlyPlans)) }, { merge: true }
+        { planTypes: JSON.parse(JSON.stringify(planTypes)) }, { merge: true }
       );
-    } catch(fe) { console.warn('MP Firestore save:', fe); }
-  // 従量プランも保存
-    try {
-      const existingVp = JSON.parse(localStorage.getItem('osouji_settings') || '{}');
-      existingVp.volumePlans = JSON.parse(JSON.stringify(volumePlans));
-      localStorage.setItem('osouji_settings', JSON.stringify(existingVp));
-      firebase.firestore().collection('settings').doc('osouji').set(
-        { volumePlans: JSON.parse(JSON.stringify(volumePlans)) }, { merge: true }
-      );
-    } catch(fe) { console.warn('VP Firestore save:', fe); }
+    } catch(fe) { console.warn('Firestore planTypes save:', fe); }
+    const t = document.getElementById('toast');
+    if (t) { t.textContent = '保存しました'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
   } catch(e) { console.error('savePlanSection エラー:', e); }
 }
 
@@ -1616,14 +1681,14 @@ function escHtml(s) {
 (function() {
   const s = getSettings();
 
-  ['light', 'basic', 'pro'].forEach(p => {
-    document.getElementById(`${p}-fee`).value             = s.plans[p].fee;
-    document.getElementById(`${p}-commission`).value      = s.plans[p].commission;
-    document.getElementById(`${p}-guarantee`).value       = s.plans[p].guarantee;
-    document.getElementById(`${p}-monthly`).value         = s.plans[p].monthly;
-    document.getElementById(`${p}-half`).value            = s.plans[p].half;
-    document.getElementById(`${p}-contract-period`).value = s.plans[p].contractPeriod;
-  });
+  // planTypes初期化
+  const rawPt2 = JSON.parse(localStorage.getItem('osouji_settings') || '{}');
+  if (rawPt2.planTypes && rawPt2.planTypes.length) {
+    planTypes = rawPt2.planTypes;
+  } else {
+    planTypes = migrateOldPlansToTypes(s);
+  }
+  ptRenderAll();
 
   staffList = [...s.staffList];
   renderStaffList();
@@ -1709,11 +1774,18 @@ function escHtml(s) {
       if (!user) return;
       firebase.firestore().collection('settings').doc(BIZ_DOC).get()
         .then(function(doc) {
-          if (doc.exists && doc.data().csAssignee) {
-            var val = doc.data().csAssignee;
+          var dd=doc.data()||{};
+          if (doc.exists && dd.csAssignee) {
+            var val = dd.csAssignee;
             document.getElementById('cs-name-disp').textContent = val;
             document.getElementById('cs-name-inp').value = val;
           }
+          if (dd.planTypes && dd.planTypes.length) {
+            try{var cp=JSON.parse(localStorage.getItem('osouji_settings')||'{}');cp.planTypes=dd.planTypes;localStorage.setItem('osouji_settings',JSON.stringify(cp));planTypes=dd.planTypes;ptRenderAll();}catch(e){}
+          }
+          /* Firestore loan URLs */
+          if (dd.loanMediaUrl)       document.getElementById('loan-doc-url').value   = dd.loanMediaUrl;
+          if (dd.loanApplicationUrl) document.getElementById('loan-apply-url').value = dd.loanApplicationUrl;
         }).catch(function() {});
     });
   }
