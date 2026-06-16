@@ -1126,7 +1126,7 @@ function vpRenderList() {
   <div class="cs-staff-view">
     <div style="flex:1">
       <div class="cs-staff-view-name">${escHtml(vp.planName || '（プラン名未設定）')}</div>
-      <div class="cs-staff-view-sub">紹介手数料：${vp.referralFee ? Number(vp.referralFee).toLocaleString() + '円' : '—'} / 成約：${vp.achievementFee || '—'}%</div>
+      <div class="cs-staff-view-sub">紹介手数料：${vp.referralFee || '—'} / 成約手数料：${vp.achievementFee || '—'}</div>
     </div>
     <button class="btn-bact-s" onclick="vpToggleEdit('${vp.id}')">${isOpen ? '閉じる' : '編集'}</button>
     <button class="btn-bact-s" onclick="vpDelete('${vp.id}')" style="margin-left:4px">🗑️</button>
@@ -1136,18 +1136,8 @@ function vpRenderList() {
       <input type="text" value="${escHtml(vp.planName||'')}" oninput="vpUpdate('${vp.id}','planName',this.value)" placeholder="例：従量プランA">
     </div>
     <div class="field-row">
-      <div class="field"><label>紹介手数料</label>
-        <div style="display:flex;gap:12px;align-items:center;margin-top:4px">
-          <label style="font-size:12px"><input type="radio" name="vpref-${vp.id}" value="15000" ${vp.referralFee==15000?'checked':''} onchange="vpUpdate('${vp.id}','referralFee',15000)"> 15,000円</label>
-          <label style="font-size:12px"><input type="radio" name="vpref-${vp.id}" value="20000" ${vp.referralFee==20000?'checked':''} onchange="vpUpdate('${vp.id}','referralFee',20000)"> 20,000円</label>
-        </div>
-      </div>
-      <div class="field"><label>成約手数料</label>
-        <div style="display:flex;gap:12px;align-items:center;margin-top:4px">
-          <label style="font-size:12px"><input type="radio" name="vpach-${vp.id}" value="10" ${vp.achievementFee==10?'checked':''} onchange="vpUpdate('${vp.id}','achievementFee',10)"> 10%</label>
-          <label style="font-size:12px"><input type="radio" name="vpach-${vp.id}" value="5" ${vp.achievementFee==5?'checked':''} onchange="vpUpdate('${vp.id}','achievementFee',5)"> 5%</label>
-        </div>
-      </div>
+      <div class="field"><label>紹介手数料</label><input type="text" value="${csEsc(String(vp.referralFee||''))}" oninput="vpUpdate('${vp.id}','referralFee',this.value)" placeholder="例：15,000円"></div>
+      <div class="field"><label>成約手数料</label><input type="text" value="${csEsc(String(vp.achievementFee||''))}" oninput="vpUpdate('${vp.id}','achievementFee',this.value)" placeholder="例：10%"></div>
     </div>
     <div class="field-row">
       <div class="field"><label>紹介件数想定（月間）</label>
@@ -1189,7 +1179,7 @@ function vpDelete(id) {
 }
 function vpAdd() {
   const id = vpNewId();
-  volumePlans.push({ id, planName: '', referralFee: 15000, achievementFee: 10, monthlyEstimate: '', dailyLimit: '', monthlyLimit: '', monthlyBudget: '' });
+  volumePlans.push({ id, planName: '', referralFee: '', achievementFee: '', monthlyEstimate: '', dailyLimit: '', monthlyLimit: '', monthlyBudget: '' });
   checkDirty('vp');
   vpEditingId = id;
   vpRenderList();
