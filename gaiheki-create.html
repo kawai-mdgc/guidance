@@ -720,7 +720,12 @@ a.lb-url:hover { text-decoration: underline; }
           <option value="杉本山東">杉本山東</option>
         </select>
       </div>
-      <input type="hidden" id="cs_assignee" value="飯塚来己">
+      <div id="cs-assignee-field" style="display:none">
+        <div class="field">
+          <label>CS担当者</label>
+          <select id="cs_assignee" onchange="renderP4()"></select>
+        </div>
+      </div>
       <div class="f-sec">業者情報</div>
       <div class="field">
         <label>会社名<span style="color:#e53935;margin-left:2px">*</span></label>
@@ -2275,6 +2280,26 @@ function collectSettingsSnapshot() {
   };
 }
 
+/* ── CS担当者 UI 構築（1名=自動設定、2名以上=選択肢表示） ── */
+function populateCsAssigneeUI(preferredVal) {
+  var field = document.getElementById('cs-assignee-field');
+  var sel   = document.getElementById('cs_assignee');
+  if (!field || !sel) return;
+  var staff = (getSettings().csStaff || []);
+  var cur   = preferredVal !== undefined ? preferredVal : sel.value;
+  var e = function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  sel.innerHTML = staff.map(function(st) {
+    return '<option value="' + e(st.name) + '"' + (st.name === cur ? ' selected' : '') + '>' + e(st.name) + '</option>';
+  }).join('');
+  if (staff.length <= 1) {
+    field.style.display = 'none';
+    if (staff.length === 1) sel.value = staff[0].name;
+  } else {
+    field.style.display = '';
+    if (!sel.value && staff.length > 0) sel.value = staff[0].name;
+  }
+  if (typeof renderP4 === 'function') renderP4();
+}
 function saveCase() {
   if (!v('company')) { alert('会社名を入力してください'); return; }
   if (!v('assignee')) { alert('担当者を選択してください'); return; }
@@ -2307,7 +2332,7 @@ function saveCase() {
     populatePaymentMethodSelect();
     updatePaymentNoteOptions();
     render();
-    renderP4();
+    populateCsAssigneeUI();
     scalePreview();
     return;
   }
@@ -2342,7 +2367,7 @@ function saveCase() {
   const pnEl = document.getElementById('payment_note');
   if (pnEl && d.payment_note) pnEl.value = d.payment_note;
   render();
-  renderP4();
+  populateCsAssigneeUI(d.cs_assignee || '');
   scalePreview();
 })();
 </script>
@@ -2448,7 +2473,7 @@ function saveCase() {
         var pnEl = document.getElementById('payment_note');
         if (pnEl && d.payment_note) pnEl.value = d.payment_note;
         if (typeof render === 'function') render();
-        if (typeof renderP4 === 'function') renderP4();
+        if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI(d.cs_assignee || ''); else if (typeof renderP4 === 'function') renderP4();
         console.log('[FS] 編集データ読み込み完了:', editId);
       })
       .catch(function (e) { console.error('[FS] 案件読み込みエラー:', e.code, e.message); });
@@ -2585,7 +2610,7 @@ function saveCase() {
             curCs.csStaff = data.csInfo;
             localStorage.setItem('gaiheki_settings', JSON.stringify(curCs));
           } catch(e) {}
-          if (typeof renderP4 === 'function') renderP4();
+          if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI();
         }
         // loanMediaUrl / loanApplicationUrl を設定に反映してリンクを更新
         if (data.loanMediaUrl || data.loanApplicationUrl) {
