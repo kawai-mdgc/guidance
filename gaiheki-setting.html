@@ -566,6 +566,9 @@ let csEditingId = null;
 let csIdCnt = 0;
 const csNewId = () => 'cs_' + (++csIdCnt) + '_' + Date.now();
 
+
+/* ── 電話番号フォーマット（数字のみ保持） ── */
+function fmtPhone(v) { return v.replace(/[^0-9]/g, ''); }
 function csEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function csRenderList() {
@@ -589,18 +592,18 @@ function csRenderList() {
       <div class="field"><label>名前（漢字）</label><input type="text" value="${csEsc(st.name||'')}" oninput="csUpdate('${st.id}','name',this.value)" placeholder="例：飯塚来己"></div>
       <div class="field"><label>フルネーム英語</label><input type="text" value="${csEsc(st.nameEn||'')}" oninput="csUpdate('${st.id}','nameEn',this.value)" placeholder="例：Masafumi Onda"></div>
     </div>
-    <div class="field"><label>肩書き <span class="field-hint" style="display:inline">10〜20文字</span></label><input type="text" value="${csEsc(st.title||'')}" oninput="csUpdate('${st.id}','title',this.value)" placeholder="例：事業部 セールス（10〜20文字）"></div>
-    <div class="field"><label>ミッション <span class="field-hint" style="display:inline">20〜40文字</span></label><textarea rows="2" oninput="csUpdate('${st.id}','mission',this.value)">${csEsc(st.mission||'')}</textarea></div>
+    <div class="field"><label>肩書き</label><input type="text" value="${csEsc(st.title||'')}" oninput="csUpdate('${st.id}','title',this.value)" placeholder="例：事業部 セールス"><span class="field-hint">10〜20文字</span></div>
+    <div class="field"><label>ミッション</label><textarea rows="2" oninput="csUpdate('${st.id}','mission',this.value)">${csEsc(st.mission||'')}</textarea><span class="field-hint">20〜40文字</span></div>
     <div class="field-row">
-      <div class="field"><label>人柄 <span class="field-hint" style="display:inline">20〜40文字</span></label><input type="text" value="${csEsc(st.personality||'')}" oninput="csUpdate('${st.id}','personality',this.value)"></div>
-      <div class="field"><label>趣味 <span class="field-hint" style="display:inline">10〜20文字</span></label><input type="text" value="${csEsc(st.hobby||'')}" oninput="csUpdate('${st.id}','hobby',this.value)"></div>
+      <div class="field"><label>人柄</label><input type="text" value="${csEsc(st.personality||'')}" oninput="csUpdate('${st.id}','personality',this.value)"><span class="field-hint">20〜40文字</span></div>
+      <div class="field"><label>趣味</label><input type="text" value="${csEsc(st.hobby||'')}" oninput="csUpdate('${st.id}','hobby',this.value)"><span class="field-hint">10〜20文字</span></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>対応スピード <span class="field-hint" style="display:inline">10〜20文字</span></label><input type="text" value="${csEsc(st.responseSpeed||'')}" oninput="csUpdate('${st.id}','responseSpeed',this.value)"></div>
-      <div class="field"><label>経歴 <span class="field-hint" style="display:inline">20〜40文字</span></label><input type="text" value="${csEsc(st.career||'')}" oninput="csUpdate('${st.id}','career',this.value)"></div>
+      <div class="field"><label>対応スピード</label><input type="text" value="${csEsc(st.responseSpeed||'')}" oninput="csUpdate('${st.id}','responseSpeed',this.value)"><span class="field-hint">10〜20文字</span></div>
+      <div class="field"><label>経歴</label><input type="text" value="${csEsc(st.career||'')}" oninput="csUpdate('${st.id}','career',this.value)"><span class="field-hint">20〜40文字</span></div>
     </div>
-    <div class="field"><label>一言 <span class="field-hint" style="display:inline">20〜40文字</span></label><textarea rows="2" oninput="csUpdate('${st.id}','oneWord',this.value)">${csEsc(st.oneWord||'')}</textarea></div>
-    <div class="field"><label>電話番号</label><input type="text" value="${csEsc(st.phone||'')}" oninput="this.value=fmtPhone(this.value);csUpdate('${st.id}','phone',this.value)" placeholder="ハイフンなしで入力（10〜13文字）"></div>
+    <div class="field"><label>一言</label><textarea rows="2" oninput="csUpdate('${st.id}','oneWord',this.value)">${csEsc(st.oneWord||'')}</textarea><span class="field-hint">20〜40文字</span></div>
+    <div class="field"><label>電話番号</label><input type="text" value="${csEsc(st.phone||'')}" oninput="csUpdate('${st.id}','phone',this.value)" placeholder="ハイフンなしで入力"><span class="field-hint">10〜13文字</span></div>
     <div class="field-row">
       <div class="field"><label>写真URL</label><input type="text" value="${csEsc(st.photoUrl||'')}" oninput="csUpdate('${st.id}','photoUrl',this.value)" placeholder="https://..."></div>
       <div class="field"><label>LINE QR URL</label><input type="text" value="${csEsc(st.lineQrUrl||'')}" oninput="csUpdate('${st.id}','lineQrUrl',this.value)" placeholder="https://..."></div>
