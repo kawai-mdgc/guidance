@@ -1956,7 +1956,7 @@ function renderP4() {
           <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u2006'+staff.name.substring(2) : staff.name)}</div>
           <div class="p4-name-en">${staff.nameEn ? esc(staff.nameEn) : '<span style="opacity:.45">未設定</span>'}</div>
           ${photoHtml}
-          <div style="font-size:11px;color:#fff;background:#5396E4;margin:8px auto 0;padding:6px 12px;border-radius:999px;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center">${staff.phone ? `<a href="tel:${esc(staff.phone)}" style="color:#fff;text-decoration:none">tel：${esc(fmtPhoneDisplay(staff.phone))}</a>` : 'tel：未設定'}</div>
+          <div style="font-size:11px;color:#1a1a1a;background:#5396E4;margin:8px auto 0;padding:6px 12px;border-radius:999px;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center">${staff.phone ? `<a href="tel:${esc(staff.phone)}" style="color:#1a1a1a;text-decoration:none">tel：${esc(fmtPhoneDisplay(staff.phone))}</a>` : 'tel：未設定'}</div>
         </div>
         <div class="p4-right">
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
