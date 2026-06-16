@@ -192,11 +192,11 @@ a.lb-url:hover { text-decoration: underline; }
 .p4-card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; }
 .p4-top { display: flex; }
 .p4-left { width: 190px; flex-shrink: 0; background: #FBDE36; color: #1a1a1a; padding: 24px 18px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
-.p4-logo { width: 120px; height: 28px; object-fit: contain; margin-bottom: 10px;  }
+.p4-brand-text { font-size: 13px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 10px; opacity: .95; }
 .p4-title { font-size: 10px; opacity: .85; letter-spacing: .04em; line-height: 1.5; }
 .p4-name-ja { font-size: 17px; font-weight: 700; margin-top: 4px; }
 .p4-name-en { font-size: 10px; opacity: .8; letter-spacing: .04em; }
-.p4-photo { width: 78px; height: 78px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,.5); margin-top: 10px; background: rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.p4-photo { width: 102px; height: 102px; border-radius: 50%; object-fit: cover; object-position: top; border: 3px solid rgba(255,255,255,.5); margin-top: 10px; background: rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 36px; }
 .p4-right { flex: 1; padding: 20px 22px; min-width: 0; }
 .p4-mission-label { font-size: 9px; font-weight: 700; letter-spacing: .12em; color: #FBDE36; text-transform: uppercase; margin-bottom: 4px; }
 .p4-mission-text { font-size: 12.5px; font-weight: 700; color: #1a1a1a; margin-bottom: 14px; line-height: 1.55; }
@@ -1939,23 +1939,23 @@ function renderP4() {
     { label:'趣味',      val: staff.hobby },
     { label:'対応スピード', val: staff.responseSpeed },
     { label:'経歴',      val: staff.career },
-  ].filter(g => g.val).map(g => `<div class="p4-grid-item"><div class="p4-grid-label">${esc(g.label)}</div><div class="p4-grid-val">${esc(g.val)}</div></div>`).join('');
+  ].map(g => `<div class="p4-grid-item"><div class="p4-grid-label">${esc(g.label)}</div><div class="p4-grid-val">${g.val ? esc(g.val) : '<span style="color:#bbb">未設定</span>'}</div></div>`).join('');
   const phoneClick = staff.phone ? `onclick="(function(){if(confirm('${esc(staff.phone)}に電話しますか？')){window.location.href='tel:${esc(staff.phone)}'}})()"` : '';
   content.innerHTML = `
   <div class="p4-wrap">
     <div class="p4-card">
       <div class="p4-top">
         <div class="p4-left">
-          <img class="p4-logo" src="fuyouhin-logo.png" alt="不用品回収の窓口" onerror="this.style.display='none'">
+          <div class="p4-brand-text">不用品回収の窓口</div>
           ${staff.title ? `<div class="p4-title">${esc(staff.title)}</div>` : ''}
-          <div class="p4-name-ja">${esc(staff.name)}</div>
+          <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u3000'+staff.name.substring(2) : staff.name)}</div>
           ${staff.nameEn ? `<div class="p4-name-en">${esc(staff.nameEn)}</div>` : ''}
           ${photoHtml}
         </div>
         <div class="p4-right">
-          ${staff.mission ? `<div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${esc(staff.mission)}</div>` : ''}
-          ${gridItems ? `<div class="p4-grid">${gridItems}</div>` : ''}
-          ${staff.oneWord ? `<div class="p4-bubble">${esc(staff.oneWord)}</div>` : ''}
+          <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
+          <div class="p4-grid">${gridItems}</div>
+          <div class="p4-bubble">${staff.oneWord ? esc(staff.oneWord) : '<span style="color:#bbb">未設定</span>'}</div>
         </div>
       </div>
       ${(staff.phone || lineQrSrc) ? `
