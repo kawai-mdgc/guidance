@@ -593,14 +593,14 @@ function csRenderList() {
       <div class="field"><label>フルネーム英語</label><input type="text" value="${csEsc(st.nameEn||'')}" oninput="csUpdate('${st.id}','nameEn',this.value)" placeholder="例：Masafumi Onda"></div>
     </div>
     <div class="field"><label>肩書き</label><input type="text" value="${csEsc(st.title||'')}" oninput="csUpdate('${st.id}','title',this.value)" placeholder="例：事業部 セールス"><span class="field-hint">10〜20文字</span></div>
-    <div class="field"><label>ミッション</label><textarea rows="2" oninput="csUpdate('${st.id}','mission',this.value)">${csEsc(st.mission||'')}</textarea><span class="field-hint">20〜40文字</span></div>
+    <div class="field"><label>ミッション</label><textarea rows="2" maxlength="34" oninput="csUpdate('${st.id}','mission',this.value)">${csEsc(st.mission||'')}</textarea><span class="field-hint">34文字以内</span></div>
     <div class="field-row">
-      <div class="field"><label>人柄</label><input type="text" value="${csEsc(st.personality||'')}" oninput="csUpdate('${st.id}','personality',this.value)"><span class="field-hint">20〜40文字</span></div>
-      <div class="field"><label>趣味</label><input type="text" value="${csEsc(st.hobby||'')}" oninput="csUpdate('${st.id}','hobby',this.value)"><span class="field-hint">10〜20文字</span></div>
+      <div class="field"><label>人柄</label><input type="text" maxlength="36" value="${csEsc(st.personality||'')}" oninput="csUpdate('${st.id}','personality',this.value)"><span class="field-hint">36文字以内</span></div>
+      <div class="field"><label>趣味</label><input type="text" maxlength="36" value="${csEsc(st.hobby||'')}" oninput="csUpdate('${st.id}','hobby',this.value)"><span class="field-hint">36文字以内</span></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>対応スピード</label><input type="text" value="${csEsc(st.responseSpeed||'')}" oninput="csUpdate('${st.id}','responseSpeed',this.value)"><span class="field-hint">10〜20文字</span></div>
-      <div class="field"><label>経歴</label><input type="text" value="${csEsc(st.career||'')}" oninput="csUpdate('${st.id}','career',this.value)"><span class="field-hint">20〜40文字</span></div>
+      <div class="field"><label>対応スピード</label><input type="text" maxlength="36" value="${csEsc(st.responseSpeed||'')}" oninput="csUpdate('${st.id}','responseSpeed',this.value)"><span class="field-hint">36文字以内</span></div>
+      <div class="field"><label>経歴</label><input type="text" maxlength="36" value="${csEsc(st.career||'')}" oninput="csUpdate('${st.id}','career',this.value)"><span class="field-hint">36文字以内</span></div>
     </div>
     <div class="field"><label>一言</label><textarea rows="2" oninput="csUpdate('${st.id}','oneWord',this.value)">${csEsc(st.oneWord||'')}</textarea><span class="field-hint">20〜40文字</span></div>
     <div class="field"><label>電話番号</label><input type="text" value="${csEsc(st.phone||'')}" oninput="csUpdate('${st.id}','phone',this.value)" placeholder="ハイフンなしで入力"></div>
@@ -1069,11 +1069,11 @@ function saveTextSection() {
 function csSectionValidate() {
   var LIMITS = {
     title: { max: 20, label: '肩書き' },
-    mission: { max: 40, label: 'ミッション' },
-    personality: { max: 40, label: '人柄' },
-    hobby: { max: 20, label: '趣味' },
-    career: { max: 40, label: '経歴' },
-    responseSpeed: { max: 20, label: '対応スピード' },
+    mission: { max: 34, label: 'ミッション' },
+    personality: { max: 36, label: '人柄' },
+    hobby: { max: 36, label: '趣味' },
+    career: { max: 36, label: '経歴' },
+    responseSpeed: { max: 36, label: '対応スピード' },
     oneWord: { max: 40, label: '一言' },
   };
   var errors = [];
