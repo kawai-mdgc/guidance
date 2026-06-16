@@ -343,7 +343,8 @@ a.header-logo:hover { opacity: 0.8; }
       <div class="section-desc">各プランの料金・手数料・件数を設定します。</div>
       <div class="f-sec">プラン形態設定</div>
       <div id="plan-tmpl-list"></div>
-      <button class="btn-cs-add" onclick="ptAdd()">＋ プラン形態を追加する</button>
+      <button class="btn-cs-add" onclick="ptAdd()">＋ 新規形態を追加する</button>
+      <button class="btn-cs-add" onclick="ptAddCopy()">＋ 既存形態から追加する</button>
       <div class="f-sec" style="margin-top:20px">プラン詳細設定</div>
       <div id="plan-detail-list"></div>
       <button class="btn-cs-add" onclick="pdAdd()">＋ プラン詳細を追加する</button>
@@ -1051,6 +1052,35 @@ function _piCard(tmplId,item){
 function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');}
 
 function ptAdd(){planTemplates.push({id:_ptId(),name:'',types:[],items:[]});checkDirty('plan');ptRenderAll();}
+function ptAddCopy(){
+  if(!planTemplates.length){alert('コピー元になるプラン形態がありません。まず新規追加してください。');return;}
+  if(document.getElementById('pt-copy-sel'))return;
+  const btn=document.querySelector('button[onclick="ptAddCopy()"]');if(!btn)return;
+  const opts=planTemplates.map(t=>`<option value="${t.id}">${escHtml(t.name||'（名前未設定）')}</option>`).join('');
+  const form=document.createElement('div');
+  form.id='pt-copy-sel';
+  form.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px';
+  form.innerHTML=`<select id="pt-copy-pick" style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit"><option value="">コピー元を選択...</option>${opts}</select><button class="btn-row-save" onclick="ptConfirmCopy()">コピーして追加</button><button class="btn-del" onclick="document.getElementById('pt-copy-sel')?.remove()">キャンセル</button>`;
+  btn.insertAdjacentElement('afterend',form);
+}
+function ptConfirmCopy(){
+  const srcId=document.getElementById('pt-copy-pick')?.value;
+  if(!srcId){alert('コピー元を選択してください');return;}
+  const src=planTemplates.find(t=>t.id===srcId);if(!src)return;
+  // Deep copy with new IDs
+  const newId=_ptId();
+  const newTmpl={
+    id:newId,
+    name:src.name+' (コピー)',
+    types:[...src.types],
+    items:src.items.map(item=>({id:_piId(),label:item.label,valueType:item.valueType,choices:[...(item.choices||[])]}))
+  };
+  planTemplates.push(newTmpl);checkDirty('plan');
+  document.getElementById('pt-copy-sel')?.remove();
+  ptRenderAll();
+  document.getElementById('ptcard-'+newId)?.scrollIntoView({behavior:'smooth'});
+}
+
 function ptDelete(id){if(!confirm('このプラン形態を削除しますか？'))return;planTemplates=planTemplates.filter(t=>t.id!==id);checkDirty('plan');ptRenderAll();}
 function ptUpdateName(id,v){const t=_ptGet(id);if(t){t.name=v;checkDirty('plan');}}
 function ptTypeAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.types.push('');checkDirty('plan');_ptReRenderTypes(tmplId);}
