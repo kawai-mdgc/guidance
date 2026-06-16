@@ -208,7 +208,7 @@ a.lb-url:hover { text-decoration: underline; }
 .p4-bubble::before { content: ''; position: absolute; top: -7px; left: 18px; border: 7px solid transparent; border-bottom-color: #f0f0f0; border-top: none; }
 .p4-bottom { display: flex; align-items: center; gap: 14px; padding: 12px 22px; border-top: 1px solid #eee; }
 .p4-phone { font-size: 11.5px; color: var(--label); flex: 1; cursor: pointer; }
-.p4-line-wrap { background: #06C755; color: #fff; border-radius: 6px; padding: 6px 10px; display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; font-size: 10px; line-height: 1.4; flex-shrink: 0; }
+.p4-line-wrap { background: #06C755; color: #fff; border-radius: 6px; padding: 6px 30px; display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; font-size: 10px; line-height: 1.4; flex-shrink: 0; width: fit-content; }
 .p4-lineqr { width: 42px; height: 42px; object-fit: contain; border: 2px solid #fff; border-radius: 3px; flex-shrink: 0; }
 
 /* ── 共有・閲覧モード ── */
@@ -1961,7 +1961,7 @@ function renderP4() {
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
           <div class="p4-grid">${gridItems}</div>
           <div class="p4-bubble">${staff.oneWord ? esc(staff.oneWord) : '<span style="color:#bbb">未設定</span>'}</div>
-          ${lineQrSrc ? `<div class="p4-line-wrap" style="margin-top:10px"><span style="flex-shrink:0;text-align:center;line-height:1.4">LINE<br>で<br>相談</span><img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'"></div>` : ''}
+          ${lineQrSrc ? `<div class="p4-line-wrap" style="margin-top:10px"><img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'"><span style="flex-shrink:0;white-space:nowrap;text-align:left;line-height:1.4">LINEで<br>相談</span></div>` : ''}
         </div>
       </div>
       <div class="p4-bottom">
