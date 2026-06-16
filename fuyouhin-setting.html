@@ -369,6 +369,12 @@ a.header-logo:hover { opacity: 0.8; }
         </div>
 
       </div>
+      <div style="margin-top:28px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">従量プラン</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">従量課金型プランを管理します。</div>
+        <div id="vp-list-in-plan"></div>
+        <button class="btn-cs-add" onclick="vpAdd()">＋ 従量プランを追加</button>
+      </div>
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-plan">未保存の変更があります</span>
         <button id="btn-save-plan" class="btn-save" onclick="savePlanSection()">保存</button>
@@ -626,6 +632,7 @@ function csRenderList() {
   </div>
 </div>`;
   }).join('');
+  lists.forEach(l => l.innerHTML = html);
 }
 
 function csToggleEdit(id) {
@@ -1060,6 +1067,15 @@ function savePlanSection() {
     clearDirty('plan');
     saveSectionData('plans', { plans });
     snapshotSection('plan');
+  // 従量プランも保存
+    try {
+      const existingVp = JSON.parse(localStorage.getItem('fuyouhin_settings') || '{}');
+      existingVp.volumePlans = JSON.parse(JSON.stringify(volumePlans));
+      localStorage.setItem('fuyouhin_settings', JSON.stringify(existingVp));
+      firebase.firestore().collection('settings').doc('fuyouhin').set(
+        { volumePlans: JSON.parse(JSON.stringify(volumePlans)) }, { merge: true }
+      );
+    } catch(fe) { console.warn('VP Firestore save:', fe); }
   } catch(e) { console.error('savePlanSection エラー:', e); }
 }
 
@@ -1119,9 +1135,11 @@ let vpIdCnt = 0;
 const vpNewId = () => 'vp_' + (++vpIdCnt) + '_' + Date.now();
 
 function vpRenderList() {
-  const list = document.getElementById('vp-list');
-  if (!list) return;
-  list.innerHTML = volumePlans.map(vp => {
+  const ids = ['vp-list', 'vp-list-in-plan'];
+  const lists = ids.map(id => document.getElementById(id)).filter(Boolean);
+  if (!lists.length) return;
+  const list = lists[0]; // keep compat
+  const html = volumePlans.map(vp => {
     const isOpen = vpEditingId === vp.id;
     return `<div class="cs-staff-item" id="vpitem-${vp.id}">
   <div class="cs-staff-view">
