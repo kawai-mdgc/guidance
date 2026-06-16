@@ -2047,13 +2047,15 @@ function populatePaymentMethodSelect() {
 function updatePlanDefaults() {
   const plan = document.getElementById('plan').value;
   const s = getSettings();
-  // planDetails対応
-  if (s.planDetails && s.planTemplates) {
-    const det = s.planDetails.find(d => d.id === plan);
+  // planDetails対応 (format: detId:type)
+  if (s.planDetails && s.planTemplates && plan.includes(':')) {
+    const [detId, type] = plan.split(':');
+    const det = s.planDetails.find(d => d.id === detId);
     if (det) {
       const tmpl = s.planTemplates.find(t => t.id === det.templateId);
-      if (tmpl) {
-        const vals = tmpl.items.map(item => (det.values||{})[item.id] || '');
+      if (tmpl && type) {
+        const tv = (det.values||{})[type] || {};
+        const vals = tmpl.items.map(item => tv[item.id] || '');
         document.getElementById('monthly_fee').value  = vals[0] || '';
         document.getElementById('commission').value   = vals[1] || '';
         document.getElementById('guarantee').value    = vals[2] || '';
@@ -2108,23 +2110,17 @@ function populatePlanDetails() {
   const s = getSettings();
   const dets = s.planDetails, tmpls = s.planTemplates;
   if (!dets || !dets.length) return;
-  const cur = sel.value || 'basic';
+  const cur = sel.value;
   sel.innerHTML = '';
-  // Group by template
-  const byTmpl = {};
-  dets.forEach(d => {
-    const t = tmpls && tmpls.find(t => t.id === d.templateId);
-    const nm = t ? t.name : '未分類';
-    if (!byTmpl[nm]) byTmpl[nm] = [];
-    byTmpl[nm].push(d);
-  });
-  Object.entries(byTmpl).forEach(([name, list]) => {
+  dets.forEach(det => {
+    const tmpl = tmpls && tmpls.find(t => t.id === det.templateId);
     const grp = document.createElement('optgroup');
-    grp.label = name;
-    list.forEach(d => {
+    grp.label = tmpl ? tmpl.name : '未分類';
+    const types = tmpl ? tmpl.types : Object.keys(det.values || {});
+    types.forEach(tp => {
       const o = document.createElement('option');
-      o.value = d.id;
-      o.textContent = d.type || '（種類未設定）';
+      o.value = det.id + ':' + tp;
+      o.textContent = tp;
       grp.appendChild(o);
     });
     sel.appendChild(grp);
@@ -2247,12 +2243,16 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 function render() {
   const planLabel = {light:'LIGHT（ライト）', basic:'BASIC（ベーシック）', pro:'PRO（プロ）'};
-  // planDetails からプラン表示名を動的追加
+  // planDetails からプラン表示名を動的追加 (format: detId:type)
   {
     const s2 = getSettings();
     if (s2.planDetails && s2.planTemplates) {
-      s2.planDetails.forEach(d => {
-        if (!planLabel[d.id]) planLabel[d.id] = d.type || d.id;
+      s2.planDetails.forEach(det => {
+        const tmpl2 = s2.planTemplates.find(t => t.id === det.templateId);
+        Object.keys(det.values || {}).forEach(tp => {
+          const key = det.id + ':' + tp;
+          if (!planLabel[key]) planLabel[key] = tp + (tmpl2 ? '（' + tmpl2.name + '）' : '');
+        });
       });
     }
   }
@@ -2283,7 +2283,15 @@ function render() {
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
   if (!v('plan').startsWith('vp_')) {
-    setVal('p-period', (s.plans[v('plan')] || s.plans.basic).contractPeriod);
+    {
+      let periodVal = (s.plans?.[v('plan')] || s.plans?.basic || {}).contractPeriod || '';
+      if (s.planDetails && s.planTemplates && v('plan').includes(':')) {
+        const [dId,dTp]=v('plan').split(':');
+        const dDet=s.planDetails.find(d=>d.id===dId);
+        if(dDet){const dTmpl=s.planTemplates.find(t=>t.id===dDet.templateId);if(dTmpl){const dtv=(dDet.values||{})[dTp]||{};periodVal=dtv[dTmpl.items[4]?.id||'period']||'';}}
+      }
+      setVal('p-period', periodVal);
+    }
   }
   setVal('p-monthly',    v('monthly_est'));
   setVal('p-half',       v('half_est'));

@@ -345,7 +345,7 @@ a.header-logo:hover { opacity: 0.8; }
       <div id="plan-tmpl-list"></div>
       <button class="btn-cs-add" onclick="ptAdd()">＋ プラン形態を追加する</button>
       <div class="f-sec" style="margin-top:20px">プラン詳細設定</div>
-      <div id="plan-detail-list" class="plan-grid" style="align-items:start"></div>
+      <div id="plan-detail-list"></div>
       <button class="btn-cs-add" onclick="pdAdd()">＋ プラン詳細を追加する</button>
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-plan">未保存の変更があります</span>
@@ -1002,9 +1002,11 @@ const DEFAULT_PLAN_TEMPLATES = [{
   ]
 }];
 const DEFAULT_PLAN_DETAILS = [
-  {id:'det_light', templateId:'monthly', type:'ライト',    values:{fee:'8万円', comm:'10%', guar:'なし',  monthly:'25〜35件', period:'なし',    half:'—'}},
-  {id:'det_basic', templateId:'monthly', type:'ベーシック', values:{fee:'10万円',comm:'5%',  guar:'25件',  monthly:'40〜55件', period:'6ヶ月契約',half:'40〜55件'}},
-  {id:'det_pro',   templateId:'monthly', type:'プロ',      values:{fee:'15万円',comm:'3%',  guar:'40件',  monthly:'65〜80件', period:'6ヶ月契約',half:'65〜80件'}},
+  {id:'det_monthly', templateId:'monthly', values:{
+    'ライト':    {fee:'8万円', comm:'10%', guar:'なし', monthly:'25〜35件', period:'なし',    half:'—'},
+    'ベーシック': {fee:'10万円',comm:'5%',  guar:'25件', monthly:'40〜55件', period:'6ヶ月契約',half:'40〜55件'},
+    'プロ':      {fee:'15万円',comm:'3%',  guar:'40件', monthly:'65〜80件', period:'6ヶ月契約',half:'65〜80件'},
+  }},
 ];
 
 function _ptGet(id){return planTemplates.find(t=>t.id===id);}
@@ -1050,36 +1052,63 @@ function ptChoiceAdd(tmplId,itemId){const i=_piGet(tmplId,itemId);if(!i)return;i
 function ptChoiceDelete(tmplId,itemId,idx){const i=_piGet(tmplId,itemId);if(!i||!i.choices)return;i.choices.splice(idx,1);checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
 function ptChoiceUpdate(tmplId,itemId,idx,v){const i=_piGet(tmplId,itemId);if(i&&i.choices)i.choices[idx]=v;}
 
-/* ── Detail render ── */
+/* ── Detail render (group-based) ── */
 function pdRenderAll(){
   const el=document.getElementById('plan-detail-list');if(!el)return;
-  el.innerHTML=planDetails.map(d=>_pdCard(d)).join('')||'<div style="color:var(--muted);font-size:12px;padding:6px 0">まだありません</div>';
+  el.innerHTML=planDetails.map(d=>_pdGroup(d)).join('')||'<div style="color:var(--muted);font-size:12px;padding:6px 0">まだありません</div>';
 }
-function _pdCard(det){
+function _pdGroup(det){
   const tmpl=planTemplates.find(t=>t.id===det.templateId);
-  const typeOpts=tmpl?tmpl.types.map(tp=>`<option value="${escHtml(tp)}" ${det.type===tp?'selected':''}>${escHtml(tp)}</option>`).join(''):'';
-  const tmplSel=`<div class="field"><label>プラン形態</label><select onchange="pdSetTemplate('${det.id}',this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit"><option value="">選択してください</option>${planTemplates.map(t=>`<option value="${t.id}" ${det.templateId===t.id?'selected':''}>${escHtml(t.name)}</option>`).join('')}</select></div>`;
-  const typeSel=tmpl?`<div class="field"><label>プラン種類</label><select onchange="pdSetType('${det.id}',this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit"><option value="">選択してください</option>${typeOpts}</select></div>`:'';
-  const itemsHtml=tmpl?tmpl.items.map(item=>{
-    const val=(det.values||{})[item.id]||'';
+  if(!tmpl)return`<div class="plan-tmpl-card" id="pdgroup-${det.id}"><div class="plan-tmpl-head"><div style="flex:1;font-size:12px;color:#e53935">プラン形態が見つかりません</div><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button></div></div>`;
+  const cards=tmpl.types.map(tp=>_pdTypeCard(det,tmpl,tp)).join('');
+  return `<div id="pdgroup-${det.id}" style="margin-bottom:20px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+    <span style="font-size:13px;font-weight:700;color:var(--main)">プラン形態：${escHtml(tmpl.name)}</span>
+    <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button>
+  </div>
+  <div class="plan-grid" style="align-items:start">${cards}</div>
+</div>`;
+}
+function _pdTypeCard(det,tmpl,type){
+  const tv=(det.values||{})[type]||{};
+  const itemsHtml=tmpl.items.map(item=>{
+    const val=tv[item.id]||'';
     if(item.valueType==='multiple'&&item.choices&&item.choices.length){
-      const radios=item.choices.map(ch=>`<label style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:12px"><input type="radio" name="pdv-${det.id}-${item.id}" value="${escHtml(ch)}" ${val===ch?'checked':''} onchange="pdSetValue('${det.id}','${item.id}',this.value)"> ${escHtml(ch)}</label>`).join('');
-      return `<div class="field"><label>${escHtml(item.label)}</label><div style="padding-top:4px">${radios}</div></div>`;
+      const radios=item.choices.map(ch=>`<label style="display:inline-flex;align-items:center;gap:3px;margin-right:8px;font-size:11px"><input type="radio" name="pdv-${det.id}-${escHtml(type)}-${item.id}" value="${escHtml(ch)}" ${val===ch?'checked':''} onchange="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)"> ${escHtml(ch)}</label>`).join('');
+      return `<div class="field"><label>${escHtml(item.label)}</label><div style="padding-top:3px">${radios}</div></div>`;
     }
-    return `<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" oninput="pdSetValue('${det.id}','${item.id}',this.value)" placeholder="値を入力"></div>`;
-  }).join(''):'';
-  return `<div class="plan-tmpl-card" id="pdcard-${det.id}"><div class="plan-tmpl-head"><div style="flex:1;font-size:13px;font-weight:700;color:var(--main)">${escHtml(tmpl?tmpl.name:'（形態を選択）')}</div><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button></div>${tmplSel}${typeSel}${itemsHtml}</div>`;
+    return `<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" oninput="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)" placeholder="値を入力"></div>`;
+  }).join('');
+  return `<div class="plan-card" id="pdcard-${det.id}-${escHtml(type)}"><div class="plan-card-head">${escHtml(type)}</div>${itemsHtml}</div>`;
 }
 function pdAdd(){
-  const det={id:_pdId(),templateId:planTemplates.length===1?planTemplates[0].id:'',type:'',values:{}};
-  planDetails.push(det);checkDirty('plan');pdRenderAll();
-  document.getElementById('pdcard-'+det.id)?.scrollIntoView({behavior:'smooth'});
+  if(!planTemplates.length){alert('先にプラン形態を追加してください。');return;}
+  if(document.getElementById('pd-add-sel'))return;
+  const btn=document.querySelector('button[onclick="pdAdd()"]');if(!btn)return;
+  const opts=planTemplates.map(t=>`<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+  const form=document.createElement('div');
+  form.id='pd-add-sel';
+  form.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px';
+  form.innerHTML=`<select id="pd-tmpl-pick" style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit"><option value="">プラン形態を選択...</option>${opts}</select><button class="btn-row-save" onclick="pdConfirmAdd()">追加</button><button class="btn-del" onclick="document.getElementById('pd-add-sel')?.remove()">キャンセル</button>`;
+  btn.insertAdjacentElement('afterend',form);
 }
-function pdDelete(id){if(!confirm('このプラン詳細を削除しますか？'))return;planDetails=planDetails.filter(d=>d.id!==id);checkDirty('plan');pdRenderAll();}
-function pdSetTemplate(id,tmplId){const d=_pdGet(id);if(!d)return;d.templateId=tmplId;d.values={};const t=planTemplates.find(t=>t.id===tmplId);d.type=t&&t.types.length?t.types[0]:'';checkDirty('plan');const el=document.getElementById('pdcard-'+id);if(el)el.outerHTML=_pdCard(d);}
-function pdSetType(id,type){const d=_pdGet(id);if(d){d.type=type;checkDirty('plan');}}
-function pdSetValue(id,itemId,val){const d=_pdGet(id);if(d){d.values=d.values||{};d.values[itemId]=val;checkDirty('plan');}}
-
+function pdConfirmAdd(){
+  const tmplId=document.getElementById('pd-tmpl-pick')?.value;
+  if(!tmplId){alert('プラン形態を選択してください');return;}
+  const tmpl=planTemplates.find(t=>t.id===tmplId);if(!tmpl)return;
+  const values={};
+  tmpl.types.forEach(tp=>{values[tp]={};});
+  const det={id:_pdId(),templateId:tmpl.id,values};
+  planDetails.push(det);checkDirty('plan');
+  document.getElementById('pd-add-sel')?.remove();
+  pdRenderAll();
+  document.getElementById('pdgroup-'+det.id)?.scrollIntoView({behavior:'smooth'});
+}
+function pdDelete(id){if(!confirm('このプラン詳細グループを削除しますか？'))return;planDetails=planDetails.filter(d=>d.id!==id);checkDirty('plan');pdRenderAll();}
+function pdSetValue(id,type,itemId,val){
+  const d=_pdGet(id);if(!d)return;
+  d.values=d.values||{};d.values[type]=d.values[type]||{};d.values[type][itemId]=val;checkDirty('plan');
+}
 function savePlanSection() {
   try {
     clearDirty('plan');
