@@ -315,7 +315,6 @@ a.header-logo:hover { opacity: 0.8; }
     <button class="sidenav-item" onclick="showSection('cs', this)">👤 CS担当者情報</button>
     <button class="sidenav-item" onclick="showSection('payment', this)">💳 決済手段</button>
     <button class="sidenav-item" onclick="showSection('area', this)">📍 対応エリア設定</button>
-    <button class="sidenav-item" onclick="showSection('vp', this)">📋 従量プラン</button>
     <select id="section-select" class="section-select" onchange="showSectionById(this.value)">
       <option value="plan">📋 プラン設定</option>
       <option value="staff">👤 担当者設定</option>
@@ -324,7 +323,6 @@ a.header-logo:hover { opacity: 0.8; }
       <option value="cs">👤 CS担当者情報</option>
       <option value="payment">💳 決済手段</option>
       <option value="area">📍 対応エリア設定</option>
-      <option value="vp">📋 従量プラン</option>
     </select>
   </div>
 
@@ -508,18 +506,6 @@ a.header-logo:hover { opacity: 0.8; }
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-url">未保存の変更があります</span>
         <button id="btn-save-url" class="btn-save" onclick="saveUrlSection()">保存</button>
-      </div>
-    </div>
-
-    <!-- ── 従量プラン ── -->
-    <div class="section" id="sec-vp">
-      <div class="section-title">従量プラン</div>
-      <div class="section-desc">従量課金型プランを管理します。ガイダンス資料のプラン選択に表示されます。</div>
-      <div id="vp-list"></div>
-      <button class="btn-cs-add" onclick="vpAdd()">＋ プランを追加</button>
-      <div class="save-btn-wrap">
-        <span class="dirty-badge" id="dirty-vp">未保存の変更があります</span>
-        <button id="btn-save-vp" class="btn-save" onclick="saveVpSection()">保存</button>
       </div>
     </div>
 
@@ -834,7 +820,7 @@ function removeStaff(i) {
 
 
 /* ── 未保存変更管理 ── */
-const dirty = { plan:false, staff:false, text:false, cs:false, payment:false, url:false, area:false, vp:false };
+const dirty = { plan:false, staff:false, text:false, cs:false, payment:false, url:false, area:false };
 
 function setDirty(sec) {
   dirty[sec] = true;
@@ -902,9 +888,6 @@ function snapshotSection(sec) {
       case 'area':
         originalData.area = JSON.parse(JSON.stringify(amgrData));
         break;
-      case 'vp':
-        originalData.vp = JSON.parse(JSON.stringify(volumePlans));
-        break;
     }
   } catch(e) { console.error('snapshotSection error:', sec, e); }
 }
@@ -954,10 +937,6 @@ function restoreSection(sec) {
         amgrData = JSON.parse(JSON.stringify(d));
         amgrRenderList();
         break;
-      case 'vp':
-        volumePlans = JSON.parse(JSON.stringify(d));
-        vpRenderList();
-        break;
     }
   } catch(e) { console.error('restoreSection error:', sec, e); }
 }
@@ -1004,8 +983,6 @@ function gatherCurrent(sec) {
         };
       case 'area':
         return JSON.parse(JSON.stringify(amgrData));
-      case 'vp':
-        return JSON.parse(JSON.stringify(volumePlans));
     }
   } catch(e) { return null; }
   return null;
@@ -1109,97 +1086,6 @@ function csSectionValidate() {
     });
   });
   return errors;
-}
-
-/* ── 従量プラン管理 ── */
-let volumePlans = [];
-let vpEditingId = null;
-let vpIdCnt = 0;
-const vpNewId = () => 'vp_' + (++vpIdCnt) + '_' + Date.now();
-
-function vpRenderList() {
-  const list = document.getElementById('vp-list');
-  if (!list) return;
-  list.innerHTML = volumePlans.map(vp => {
-    const isOpen = vpEditingId === vp.id;
-    return `<div class="cs-staff-item" id="vpitem-${vp.id}">
-  <div class="cs-staff-view">
-    <div style="flex:1">
-      <div class="cs-staff-view-name">${escHtml(vp.planName || '（プラン名未設定）')}</div>
-      <div class="cs-staff-view-sub">紹介手数料：${vp.referralFee || '—'} / 成約手数料：${vp.achievementFee || '—'}</div>
-    </div>
-    <button class="btn-bact-s" onclick="vpToggleEdit('${vp.id}')">${isOpen ? '閉じる' : '編集'}</button>
-    <button class="btn-bact-s" onclick="vpDelete('${vp.id}')" style="margin-left:4px">🗑️</button>
-  </div>
-  <div class="cs-staff-edit ${isOpen ? 'open' : ''}">
-    <div class="field"><label>プラン名</label>
-      <input type="text" value="${escHtml(vp.planName||'')}" oninput="vpUpdate('${vp.id}','planName',this.value)" placeholder="例：従量プランA">
-    </div>
-    <div class="field-row">
-      <div class="field"><label>紹介手数料</label><input type="text" value="${csEsc(String(vp.referralFee||''))}" oninput="vpUpdate('${vp.id}','referralFee',this.value)" placeholder="例：15,000円"></div>
-      <div class="field"><label>成約手数料</label><input type="text" value="${csEsc(String(vp.achievementFee||''))}" oninput="vpUpdate('${vp.id}','achievementFee',this.value)" placeholder="例：10%"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>紹介件数想定（月間）</label>
-        <input type="text" value="${escHtml(vp.monthlyEstimate||'')}" oninput="vpUpdate('${vp.id}','monthlyEstimate',this.value)" placeholder="例：10〜20件">
-      </div>
-      <div class="field"><label>日上限件数</label>
-        <input type="text" value="${escHtml(vp.dailyLimit||'')}" oninput="vpUpdate('${vp.id}','dailyLimit',this.value)" placeholder="例：3件">
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>月上限件数</label>
-        <input type="text" value="${escHtml(vp.monthlyLimit||'')}" oninput="vpUpdate('${vp.id}','monthlyLimit',this.value)" placeholder="例：30件">
-      </div>
-      <div class="field"><label>月上限予算</label>
-        <input type="text" value="${escHtml(vp.monthlyBudget||'')}" oninput="vpUpdate('${vp.id}','monthlyBudget',this.value)" placeholder="例：50万円">
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:var(--bg);border-radius:4px">
-      ※契約期間：フリー　月額費用：0円　契約期間（最低）：6ヶ月（固定）
-    </div>
-  </div>
-</div>`;
-  }).join('');
-}
-
-function vpToggleEdit(id) {
-  vpEditingId = (vpEditingId === id) ? null : id;
-  vpRenderList();
-}
-function vpUpdate(id, field, value) {
-  const vp = volumePlans.find(x => x.id === id);
-  if (vp) { vp[field] = value; checkDirty('vp'); }
-}
-function vpDelete(id) {
-  if (!confirm('このプランを削除しますか？')) return;
-  volumePlans = volumePlans.filter(x => x.id !== id);
-  if (vpEditingId === id) vpEditingId = null;
-  vpRenderList(); checkDirty('vp');
-}
-function vpAdd() {
-  const id = vpNewId();
-  volumePlans.push({ id, planName: '', referralFee: '', achievementFee: '', monthlyEstimate: '', dailyLimit: '', monthlyLimit: '', monthlyBudget: '' });
-  checkDirty('vp');
-  vpEditingId = id;
-  vpRenderList();
-  document.getElementById('vpitem-' + id)?.scrollIntoView({ behavior: 'smooth' });
-}
-function saveVpSection() {
-  try {
-    clearDirty('vp');
-    const existing = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
-    existing.volumePlans = JSON.parse(JSON.stringify(volumePlans));
-    localStorage.setItem('gaiheki_settings', JSON.stringify(existing));
-    snapshotSection('vp');
-    try {
-      firebase.firestore().collection('settings').doc('gaiheki').set(
-        { volumePlans: JSON.parse(JSON.stringify(volumePlans)) }, { merge: true }
-      );
-    } catch(fe) { console.warn('Firestore volumePlans save:', fe); }
-    const t = document.getElementById('toast');
-    if (t) { t.textContent = '保存しました'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
-  } catch(e) { console.error('saveVpSection:', e); }
 }
 
 function saveCsSection() {
@@ -1578,12 +1464,6 @@ function escHtml(s) {
     csStaff = raw.csStaff;
   }
   csRenderList();
-
-  // 従量プラン: localStorageから読み込み
-  const rawVp = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
-  volumePlans = rawVp.volumePlans || [];
-  vpRenderList();
-
   // 決済手段: localStorageにデータがなければデフォルトを強制書き込み
   const raw2 = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
   if (!raw2.paymentConfig || !raw2.paymentConfig.length) {
@@ -1597,7 +1477,7 @@ function escHtml(s) {
   amgrLoad();
 
   // ── 各セクションの初期状態をスナップショット ──
-  ['plan','staff','text','cs','payment','url','area','vp'].forEach(snapshotSection);
+  ['plan','staff','text','cs','payment','url','area'].forEach(snapshotSection);
   // ── 未保存変更: セクション別 input イベント委任 ──
   ['sec-plan','sec-text','sec-url'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => {
