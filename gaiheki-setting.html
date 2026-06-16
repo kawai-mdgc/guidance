@@ -1032,8 +1032,8 @@ function _ptCard(t){
   const itemsHtml=t.items.map(item=>_piCard(t.id,item)).join('');
   const dn=t.name||'（名前未設定）';
   return `<div class="plan-tmpl-card" id="ptcard-${t.id}">
-  <div class="plan-tmpl-head" style="background:#ffffff;border-radius:4px;padding:8px 12px">
-    <span id="hname-pt-${t.id}" style="flex:1;font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(dn)}</span>
+  <div class="plan-tmpl-head" style="background:#ffffff;border:1px solid var(--border);border-radius:6px;padding:10px 14px">
+    <span id="hname-pt-${t.id}" style="flex:1;font-size:13px;font-weight:700;color:var(--main)">${escHtml(dn)}</span>
     <button class="btn-edit" onclick="toggleCollapse('pt-${t.id}')">編集</button>
     <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="ptDelete('${t.id}')">削除</button>
   </div>
