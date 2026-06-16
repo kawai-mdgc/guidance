@@ -196,7 +196,7 @@ a.lb-url:hover { text-decoration: underline; }
 .p4-title { font-size: 10px; opacity: .85; letter-spacing: .04em; line-height: 1.5; }
 .p4-name-ja { font-size: 17px; font-weight: 700; margin-top: 4px; margin-bottom: 0; }
 .p4-name-en { font-size: 10px; opacity: .8; letter-spacing: .04em; margin-bottom: 4px; }
-.p4-photo { width: 102px; height: 102px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; border: 3px solid rgba(255,255,255,.5); margin-top: 4px; background: rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.p4-photo { width: calc(100% + 36px); margin-left: -18px; margin-right: -18px; aspect-ratio: 1 / 1; object-fit: cover; object-position: top center; margin-top: 8px; display: block; flex-shrink: 0; }
 .p4-right { flex: 1; padding: 20px 22px; min-width: 0; display: flex; flex-direction: column; }
 .p4-mission-label { font-size: 9px; font-weight: 700; letter-spacing: .12em; color: #2788E7; text-transform: uppercase; margin-bottom: 4px; }
 .p4-mission-text { font-size: 12.5px; font-weight: 700; color: #1a1a1a; margin-bottom: 14px; line-height: 1.55; }
@@ -1938,7 +1938,7 @@ function renderP4() {
   const lineQrSrc  = staff.lineQrUrl  || lineQrMap[staff.name]  || '';
   const photoHtml = photoSrc
     ? `<img class="p4-photo" src="${esc(photoSrc)}" alt="${esc(staff.name)}" onerror="this.textContent='👤'">`
-    : `<div class="p4-photo">👤</div>`;
+    : `<div class="p4-photo" style="display:flex;align-items:center;justify-content:center;font-size:48px;background:rgba(255,255,255,.15)">👤</div>`;
   const gridItems = [
     { label:'人柄',      val: staff.personality },
     { label:'趣味',      val: staff.hobby },
@@ -1956,6 +1956,7 @@ function renderP4() {
           <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u3000'+staff.name.substring(2) : staff.name)}</div>
           ${staff.nameEn ? `<div class="p4-name-en">${esc(staff.nameEn)}</div>` : ''}
           ${photoHtml}
+          <div style="font-size:11px;color:rgba(255,255,255,.85);margin-top:8px">${staff.phone ? 'tel：' + esc(fmtPhoneDisplay(staff.phone)) : ''}</div>
         </div>
         <div class="p4-right">
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
@@ -1963,9 +1964,6 @@ function renderP4() {
           <div class="p4-bubble">${staff.oneWord ? esc(staff.oneWord) : '<span style="color:#bbb">未設定</span>'}</div>
           ${lineQrSrc ? `<div class="p4-line-wrap" style="margin-top:10px"><img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'"><span style="color:#fff;font-weight:700;line-height:1.5;white-space:nowrap">LINEでお気軽に<br>ご相談ください</span></div>` : ''}
         </div>
-      </div>
-      <div class="p4-bottom">
-        <div class="p4-phone" ${staff.phone ? phoneClick : ''}>📞 ${staff.phone ? esc(fmtPhoneDisplay(staff.phone)) : '<span style="color:#bbb">未設定</span>'}</div>
       </div>
     </div>
   </div>`;
