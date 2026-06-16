@@ -1961,11 +1961,11 @@ function renderP4() {
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
           <div class="p4-grid">${gridItems}</div>
           <div class="p4-bubble">${staff.oneWord ? esc(staff.oneWord) : '<span style="color:#bbb">未設定</span>'}</div>
+          ${lineQrSrc ? `<div class="p4-line-wrap" style="margin-top:10px"><span style="flex-shrink:0;text-align:center;line-height:1.4">LINE<br>で<br>相談</span><img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'"></div>` : ''}
         </div>
       </div>
       <div class="p4-bottom">
         <div class="p4-phone" ${staff.phone ? phoneClick : ''}>📞 ${staff.phone ? esc(fmtPhoneDisplay(staff.phone)) : '<span style="color:#bbb">未設定</span>'}</div>
-        ${lineQrSrc ? `<div class="p4-line-wrap"><span style="flex-shrink:0;text-align:center;line-height:1.4">LINE<br>で<br>相談</span><img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'"></div>` : ''}
       </div>
     </div>
   </div>`;
