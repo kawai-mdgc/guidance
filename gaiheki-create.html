@@ -493,12 +493,27 @@ a.lb-url:hover { text-decoration: underline; }
         <td class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td>
         <td class="v" id="p-half">—</td>
       </tr>
-      <tr>
+      <tr id="p1-guarantee-row">
         <td class="k">最低保証</td>
         <td class="v" colspan="3"><span id="p-guarantee">—</span><span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td>
       </tr>
 
 
+      <!-- 従量プラン専用行 -->
+      <tr id="p1-vp-referral-row" style="display:none">
+        <td class="k">紹介手数料</td>
+        <td class="v" colspan="3" id="p-referral-fee">—</td>
+      </tr>
+      <tr id="p1-vp-limits-row" style="display:none">
+        <td class="k" style="white-space:nowrap">日上限件数</td>
+        <td class="v" id="p-daily-limit">—</td>
+        <td class="k" style="white-space:nowrap">月上限件数</td>
+        <td class="v" id="p-monthly-limit">—</td>
+      </tr>
+      <tr id="p1-vp-budget-row" style="display:none">
+        <td class="k">月上限予算</td>
+        <td class="v" colspan="3" id="p-monthly-budget">—</td>
+      </tr>
       <tr class="sh"><td colspan="4">② 対応エリア</td></tr>
       <tr><td colspan="4" class="v" id="p-areas" style="padding:8px 20px"><span style="font-size:11px;color:var(--muted)">エリアが未設定です</span></td></tr>
 
@@ -509,7 +524,7 @@ a.lb-url:hover { text-decoration: underline; }
 
 
       <tr class="sh"><td colspan="4">④ 休業日について</td></tr>
-      <tr><td colspan="4" class="v note" style="padding:8px 20px">弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。<br>配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。</td></tr>
+      <tr><td colspan="4" class="v note" id="p-holiday-text" style="padding:8px 20px">弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。<br>配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。</td></tr>
 
 
       <tr class="sh"><td colspan="4">⑤ 除外となり得るお客様情報について</td></tr>
@@ -524,7 +539,7 @@ a.lb-url:hover { text-decoration: underline; }
 
 
       <tr class="sh"><td colspan="4">⑧ ご成約報告について</td></tr>
-      <tr><td colspan="4" class="v note" style="padding:8px 20px">①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。</td></tr>
+      <tr><td colspan="4" class="v note" id="p-contract-text" style="padding:8px 20px">①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。</td></tr>
 
     </table>
   </div>
@@ -2031,14 +2046,43 @@ function populatePaymentMethodSelect() {
 
 function updatePlanDefaults() {
   const plan = document.getElementById('plan').value;
-  const d = getSettings().plans[plan] || DEFAULT_SETTINGS.plans[plan];
-  document.getElementById('monthly_fee').value = d.fee;
-  document.getElementById('commission').value  = d.commission;
-  document.getElementById('guarantee').value   = d.guarantee;
-  document.getElementById('monthly_est').value = d.monthly;
-  document.getElementById('half_est').value    = d.half;
+  const isVp = plan.startsWith('vp_');
+  if (isVp) {
+    const vp = (getSettings().volumePlans || []).find(p => p.id === plan) || {};
+    document.getElementById('monthly_fee').value = '0円';
+    document.getElementById('commission').value  = (vp.achievementFee || '') + '%';
+    document.getElementById('guarantee').value   = '';
+    document.getElementById('monthly_est').value = vp.monthlyEstimate || '';
+    document.getElementById('half_est').value    = '';
+  } else {
+    const d = getSettings().plans[plan] || DEFAULT_SETTINGS.plans[plan];
+    document.getElementById('monthly_fee').value = d.fee;
+    document.getElementById('commission').value  = d.commission;
+    document.getElementById('guarantee').value   = d.guarantee;
+    document.getElementById('monthly_est').value = d.monthly;
+    document.getElementById('half_est').value    = d.half;
+  }
 }
 
+function populateVolumePlans() {
+  const sel = document.getElementById('plan');
+  if (!sel) return;
+  // Remove existing volume plan options
+  Array.from(sel.options).filter(o => o.value.startsWith('vp_')).forEach(o => sel.removeChild(o));
+  // Add from settings
+  const vps = (getSettings().volumePlans || []);
+  if (vps.length > 0) {
+    const grp = document.createElement('optgroup');
+    grp.label = '従量プラン';
+    vps.forEach(vp => {
+      const o = document.createElement('option');
+      o.value = vp.id;
+      o.textContent = vp.planName || '（プラン名未設定）';
+      grp.appendChild(o);
+    });
+    sel.appendChild(grp);
+  }
+}
 function populateAssigneeSelect() {
   const list = getSettings().staffList;
   const sel = document.getElementById('assignee');
@@ -2180,10 +2224,33 @@ function render() {
   setVal('p-plan',       planLabel[v('plan')]);
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
-  setVal('p-period',     (s.plans[v('plan')] || s.plans.basic).contractPeriod);
+  if (!v('plan').startsWith('vp_')) {
+    setVal('p-period', (s.plans[v('plan')] || s.plans.basic).contractPeriod);
+  }
   setVal('p-monthly',    v('monthly_est'));
   setVal('p-half',       v('half_est'));
-  setVal('p-guarantee',  v('guarantee'));
+  const isVpPlan = v('plan').startsWith('vp_');
+  const vpData = isVpPlan ? (s.volumePlans || []).find(p => p.id === v('plan')) || {} : null;
+  // guarantee row
+  const guarRow = document.getElementById('p1-guarantee-row');
+  if (guarRow) guarRow.style.display = isVpPlan ? 'none' : '';
+  // volume plan rows
+  ['p1-vp-referral-row','p1-vp-limits-row','p1-vp-budget-row'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = isVpPlan ? '' : 'none';
+  });
+  if (!isVpPlan) {
+    setVal('p-guarantee', v('guarantee'));
+  } else if (vpData) {
+    const planLabel2 = { light:'LIGHT（ライト）', basic:'BASIC（ベーシック）', pro:'PRO（プロ）' };
+    setVal('p-plan', vpData.planName || '従量プラン');
+    setVal('p-fee', '0円');
+    setVal('p-commission', (vpData.achievementFee || '') + '%');
+    setVal('p-period', 'フリー（最低6ヶ月）');
+    setVal('p-referral-fee', vpData.referralFee ? Number(vpData.referralFee).toLocaleString() + '円' : '—');
+    setVal('p-daily-limit', vpData.dailyLimit || '—');
+    setVal('p-monthly-limit', vpData.monthlyLimit || '—');
+    setVal('p-monthly-budget', vpData.monthlyBudget || '—');
+  }
 
   const ap = document.getElementById('p-areas');
   if (areas.length) {
@@ -2319,6 +2386,7 @@ function saveCase() {
 
 (function init() {
   populateAssigneeSelect();
+  populateVolumePlans();
 
   const editId = new URLSearchParams(location.search).get('id');
   if (!editId) {
@@ -2501,10 +2569,14 @@ function saveCase() {
         case 'url-store': return '<div>'+proc(b.text||'▼加盟店様の紹介ページ')+'<br><a class="url-val" id="p-store-url" href="#" target="_blank">（URL未設定）</a></div>';
         case 'images':    return '<div style="display:flex;gap:8px"><img src="images/gaiheki/photo1.jpg" alt="施工写真1" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/gaiheki/photo2.jpg" alt="施工写真2" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/gaiheki/photo3.jpg" alt="施工写真3" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"></div>';
         case 'space':     return '<div style="height:'+(({'small':'16px','medium':'32px','large':'64px'})[b.spaceSize||'medium']||'32px')+'">'+'</div>';
-        default:          return '<div>'+t+'</div>';
+        case 'p1-holiday':  var el1=document.getElementById('p-holiday-text'); if(el1) el1.innerHTML=proc(b.text); return '';
+        case 'p1-exclude':  var el2=document.getElementById('p-exclude-text'); if(el2) el2.innerHTML=proc(b.text); return '';
+        case 'p1-contract': var el3=document.getElementById('p-contract-text'); if(el3) el3.innerHTML=proc(b.text); return '';
+                default:          return '<div>'+t+'</div>';
       }
     }
     var p2=document.getElementById('p2-content'), p3=document.getElementById('p3-content');
+    if (tblocks.p1) tblocks.p1.forEach(function(b){ rBlock(b); }); // P1副作用でDOM更新
     if (p2 && tblocks.p2) p2.innerHTML = tblocks.p2.map(rBlock).join('');
     if (p3 && tblocks.p3) p3.innerHTML = tblocks.p3.map(rBlock).join('');
     if (typeof render === 'function') render();
@@ -2586,6 +2658,14 @@ function saveCase() {
         if (!doc.exists) return;
         var data = doc.data();
         // staffList を localStorage に反映
+        if (data.volumePlans) {
+          try {
+            var curVp = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
+            curVp.volumePlans = data.volumePlans;
+            localStorage.setItem('gaiheki_settings', JSON.stringify(curVp));
+          } catch(e) {}
+          if (typeof populateVolumePlans === 'function') populateVolumePlans();
+        }
         if (data.staffList && data.staffList.length) {
           try {
             var cur = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');

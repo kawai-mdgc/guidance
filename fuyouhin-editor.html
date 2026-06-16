@@ -150,6 +150,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
 
   <div class="editor-pane">
     <div class="editor-tabs-sticky">
+      <button class="h-tab" data-page="p1" onclick="switchPage('p1')">P1 基本事項</button>
       <button class="h-tab active" data-page="p2" onclick="switchPage('p2')">P2 写真のお願い</button>
       <button class="h-tab" data-page="p3" onclick="switchPage('p3')">P3 成約施策</button>
     </div>
@@ -169,6 +170,11 @@ var BG_TEXT_COLOR = '#297DCE';
 
 /* ── Default blocks ── */
 var DEFAULT_BLOCKS = {
+  p1: [
+    { id:'_p1_01', style:'p1-holiday', text:'弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。' },
+    { id:'_p1_02', style:'p1-exclude', text:'・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。' },
+    { id:'_p1_03', style:'p1-contract', text:'①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。' },
+  ],
   p2: [
     { id:'_p2_01', style:'title',    text:'現場・会社の写真ご提供のお願い' },
     { id:'_p2_02', style:'bg-text',  text:'実際に写真の掲載をお願いしている理由' },
@@ -239,11 +245,12 @@ function loadTemplate() {
       if (doc.exists && doc.data().blocks) {
         var s = doc.data().blocks;
         blocks = {
+          p1: migrateBlocks((s.p1&&s.p1.length) ? s.p1 : def.p1),
           p2: migrateBlocks((s.p2&&s.p2.length) ? s.p2 : def.p2),
           p3: migrateBlocks((s.p3&&s.p3.length) ? s.p3 : def.p3)
         };
       } else {
-        blocks = def;
+        blocks = { p1: JSON.parse(JSON.stringify(def.p1)), p2: JSON.parse(JSON.stringify(def.p2)), p3: JSON.parse(JSON.stringify(def.p3)) };
       }
       renderAll(); scalePreview();
     })
@@ -257,14 +264,14 @@ function loadTemplate() {
 function saveTemplate() {
   var btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '保存中...';
-  db.collection('templates').doc(BIZ_ID).set({ blocks: blocks, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+  db.collection('templates').doc(BIZ_ID).set({ blocks: { p1: blocks.p1, p2: blocks.p2, p3: blocks.p3 }, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
     .then(function() { clearDirty(); showToast('保存しました'); btn.disabled = false; btn.textContent = '保存'; })
     .catch(function(e) { alert('保存に失敗: '+e.message); btn.disabled = false; btn.textContent = '保存'; });
 }
 
 function resetToDefault() {
   if (!confirm('デフォルト状態に戻しますか？（「保存」するまでFirestoreには反映されません）')) return;
-  blocks = JSON.parse(JSON.stringify(DEFAULT_BLOCKS));
+  blocks = { p1: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p1)), p2: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p2)), p3: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p3)) };
   expandedIds = {};
   renderAll();
 }
@@ -311,6 +318,7 @@ function renderPreview() {
 
 /* ── Editor card builder ── */
 var FULLY_LOCKED = { 'images': '🔒 写真サンプル画像（3枚）' };
+var P1_LABELS = { 'p1-holiday': '④ 休業日テキスト', 'p1-exclude': '⑤ 除外テキスト', 'p1-contract': '⑧ 成約報告テキスト' };
 
 var SEMI_LOCKED = {
   'url-photo': '写真URL（🔒）',
@@ -354,6 +362,25 @@ function buildCard(b, idx) {
     +' ondragover="overDrag(event)" ondrop="dropDrag(event)" ondragleave="leaveDrag(event)"';
 
   /* 完全ロック（images） */
+  /* P1固定テキストブロック: テキスト編集可、スタイル変更不可 */
+  if (P1_LABELS.hasOwnProperty(b.style)) {
+    var p1Lbl = P1_LABELS[b.style];
+    var p1Pre = (b.text||'').replace(/\n/g,' ').substring(0,44) + ((b.text||'').length > 44 ? '…' : '');
+    var p1Exp = !!expandedIds[b.id];
+    var p1BodyH = p1Exp ? '' : ' style="display:none"';
+    return '<div class="block-card"'+cardDnd+'>'
+      +'<div class="bc-head" onclick="toggleCard(\'+bid+\')">'
+      +handle+'<span class="bc-badge" style="background:#e8e6f3;color:#3F3277">'+escHtml(p1Lbl)+'</span>'
+      +'<span class="bc-preview">'+escHtml(p1Pre)+'</span>'
+      +'<span class="bc-arrow">'+(p1Exp?'▼':'▶')+'</span>'
+      +'</div>'
+      +'<div class="bc-body"'+p1BodyH+'>'
+      +'<span class="bc-field-label">テキスト</span>'
+      +'<textarea class="bc-textarea" rows="4" data-idx="'+idx+'" data-field="text" oninput="updateBlock(this)">'+escHtml(b.text||'')+'</textarea>'
+      +'</div>'
+      +'</div>';
+  }
+
   if (FULLY_LOCKED.hasOwnProperty(b.style)) {
     return '<div class="block-card block-special"'+cardDnd+'>'
       +'<div class="bc-head">'+handle
