@@ -124,6 +124,7 @@ a.header-logo:hover { opacity: 0.8; }
 
 /* ── プランテンプレート・詳細管理 ── */
 .plan-tmpl-card { background: var(--white); border: 2px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 14px; }
+.plan-detail-list .plan-tmpl-card, #plan-detail-list .plan-tmpl-card { margin-bottom: 0; }
 .plan-tmpl-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--main); }
 .plan-tmpl-name { flex: 1; padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-weight: 700; font-family: inherit; color: var(--main); }
 .plan-item-row { background: var(--bg); border-radius: 4px; padding: 8px 10px; margin-bottom: 6px; }
@@ -344,7 +345,7 @@ a.header-logo:hover { opacity: 0.8; }
       <div id="plan-tmpl-list"></div>
       <button class="btn-cs-add" onclick="ptAdd()">＋ プラン形態を追加する</button>
       <div class="f-sec" style="margin-top:20px">プラン詳細設定</div>
-      <div id="plan-detail-list"></div>
+      <div id="plan-detail-list" class="plan-grid" style="align-items:start"></div>
       <button class="btn-cs-add" onclick="pdAdd()">＋ プラン詳細を追加する</button>
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-plan">未保存の変更があります</span>
