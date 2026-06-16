@@ -1018,17 +1018,31 @@ function ptRenderAll(){
   const el=document.getElementById('plan-tmpl-list'); if(!el)return;
   el.innerHTML=planTemplates.map(t=>_ptCard(t)).join('')||'<div style="color:var(--muted);font-size:12px;padding:6px 0">まだありません</div>';
 }
+function toggleCollapse(id){
+  const body=document.getElementById('body-'+id);
+  const icon=document.getElementById('icon-'+id);
+  if(!body)return;
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'':'none';
+  if(icon)icon.textContent=hidden?'▼':'▶';
+}
 function _ptCard(t){
   const typesHtml=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${t.id}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${t.id}',${ti})">削除</button></div>`).join('');
   const itemsHtml=t.items.map(item=>_piCard(t.id,item)).join('');
   return `<div class="plan-tmpl-card" id="ptcard-${t.id}">
-  <div class="plan-tmpl-head"><input class="plan-tmpl-name" value="${escHtml(t.name)}" oninput="ptUpdateName('${t.id}',this.value)" placeholder="例：月額プラン"><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="ptDelete('${t.id}')">削除</button></div>
-  <span class="plan-sub-label">プラン種類</span>
-  <div id="pt-types-${t.id}">${typesHtml}</div>
-  <button class="btn-pm-add" onclick="ptTypeAdd('${t.id}')">＋ 種類を追加</button>
-  <span class="plan-sub-label" style="margin-top:10px">内訳</span>
-  <div id="pt-items-${t.id}">${itemsHtml}</div>
-  <button class="btn-pm-add" onclick="ptItemAdd('${t.id}')">＋ 内訳を追加する</button>
+  <div class="plan-tmpl-head" onclick="toggleCollapse('pt-${t.id}')" style="cursor:pointer;user-select:none">
+    <span id="icon-pt-${t.id}" style="font-size:10px;color:var(--muted);flex-shrink:0;margin-right:4px">▶</span>
+    <input class="plan-tmpl-name" value="${escHtml(t.name)}" oninput="ptUpdateName('${t.id}',this.value)" placeholder="例：月額プラン" onclick="event.stopPropagation()">
+    <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="event.stopPropagation();ptDelete('${t.id}')">削除</button>
+  </div>
+  <div id="body-pt-${t.id}" style="display:none">
+    <span class="plan-sub-label">プラン種類</span>
+    <div id="pt-types-${t.id}">${typesHtml}</div>
+    <button class="btn-pm-add" onclick="ptTypeAdd('${t.id}')">＋ 種類を追加</button>
+    <span class="plan-sub-label" style="margin-top:10px">内訳</span>
+    <div id="pt-items-${t.id}">${itemsHtml}</div>
+    <button class="btn-pm-add" onclick="ptItemAdd('${t.id}')">＋ 内訳を追加する</button>
+  </div>
 </div>`;
 }
 function _piCard(tmplId,item){
@@ -1054,14 +1068,17 @@ function pdRenderAll(){
 }
 function _pdGroup(det){
   const tmpl=planTemplates.find(t=>t.id===det.templateId);
-  if(!tmpl)return`<div class="plan-tmpl-card" id="pdgroup-${det.id}"><div class="plan-tmpl-head"><div style="flex:1;font-size:12px;color:#e53935">プラン形態が見つかりません</div><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button></div></div>`;
+  if(!tmpl)return`<div class="plan-tmpl-card" id="pdgroup-${det.id}"><div class="plan-tmpl-head" onclick="toggleCollapse('pd-${det.id}')" style="cursor:pointer;user-select:none"><span id="icon-pd-${det.id}" style="font-size:10px;color:var(--muted);margin-right:4px">▶</span><div style="flex:1;font-size:12px;color:#e53935">プラン形態が見つかりません</div><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="event.stopPropagation();pdDelete('${det.id}')">削除</button></div><div id="body-pd-${det.id}" style="display:none"></div></div>`;
   const cards=tmpl.types.map(tp=>_pdTypeCard(det,tmpl,tp)).join('');
   return `<div id="pdgroup-${det.id}" style="margin-bottom:20px">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+  <div onclick="toggleCollapse('pd-${det.id}')" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;user-select:none">
+    <span id="icon-pd-${det.id}" style="font-size:10px;color:var(--muted)">▶</span>
     <span style="font-size:13px;font-weight:700;color:var(--main)">プラン形態：${escHtml(tmpl.name)}</span>
-    <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button>
+    <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="event.stopPropagation();pdDelete('${det.id}')">削除</button>
   </div>
-  <div class="plan-grid" style="align-items:start">${cards}</div>
+  <div id="body-pd-${det.id}" style="display:none">
+    <div class="plan-grid" style="align-items:start">${cards}</div>
+  </div>
 </div>`;
 }
 function _pdTypeCard(det,tmpl,type){
