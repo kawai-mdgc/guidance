@@ -195,7 +195,7 @@ a.lb-url:hover { text-decoration: underline; }
 .p4-title { font-size: 10px; opacity: .85; letter-spacing: .04em; line-height: 1.5; }
 .p4-name-ja { font-size: 17px; font-weight: 700; margin-top: 4px; margin-bottom: 0; }
 .p4-name-en { font-size: 10px; opacity: .8; letter-spacing: .04em; margin-bottom: 4px; }
-.p4-photo { width: calc(100% + 36px); margin-left: -18px; margin-right: -18px; aspect-ratio: 1 / 1; object-fit: cover; object-position: top center; margin-top: 8px; display: block; flex-shrink: 0; }
+.p4-photo { width: calc(100% + 36px); margin-left: -18px; margin-right: -18px; aspect-ratio: 1 / 1; object-fit: cover; object-position: top center; border-radius: 50%; margin-top: 8px; display: block; flex-shrink: 0; }
 .p4-right { flex: 1; padding: 20px 22px; min-width: 0; display: flex; flex-direction: column; }
 .p4-mission-label { font-size: 9px; font-weight: 700; letter-spacing: .12em; color: #3F3277; text-transform: uppercase; margin-bottom: 4px; }
 .p4-mission-text { font-size: 12.5px; font-weight: 700; color: #1a1a1a; margin-bottom: 14px; line-height: 1.55; }
@@ -1955,7 +1955,7 @@ function renderP4() {
           <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u3000'+staff.name.substring(2) : staff.name)}</div>
           ${staff.nameEn ? `<div class="p4-name-en">${esc(staff.nameEn)}</div>` : ''}
           ${photoHtml}
-          <div style="font-size:11px;color:rgba(255,255,255,.85);margin-top:8px">${staff.phone ? 'tel：' + esc(fmtPhoneDisplay(staff.phone)) : ''}</div>
+          <div style="font-size:11px;color:#fff;background:#4B4177;margin-top:8px;padding:6px 12px;border-radius:6px;width:calc(100% + 36px);margin-left:-18px;box-sizing:border-box">${staff.phone ? 'tel：' + esc(fmtPhoneDisplay(staff.phone)) : ''}</div>
         </div>
         <div class="p4-right">
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
