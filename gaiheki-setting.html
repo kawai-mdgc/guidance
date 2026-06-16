@@ -1032,7 +1032,7 @@ function _ptCard(t){
   const itemsHtml=t.items.map(item=>_piCard(t.id,item)).join('');
   const dn=t.name||'（名前未設定）';
   return `<div class="plan-tmpl-card" id="ptcard-${t.id}">
-  <div class="plan-tmpl-head" style="background:var(--bg);border-radius:4px;padding:8px 12px">
+  <div class="plan-tmpl-head" style="background:#ffffff;border-radius:4px;padding:8px 12px">
     <span id="hname-pt-${t.id}" style="flex:1;font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(dn)}</span>
     <button class="btn-edit" onclick="toggleCollapse('pt-${t.id}')">編集</button>
     <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="ptDelete('${t.id}')">削除</button>
@@ -1103,7 +1103,7 @@ function _pdGroup(det){
   if(!tmpl)return`<div class="plan-tmpl-card" id="pdgroup-${det.id}"><div class="plan-tmpl-head"><div style="flex:1;font-size:12px;color:#e53935">プラン形態が見つかりません</div><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button></div><div id="body-pd-${det.id}" style="display:none"></div></div>`;
   const cards=tmpl.types.map(tp=>_pdTypeCard(det,tmpl,tp)).join('');
   return `<div id="pdgroup-${det.id}" style="margin-bottom:20px">
-  <div class="plan-tmpl-head" style="background:var(--white);border:1px solid var(--border);border-radius:6px;padding:10px 14px">
+  <div class="plan-tmpl-head" style="background:#ffffff;border:1px solid var(--border);border-radius:6px;padding:10px 14px">
     <span style="flex:1;font-size:13px;font-weight:700;color:var(--main)">プラン形態：${escHtml(tmpl.name)}</span>
     <button class="btn-edit" onclick="toggleCollapse('pd-${det.id}')">編集</button>
     <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button>
