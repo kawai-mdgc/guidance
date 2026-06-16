@@ -1954,15 +1954,15 @@ function renderP4() {
           <div class="p4-brand-text">不用品回収の窓口</div>
           <div class="p4-title">${esc(staff.title || 'カスタマーサクセス')}</div>
           <div class="p4-name-ja">${esc(staff.name.length===4 ? staff.name.substring(0,2)+'\u2006'+staff.name.substring(2) : staff.name)}</div>
-          ${staff.nameEn ? `<div class="p4-name-en">${esc(staff.nameEn)}</div>` : ''}
+          <div class="p4-name-en">${staff.nameEn ? esc(staff.nameEn) : '<span style="opacity:.45">未設定</span>'}</div>
           ${photoHtml}
-          <div style="font-size:11px;color:#fff;background:#4B4177;margin:8px auto 0;padding:6px 12px;border-radius:999px;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center">${staff.phone ? `<a href="tel:${esc(staff.phone)}" style="color:#fff;text-decoration:none">tel：${esc(fmtPhoneDisplay(staff.phone))}</a>` : ''}</div>
+          <div style="font-size:11px;color:#fff;background:#4B4177;margin:8px auto 0;padding:6px 12px;border-radius:999px;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center">${staff.phone ? `<a href="tel:${esc(staff.phone)}" style="color:#fff;text-decoration:none">tel：${esc(fmtPhoneDisplay(staff.phone))}</a>` : 'tel：未設定'}</div>
         </div>
         <div class="p4-right">
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
           <div class="p4-grid">${gridItems}</div>
           <div class="p4-bubble">${staff.oneWord ? esc(staff.oneWord) : '<span style="color:#bbb">未設定</span>'}</div>
-          ${lineQrSrc ? `<div class="p4-line-wrap" style="margin-top:10px"><img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'"><span style="color:#fff;font-weight:700;line-height:1.5;white-space:nowrap;flex:1;text-align:center;display:flex;align-items:center;justify-content:center">LINEでお気軽に<br>ご相談ください</span></div>` : ''}
+          <div class="p4-line-wrap" style="margin-top:10px">${lineQrSrc ? `<img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'">` : `<div class="p4-lineqr" style="background:#ccc;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#888">QR</div>`}<span style="color:#fff;font-weight:700;line-height:1.5;white-space:nowrap;flex:1;text-align:center;display:flex;align-items:center;justify-content:center">LINEでお気軽に<br>ご相談ください</span></div>
         </div>
       </div>
     </div>
