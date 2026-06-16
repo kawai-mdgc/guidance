@@ -1032,10 +1032,8 @@ function _ptCard(t){
 </div>`;
 }
 function _piCard(tmplId,item){
-  const choicesHtml=item.valueType==='multiple'?`<div style="margin-top:5px;padding:7px;background:var(--white);border-radius:4px;border:1px solid var(--border)"><span class="plan-sub-label">選択肢</span>${(item.choices||[]).map((ch,ci)=>`<div style="display:flex;gap:4px;margin-bottom:4px"><input type="text" value="${escHtml(ch)}" style="flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:11px;font-family:inherit" oninput="ptChoiceUpdate('${tmplId}','${item.id}',${ci},this.value)"><button class="btn-del" style="font-size:9px;padding:1px 5px" onclick="ptChoiceDelete('${tmplId}','${item.id}',${ci})">✕</button></div>`).join('')}<button class="btn-pm-add" style="font-size:10px" onclick="ptChoiceAdd('${tmplId}','${item.id}')">＋ 選択肢を追加</button></div>`:'';
-  return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div>${choicesHtml}</div>`;
+  return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div></div>`;
 }
-function _ptReRenderTypes(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-types-'+tmplId);if(el){const h=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${tmplId}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${tmplId}',${ti})">削除</button></div>`).join('');el.innerHTML=h;}}
 function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');}
 
 function ptAdd(){planTemplates.push({id:_ptId(),name:'',types:[],items:[]});checkDirty('plan');ptRenderAll();}
@@ -1048,9 +1046,6 @@ function ptItemAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.items.push({id:
 function ptItemDelete(tmplId,itemId){const t=_ptGet(tmplId);if(!t)return;t.items=t.items.filter(i=>i.id!==itemId);checkDirty('plan');_ptReRenderItems(tmplId);}
 function ptItemUpdateLabel(tmplId,itemId,v){const i=_piGet(tmplId,itemId);if(i){i.label=v;checkDirty('plan');}}
 function ptItemSetType(tmplId,itemId,type){const i=_piGet(tmplId,itemId);if(!i)return;i.valueType=type;checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
-function ptChoiceAdd(tmplId,itemId){const i=_piGet(tmplId,itemId);if(!i)return;i.choices=i.choices||[];i.choices.push('');checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
-function ptChoiceDelete(tmplId,itemId,idx){const i=_piGet(tmplId,itemId);if(!i||!i.choices)return;i.choices.splice(idx,1);checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
-function ptChoiceUpdate(tmplId,itemId,idx,v){const i=_piGet(tmplId,itemId);if(i&&i.choices)i.choices[idx]=v;}
 
 /* ── Detail render (group-based) ── */
 function pdRenderAll(){
@@ -1072,14 +1067,40 @@ function _pdGroup(det){
 function _pdTypeCard(det,tmpl,type){
   const tv=(det.values||{})[type]||{};
   const itemsHtml=tmpl.items.map(item=>{
-    const val=tv[item.id]||'';
-    if(item.valueType==='multiple'&&item.choices&&item.choices.length){
-      const radios=item.choices.map(ch=>`<label style="display:inline-flex;align-items:center;gap:3px;margin-right:8px;font-size:11px"><input type="radio" name="pdv-${det.id}-${escHtml(type)}-${item.id}" value="${escHtml(ch)}" ${val===ch?'checked':''} onchange="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)"> ${escHtml(ch)}</label>`).join('');
-      return `<div class="field"><label>${escHtml(item.label)}</label><div style="padding-top:3px">${radios}</div></div>`;
+    const raw=tv[item.id];
+    if(item.valueType==='multiple'){
+      const vals=Array.isArray(raw)?raw:(raw?[raw]:['']);
+      const inputs=vals.map((v,vi)=>`<div style="display:flex;gap:4px;margin-bottom:4px"><input type="text" value="${escHtml(v)}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="pdSetMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi},this.value)">${vi>0?`<button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="pdRemoveMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi})">✕</button>`:''}</div>`).join('');
+      return `<div class="field"><label>${escHtml(item.label)}</label>${inputs}<button class="btn-pm-add" onclick="pdAddMultiValue('${det.id}','${escHtml(type)}','${item.id}')">＋ 項目を追加する</button></div>`;
     }
+    const val=typeof raw==='string'?raw:(Array.isArray(raw)?(raw[0]||''):'');
     return `<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" oninput="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)" placeholder="値を入力"></div>`;
   }).join('');
   return `<div class="plan-card" id="pdcard-${det.id}-${escHtml(type)}"><div class="plan-card-head">${escHtml(type)}</div>${itemsHtml}</div>`;
+}
+function pdSetMultiValue(detId,type,itemId,idx,val){
+  const d=_pdGet(detId);if(!d)return;
+  d.values=d.values||{};d.values[type]=d.values[type]||{};
+  let arr=d.values[type][itemId];if(!Array.isArray(arr))arr=arr?[arr]:[''];
+  arr[idx]=val;d.values[type][itemId]=arr;checkDirty('plan');
+}
+function pdAddMultiValue(detId,type,itemId){
+  const d=_pdGet(detId);if(!d)return;
+  d.values=d.values||{};d.values[type]=d.values[type]||{};
+  let arr=d.values[type][itemId];if(!Array.isArray(arr))arr=arr?[arr]:[''];
+  arr.push('');d.values[type][itemId]=arr;checkDirty('plan');
+  const el=document.getElementById(`pdcard-${detId}-${type}`);
+  const tmpl=planTemplates.find(t=>t.id===d.templateId);
+  if(el&&tmpl)el.outerHTML=_pdTypeCard(d,tmpl,type);
+}
+function pdRemoveMultiValue(detId,type,itemId,idx){
+  const d=_pdGet(detId);if(!d)return;
+  d.values=d.values||{};d.values[type]=d.values[type]||{};
+  let arr=d.values[type][itemId];if(!Array.isArray(arr))return;
+  arr.splice(idx,1);d.values[type][itemId]=arr;checkDirty('plan');
+  const el=document.getElementById(`pdcard-${detId}-${type}`);
+  const tmpl=planTemplates.find(t=>t.id===d.templateId);
+  if(el&&tmpl)el.outerHTML=_pdTypeCard(d,tmpl,type);
 }
 function pdAdd(){
   if(!planTemplates.length){alert('先にプラン形態を追加してください。');return;}
