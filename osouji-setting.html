@@ -123,6 +123,13 @@ a.header-logo:hover { opacity: 0.8; }
 .btn-pm-add { font-size: 11px; padding: 3px 10px; border: 1px dashed var(--border); border-radius: 4px; background: none; cursor: pointer; color: var(--label); margin-top: 4px; }
 .btn-pm-add:hover { border-color: var(--main); color: var(--main); }
 
+/* ── プランテンプレート・詳細管理 ── */
+.plan-tmpl-card { background: var(--white); border: 2px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 14px; }
+.plan-tmpl-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--main); }
+.plan-tmpl-name { flex: 1; padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-weight: 700; font-family: inherit; color: var(--main); }
+.plan-item-row { background: var(--bg); border-radius: 4px; padding: 8px 10px; margin-bottom: 6px; }
+.plan-item-label { width: 100%; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; font-family: inherit; margin-bottom: 5px; }
+.plan-sub-label { font-size: 10px; font-weight: 600; color: var(--label); display: block; margin-bottom: 4px; }
 /* ── CS担当者設定 ── */
 .cs-staff-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
 .cs-staff-item { background: var(--white); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
@@ -333,40 +340,13 @@ a.header-logo:hover { opacity: 0.8; }
     <!-- ── プラン設定 ── -->
     <div class="section active" id="sec-plan">
       <div class="section-title">プラン設定</div>
-      <div class="section-desc">各プランの月額・手数料・件数を設定します。資料作成時のデフォルト値として使用されます。</div>
-      <div class="plan-grid">
-
-        <div class="plan-card">
-          <div class="plan-card-head">ライト</div>
-          <div class="field"><label>月額費用（継続特典後・税抜）</label><input type="text" id="light-fee" placeholder="8万円"></div>
-          <div class="field"><label>成約手数料</label><input type="text" id="light-commission" placeholder="10%"></div>
-          <div class="field"><label>最低補償件数</label><input type="text" id="light-guarantee" placeholder="なし"></div>
-          <div class="field"><label>月間紹介件数（想定）</label><input type="text" id="light-monthly" placeholder="25〜35件"></div>
-          <div class="field"><label>契約期間</label><input type="text" id="light-contract-period" placeholder="なし"></div>
-          <div class="field"><label>6ヶ月紹介件数（想定）</label><input type="text" id="light-half" placeholder="—"></div>
-        </div>
-
-        <div class="plan-card">
-          <div class="plan-card-head">ベーシック</div>
-          <div class="field"><label>月額費用（継続特典後・税抜）</label><input type="text" id="basic-fee" placeholder="10万円"></div>
-          <div class="field"><label>成約手数料</label><input type="text" id="basic-commission" placeholder="5%"></div>
-          <div class="field"><label>最低補償件数</label><input type="text" id="basic-guarantee" placeholder="25件"></div>
-          <div class="field"><label>月間紹介件数（想定）</label><input type="text" id="basic-monthly" placeholder="40〜55件"></div>
-          <div class="field"><label>契約期間</label><input type="text" id="basic-contract-period" placeholder="6ヶ月契約"></div>
-          <div class="field"><label>6ヶ月紹介件数（想定）</label><input type="text" id="basic-half" placeholder="40〜55件"></div>
-        </div>
-
-        <div class="plan-card">
-          <div class="plan-card-head">プロ</div>
-          <div class="field"><label>月額費用（継続特典後・税抜）</label><input type="text" id="pro-fee" placeholder="15万円"></div>
-          <div class="field"><label>成約手数料</label><input type="text" id="pro-commission" placeholder="3%"></div>
-          <div class="field"><label>最低補償件数</label><input type="text" id="pro-guarantee" placeholder="40件"></div>
-          <div class="field"><label>月間紹介件数（想定）</label><input type="text" id="pro-monthly" placeholder="65〜80件"></div>
-          <div class="field"><label>契約期間</label><input type="text" id="pro-contract-period" placeholder="6ヶ月契約"></div>
-          <div class="field"><label>6ヶ月紹介件数（想定）</label><input type="text" id="pro-half" placeholder="65〜80件"></div>
-        </div>
-
-      </div>
+      <div class="section-desc">各プランの料金・手数料・件数を設定します。</div>
+      <div class="f-sec">プラン形態設定</div>
+      <div id="plan-tmpl-list"></div>
+      <button class="btn-cs-add" onclick="ptAdd()">＋ プラン形態を追加する</button>
+      <div class="f-sec" style="margin-top:20px">プラン詳細設定</div>
+      <div id="plan-detail-list"></div>
+      <button class="btn-cs-add" onclick="pdAdd()">＋ プラン詳細を追加する</button>
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-plan">未保存の変更があります</span>
         <button id="btn-save-plan" class="btn-save" onclick="savePlanSection()">保存</button>
@@ -857,11 +837,9 @@ const originalData = {};
 function snapshotSection(sec) {
   try {
     switch(sec) {
-      case 'plan': {
-        const st = getSettings();
-        originalData.plan = JSON.parse(JSON.stringify(st.plans));
+      case 'plan':
+        originalData.plan = { templates: JSON.parse(JSON.stringify(planTemplates)), details: JSON.parse(JSON.stringify(planDetails)) };
         break;
-      }
       case 'staff':
         originalData.staff = staffList.slice();
         break;
@@ -899,14 +877,9 @@ function restoreSection(sec) {
   try {
     switch(sec) {
       case 'plan':
-        ['light','basic','pro'].forEach(p => {
-          document.getElementById(`${p}-fee`).value            = d[p].fee || '';
-          document.getElementById(`${p}-commission`).value     = d[p].commission || '';
-          document.getElementById(`${p}-guarantee`).value      = d[p].guarantee || '';
-          document.getElementById(`${p}-monthly`).value        = d[p].monthly || '';
-          document.getElementById(`${p}-half`).value           = d[p].half || '';
-          document.getElementById(`${p}-contract-period`).value= d[p].contractPeriod || '';
-        });
+        planTemplates = JSON.parse(JSON.stringify(d.templates || []));
+        planDetails   = JSON.parse(JSON.stringify(d.details || []));
+        ptRenderAll(); pdRenderAll();
         break;
       case 'staff':
         staffList = d.slice();
@@ -947,20 +920,8 @@ function restoreSection(sec) {
 function gatherCurrent(sec) {
   try {
     switch(sec) {
-      case 'plan': {
-        const plans = {};
-        ['light','basic','pro'].forEach(p => {
-          plans[p] = {
-            fee:            document.getElementById(`${p}-fee`)?.value || '',
-            commission:     document.getElementById(`${p}-commission`)?.value || '',
-            guarantee:      document.getElementById(`${p}-guarantee`)?.value || '',
-            monthly:        document.getElementById(`${p}-monthly`)?.value || '',
-            half:           document.getElementById(`${p}-half`)?.value || '',
-            contractPeriod: document.getElementById(`${p}-contract-period`)?.value || '',
-          };
-        });
-        return plans;
-      }
+      case 'plan':
+        return { templates: JSON.parse(JSON.stringify(planTemplates)), details: JSON.parse(JSON.stringify(planDetails)) };
       case 'staff':
         return staffList.slice();
       case 'text':
@@ -1022,22 +983,119 @@ function saveSectionData(key, data) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+/* ── プランテンプレート・詳細管理 ── */
+let planTemplates = [], planDetails = [];
+let _ptCnt = 0, _piCnt = 0, _pdCnt = 0;
+const _ptId = () => 'pt_' + (++_ptCnt) + '_' + Date.now();
+const _piId = () => 'pi_' + (++_piCnt) + '_' + Date.now();
+const _pdId = () => 'pd_' + (++_pdCnt) + '_' + Date.now();
+
+const DEFAULT_PLAN_TEMPLATES = [{
+  id:'monthly', name:'月額プラン', types:['ライト','ベーシック','プロ'],
+  items:[
+    {id:'fee',   label:'月額費用（継続特典後・税抜）', valueType:'single', choices:[]},
+    {id:'comm',  label:'成約手数料',                  valueType:'single', choices:[]},
+    {id:'guar',  label:'最低補償件数',                valueType:'single', choices:[]},
+    {id:'monthly',label:'月間紹介件数（想定）',        valueType:'single', choices:[]},
+    {id:'period',label:'契約期間',                    valueType:'single', choices:[]},
+    {id:'half',  label:'6ヶ月紹介件数（想定）',        valueType:'single', choices:[]},
+  ]
+}];
+const DEFAULT_PLAN_DETAILS = [
+  {id:'det_light', templateId:'monthly', type:'ライト',    values:{fee:'8万円', comm:'10%', guar:'なし',  monthly:'25〜35件', period:'なし',    half:'—'}},
+  {id:'det_basic', templateId:'monthly', type:'ベーシック', values:{fee:'10万円',comm:'5%',  guar:'25件',  monthly:'40〜55件', period:'6ヶ月契約',half:'40〜55件'}},
+  {id:'det_pro',   templateId:'monthly', type:'プロ',      values:{fee:'15万円',comm:'3%',  guar:'40件',  monthly:'65〜80件', period:'6ヶ月契約',half:'65〜80件'}},
+];
+
+function _ptGet(id){return planTemplates.find(t=>t.id===id);}
+function _piGet(tmplId,itemId){const t=_ptGet(tmplId);return t?t.items.find(i=>i.id===itemId):null;}
+function _pdGet(id){return planDetails.find(d=>d.id===id);}
+
+/* ── Template render ── */
+function ptRenderAll(){
+  const el=document.getElementById('plan-tmpl-list'); if(!el)return;
+  el.innerHTML=planTemplates.map(t=>_ptCard(t)).join('')||'<div style="color:var(--muted);font-size:12px;padding:6px 0">まだありません</div>';
+}
+function _ptCard(t){
+  const typesHtml=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${t.id}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${t.id}',${ti})">削除</button></div>`).join('');
+  const itemsHtml=t.items.map(item=>_piCard(t.id,item)).join('');
+  return `<div class="plan-tmpl-card" id="ptcard-${t.id}">
+  <div class="plan-tmpl-head"><input class="plan-tmpl-name" value="${escHtml(t.name)}" oninput="ptUpdateName('${t.id}',this.value)" placeholder="例：月額プラン"><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="ptDelete('${t.id}')">削除</button></div>
+  <span class="plan-sub-label">プラン種類</span>
+  <div id="pt-types-${t.id}">${typesHtml}</div>
+  <button class="btn-pm-add" onclick="ptTypeAdd('${t.id}')">＋ 種類を追加</button>
+  <span class="plan-sub-label" style="margin-top:10px">内訳</span>
+  <div id="pt-items-${t.id}">${itemsHtml}</div>
+  <button class="btn-pm-add" onclick="ptItemAdd('${t.id}')">＋ 内訳を追加する</button>
+</div>`;
+}
+function _piCard(tmplId,item){
+  const choicesHtml=item.valueType==='multiple'?`<div style="margin-top:5px;padding:7px;background:var(--white);border-radius:4px;border:1px solid var(--border)"><span class="plan-sub-label">選択肢</span>${(item.choices||[]).map((ch,ci)=>`<div style="display:flex;gap:4px;margin-bottom:4px"><input type="text" value="${escHtml(ch)}" style="flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:11px;font-family:inherit" oninput="ptChoiceUpdate('${tmplId}','${item.id}',${ci},this.value)"><button class="btn-del" style="font-size:9px;padding:1px 5px" onclick="ptChoiceDelete('${tmplId}','${item.id}',${ci})">✕</button></div>`).join('')}<button class="btn-pm-add" style="font-size:10px" onclick="ptChoiceAdd('${tmplId}','${item.id}')">＋ 選択肢を追加</button></div>`:'';
+  return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div>${choicesHtml}</div>`;
+}
+function _ptReRenderTypes(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-types-'+tmplId);if(el){const h=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${tmplId}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${tmplId}',${ti})">削除</button></div>`).join('');el.innerHTML=h;}}
+function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');}
+
+function ptAdd(){planTemplates.push({id:_ptId(),name:'',types:[],items:[]});checkDirty('plan');ptRenderAll();}
+function ptDelete(id){if(!confirm('このプラン形態を削除しますか？'))return;planTemplates=planTemplates.filter(t=>t.id!==id);checkDirty('plan');ptRenderAll();}
+function ptUpdateName(id,v){const t=_ptGet(id);if(t){t.name=v;checkDirty('plan');}}
+function ptTypeAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.types.push('');checkDirty('plan');_ptReRenderTypes(tmplId);}
+function ptTypeDelete(tmplId,idx){const t=_ptGet(tmplId);if(!t)return;t.types.splice(idx,1);checkDirty('plan');_ptReRenderTypes(tmplId);}
+function ptTypeUpdate(tmplId,idx,v){const t=_ptGet(tmplId);if(t){t.types[idx]=v;checkDirty('plan');}}
+function ptItemAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.items.push({id:_piId(),label:'',valueType:'single',choices:[]});checkDirty('plan');_ptReRenderItems(tmplId);}
+function ptItemDelete(tmplId,itemId){const t=_ptGet(tmplId);if(!t)return;t.items=t.items.filter(i=>i.id!==itemId);checkDirty('plan');_ptReRenderItems(tmplId);}
+function ptItemUpdateLabel(tmplId,itemId,v){const i=_piGet(tmplId,itemId);if(i){i.label=v;checkDirty('plan');}}
+function ptItemSetType(tmplId,itemId,type){const i=_piGet(tmplId,itemId);if(!i)return;i.valueType=type;checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
+function ptChoiceAdd(tmplId,itemId){const i=_piGet(tmplId,itemId);if(!i)return;i.choices=i.choices||[];i.choices.push('');checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
+function ptChoiceDelete(tmplId,itemId,idx){const i=_piGet(tmplId,itemId);if(!i||!i.choices)return;i.choices.splice(idx,1);checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
+function ptChoiceUpdate(tmplId,itemId,idx,v){const i=_piGet(tmplId,itemId);if(i&&i.choices)i.choices[idx]=v;}
+
+/* ── Detail render ── */
+function pdRenderAll(){
+  const el=document.getElementById('plan-detail-list');if(!el)return;
+  el.innerHTML=planDetails.map(d=>_pdCard(d)).join('')||'<div style="color:var(--muted);font-size:12px;padding:6px 0">まだありません</div>';
+}
+function _pdCard(det){
+  const tmpl=planTemplates.find(t=>t.id===det.templateId);
+  const typeOpts=tmpl?tmpl.types.map(tp=>`<option value="${escHtml(tp)}" ${det.type===tp?'selected':''}>${escHtml(tp)}</option>`).join(''):'';
+  const tmplSel=`<div class="field"><label>プラン形態</label><select onchange="pdSetTemplate('${det.id}',this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit"><option value="">選択してください</option>${planTemplates.map(t=>`<option value="${t.id}" ${det.templateId===t.id?'selected':''}>${escHtml(t.name)}</option>`).join('')}</select></div>`;
+  const typeSel=tmpl?`<div class="field"><label>プラン種類</label><select onchange="pdSetType('${det.id}',this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit"><option value="">選択してください</option>${typeOpts}</select></div>`:'';
+  const itemsHtml=tmpl?tmpl.items.map(item=>{
+    const val=(det.values||{})[item.id]||'';
+    if(item.valueType==='multiple'&&item.choices&&item.choices.length){
+      const radios=item.choices.map(ch=>`<label style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:12px"><input type="radio" name="pdv-${det.id}-${item.id}" value="${escHtml(ch)}" ${val===ch?'checked':''} onchange="pdSetValue('${det.id}','${item.id}',this.value)"> ${escHtml(ch)}</label>`).join('');
+      return `<div class="field"><label>${escHtml(item.label)}</label><div style="padding-top:4px">${radios}</div></div>`;
+    }
+    return `<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" oninput="pdSetValue('${det.id}','${item.id}',this.value)" placeholder="値を入力"></div>`;
+  }).join(''):'';
+  return `<div class="plan-tmpl-card" id="pdcard-${det.id}"><div class="plan-tmpl-head"><div style="flex:1;font-size:13px;font-weight:700;color:var(--main)">${escHtml(tmpl?tmpl.name:'（形態を選択）')}</div><button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button></div>${tmplSel}${typeSel}${itemsHtml}</div>`;
+}
+function pdAdd(){
+  const det={id:_pdId(),templateId:planTemplates.length===1?planTemplates[0].id:'',type:'',values:{}};
+  planDetails.push(det);checkDirty('plan');pdRenderAll();
+  document.getElementById('pdcard-'+det.id)?.scrollIntoView({behavior:'smooth'});
+}
+function pdDelete(id){if(!confirm('このプラン詳細を削除しますか？'))return;planDetails=planDetails.filter(d=>d.id!==id);checkDirty('plan');pdRenderAll();}
+function pdSetTemplate(id,tmplId){const d=_pdGet(id);if(!d)return;d.templateId=tmplId;d.values={};const t=planTemplates.find(t=>t.id===tmplId);d.type=t&&t.types.length?t.types[0]:'';checkDirty('plan');const el=document.getElementById('pdcard-'+id);if(el)el.outerHTML=_pdCard(d);}
+function pdSetType(id,type){const d=_pdGet(id);if(d){d.type=type;checkDirty('plan');}}
+function pdSetValue(id,itemId,val){const d=_pdGet(id);if(d){d.values=d.values||{};d.values[itemId]=val;checkDirty('plan');}}
+
 function savePlanSection() {
-  console.log('保存ボタンクリック：プラン設定');
   try {
-    const plans = {};
-    ['light','basic','pro'].forEach(p => {
-      const g = id => {
-        const el = document.getElementById(p + '-' + id);
-        console.log('  [plan] #' + p + '-' + id + ' =', el ? el.value : 'NOT FOUND');
-        return (el && el.value.trim()) ? el.value.trim() : DEFAULT_SETTINGS.plans[p][id];
-      };
-      plans[p] = { fee:g('fee'), commission:g('commission'), guarantee:g('guarantee'), monthly:g('monthly'), half:g('half'), contractPeriod:g('contract-period') };
-    });
     clearDirty('plan');
-    saveSectionData('plans', { plans });
+    const existing = JSON.parse(localStorage.getItem('osouji_settings') || '{}');
+    existing.planTemplates = JSON.parse(JSON.stringify(planTemplates));
+    existing.planDetails   = JSON.parse(JSON.stringify(planDetails));
+    localStorage.setItem('osouji_settings', JSON.stringify(existing));
     snapshotSection('plan');
-  } catch(e) { console.error('savePlanSection エラー:', e); }
+    try {
+      firebase.firestore().collection('settings').doc('osouji').set(
+        { planTemplates: JSON.parse(JSON.stringify(planTemplates)), planDetails: JSON.parse(JSON.stringify(planDetails)) }, { merge: true }
+      );
+    } catch(fe) { console.warn('Firestore plan save:', fe); }
+    const t = document.getElementById('toast');
+    if(t) { t.textContent='保存しました'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200); }
+  } catch(e) { console.error('savePlanSection:', e); }
 }
 
 function saveStaffSection() {
@@ -1424,14 +1482,16 @@ function escHtml(s) {
 (function() {
   const s = getSettings();
 
-  ['light', 'basic', 'pro'].forEach(p => {
-    document.getElementById(`${p}-fee`).value             = s.plans[p].fee;
-    document.getElementById(`${p}-commission`).value      = s.plans[p].commission;
-    document.getElementById(`${p}-guarantee`).value       = s.plans[p].guarantee;
-    document.getElementById(`${p}-monthly`).value         = s.plans[p].monthly;
-    document.getElementById(`${p}-half`).value            = s.plans[p].half;
-    document.getElementById(`${p}-contract-period`).value = s.plans[p].contractPeriod;
-  });
+  // planTemplates/planDetails 初期化
+  const rawPlan = JSON.parse(localStorage.getItem('osouji_settings') || '{}');
+  if (rawPlan.planTemplates && rawPlan.planTemplates.length) {
+    planTemplates = rawPlan.planTemplates;
+    planDetails   = rawPlan.planDetails || [];
+  } else {
+    planTemplates = JSON.parse(JSON.stringify(DEFAULT_PLAN_TEMPLATES));
+    planDetails   = JSON.parse(JSON.stringify(DEFAULT_PLAN_DETAILS));
+  }
+  ptRenderAll(); pdRenderAll();
 
   staffList = [...s.staffList];
   renderStaffList();
@@ -1509,10 +1569,19 @@ function escHtml(s) {
       if (!user) return;
       firebase.firestore().collection('settings').doc(BIZ_DOC).get()
         .then(function(doc) {
-          if (doc.exists && doc.data().csAssignee) {
-            var val = doc.data().csAssignee;
-            document.getElementById('cs-name-disp').textContent = val;
-            document.getElementById('cs-name-inp').value = val;
+          var dd2=doc.data()||{};
+          if (doc.exists && dd2.csAssignee) {
+            document.getElementById('cs-name-disp').textContent = dd2.csAssignee;
+            document.getElementById('cs-name-inp').value = dd2.csAssignee;
+          }
+          if (dd2.planTemplates && dd2.planTemplates.length) {
+            try{
+              var cpP2=JSON.parse(localStorage.getItem('osouji_settings')||'{}');
+              cpP2.planTemplates=dd2.planTemplates; cpP2.planDetails=dd2.planDetails||[];
+              localStorage.setItem('osouji_settings',JSON.stringify(cpP2));
+              planTemplates=dd2.planTemplates; planDetails=dd2.planDetails||[];
+              ptRenderAll(); pdRenderAll();
+            }catch(e){}
           }
         }).catch(function() {});
     });

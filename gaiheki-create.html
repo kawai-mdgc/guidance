@@ -2046,21 +2046,40 @@ function populatePaymentMethodSelect() {
 
 function updatePlanDefaults() {
   const plan = document.getElementById('plan').value;
+  const s = getSettings();
+  // planDetails対応
+  if (s.planDetails && s.planTemplates) {
+    const det = s.planDetails.find(d => d.id === plan);
+    if (det) {
+      const tmpl = s.planTemplates.find(t => t.id === det.templateId);
+      if (tmpl) {
+        const vals = tmpl.items.map(item => (det.values||{})[item.id] || '');
+        document.getElementById('monthly_fee').value  = vals[0] || '';
+        document.getElementById('commission').value   = vals[1] || '';
+        document.getElementById('guarantee').value    = vals[2] || '';
+        document.getElementById('monthly_est').value  = vals[3] || '';
+        document.getElementById('half_est').value     = vals[5] || '';
+        return;
+      }
+    }
+  }
   const isVp = plan.startsWith('vp_');
   if (isVp) {
-    const vp = (getSettings().volumePlans || []).find(p => p.id === plan) || {};
+    const vp = (s.volumePlans || []).find(p => p.id === plan) || {};
     document.getElementById('monthly_fee').value = '0円';
     document.getElementById('commission').value  = (vp.achievementFee || '') + '%';
     document.getElementById('guarantee').value   = '';
     document.getElementById('monthly_est').value = vp.monthlyEstimate || '';
     document.getElementById('half_est').value    = '';
   } else {
-    const d = getSettings().plans[plan] || DEFAULT_SETTINGS.plans[plan];
-    document.getElementById('monthly_fee').value = d.fee;
-    document.getElementById('commission').value  = d.commission;
-    document.getElementById('guarantee').value   = d.guarantee;
-    document.getElementById('monthly_est').value = d.monthly;
-    document.getElementById('half_est').value    = d.half;
+    const d = s.plans?.[plan] || DEFAULT_SETTINGS.plans?.[plan];
+    if (d) {
+      document.getElementById('monthly_fee').value = d.fee;
+      document.getElementById('commission').value  = d.commission;
+      document.getElementById('guarantee').value   = d.guarantee;
+      document.getElementById('monthly_est').value = d.monthly;
+      document.getElementById('half_est').value    = d.half;
+    }
   }
 }
 
@@ -2082,6 +2101,36 @@ function populateVolumePlans() {
     });
     sel.appendChild(grp);
   }
+}
+function populatePlanDetails() {
+  const sel = document.getElementById('plan');
+  if (!sel) return;
+  const s = getSettings();
+  const dets = s.planDetails, tmpls = s.planTemplates;
+  if (!dets || !dets.length) return;
+  const cur = sel.value || 'basic';
+  sel.innerHTML = '';
+  // Group by template
+  const byTmpl = {};
+  dets.forEach(d => {
+    const t = tmpls && tmpls.find(t => t.id === d.templateId);
+    const nm = t ? t.name : '未分類';
+    if (!byTmpl[nm]) byTmpl[nm] = [];
+    byTmpl[nm].push(d);
+  });
+  Object.entries(byTmpl).forEach(([name, list]) => {
+    const grp = document.createElement('optgroup');
+    grp.label = name;
+    list.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = d.type || '（種類未設定）';
+      grp.appendChild(o);
+    });
+    sel.appendChild(grp);
+  });
+  sel.value = cur;
+  if (!sel.value && sel.options.length > 0) sel.selectedIndex = 0;
 }
 function populateAssigneeSelect() {
   const list = getSettings().staffList;
@@ -2198,6 +2247,15 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 function render() {
   const planLabel = {light:'LIGHT（ライト）', basic:'BASIC（ベーシック）', pro:'PRO（プロ）'};
+  // planDetails からプラン表示名を動的追加
+  {
+    const s2 = getSettings();
+    if (s2.planDetails && s2.planTemplates) {
+      s2.planDetails.forEach(d => {
+        if (!planLabel[d.id]) planLabel[d.id] = d.type || d.id;
+      });
+    }
+  }
   const s = getSettings();
   const co = v('company'), cn = v('contact_name');
   const isDefault = !co && !cn;
@@ -2387,6 +2445,7 @@ function saveCase() {
 (function init() {
   populateAssigneeSelect();
   populateVolumePlans();
+  populatePlanDetails();
 
   const editId = new URLSearchParams(location.search).get('id');
   if (!editId) {
@@ -2679,6 +2738,14 @@ function saveCase() {
           var el = document.getElementById('cs_assignee');
           if (el) el.value = data.csAssignee;
           if (typeof renderP4 === 'function') renderP4();
+        }
+        if (data.planTemplates && data.planTemplates.length) {
+          try{
+            var cpP=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
+            cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
+            localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
+          }catch(e){}
+          if (typeof populatePlanDetails==='function') populatePlanDetails();
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {
