@@ -162,6 +162,12 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
       <button class="h-tab" data-page="p2" onclick="switchPage('p2')">P2 写真のお願い</button>
       <button class="h-tab" data-page="p3" onclick="switchPage('p3')">P3 成約施策</button>
     </div>
+    <div id="p1-plan-bar" style="display:none;padding:8px 12px 6px;border-bottom:1px solid var(--border);background:var(--bg);margin-bottom:8px">
+      <label style="font-size:11px;font-weight:600;color:var(--label);display:block;margin-bottom:4px">① 料金について — プラン切り替え</label>
+      <select id="p1-plan-sel" onchange="onP1PlanChange(this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit;background:var(--white)">
+        <option value="">（プランを選択）</option>
+      </select>
+    </div>
     <div class="editor-head">ブロック一覧（ヘッダーをクリックして展開）</div>
     <div id="block-list"></div>
     <button class="btn-add" onclick="addBlock()">＋ ブロック追加</button>
@@ -179,9 +185,28 @@ var BG_TEXT_COLOR = '#2788E7';
 /* ── Default blocks ── */
 var DEFAULT_BLOCKS = {
   p1: [
-    { id:'_p1_01', style:'p1-holiday', text:'弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。' },
-    { id:'_p1_02', style:'p1-exclude', text:'・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。' },
-    { id:'_p1_03', style:'p1-contract', text:'①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。' },
+    { id:'_p1_sh1',    style:'p1-sh',      text:'① 料金について' },
+    { id:'_p1_p_name', style:'p1-key',     text:'契約プラン' },
+    { id:'_p1_p_fee',  style:'p1-key',     text:'月額費用（税抜）' },
+    { id:'_p1_p_comm', style:'p1-key',     text:'成約手数料' },
+    { id:'_p1_p_per',  style:'p1-key',     text:'契約期間' },
+    { id:'_p1_p_mon',  style:'p1-key',     text:'紹介件数想定（月間）' },
+    { id:'_p1_p_half', style:'p1-key',     text:'紹介件数想定（6ヶ月）' },
+    { id:'_p1_p_guar', style:'p1-key',     text:'最低保証' },
+    { id:'_p1_sh2',    style:'p1-sh',      text:'② 対応エリア' },
+    { id:'_p1_area',   style:'p1-val',     text:'エリアが未設定です' },
+    { id:'_p1_sh3',    style:'p1-sh',      text:'③ お支払いについて' },
+    { id:'_p1_pay_m',  style:'p1-key',     text:'決済手段' },
+    { id:'_p1_pay_n',  style:'p1-key',     text:'備考' },
+    { id:'_p1_sh4',    style:'p1-sh',      text:'④ 休業日について' },
+    { id:'_p1_01',     style:'p1-holiday', text:'弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。' },
+    { id:'_p1_sh5',    style:'p1-sh',      text:'⑤ 除外となり得るお客様情報について' },
+    { id:'_p1_02',     style:'p1-exclude', text:'・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。' },
+    { id:'_p1_sh7',    style:'p1-sh',      text:'⑦ 顧客管理システムのログイン情報について' },
+    { id:'_p1_login_u',style:'p1-key',     text:'ログインURL' },
+    { id:'_p1_login_i',style:'p1-key',     text:'ID' },
+    { id:'_p1_sh8',    style:'p1-sh',      text:'⑧ ご成約報告について' },
+    { id:'_p1_03',     style:'p1-contract',text:'①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。' },
   ],
   p2: [
     { id:'_p2_01', style:'title',    text:'現場・会社の写真ご提供のお願い' },
@@ -229,6 +254,38 @@ var isDirty = false;
 function markDirty() { isDirty = true; }
 function clearDirty() { isDirty = false; }
 
+/* ── Plan data for P1 ── */
+var _planTemplates = [], _planDetails = [], p1Plan = '';
+function loadPlanData() {
+  try {
+    var ls=JSON.parse(localStorage.getItem(BIZ_ID+'_settings')||'{}');
+    if (ls.planTemplates&&ls.planTemplates.length){_planTemplates=ls.planTemplates;_planDetails=ls.planDetails||[];refreshP1PlanSel();}
+  } catch(e){}
+  db.collection('settings').doc(BIZ_ID).get().then(function(doc){
+    if (!doc.exists) return;
+    var d=doc.data();
+    if (d.planTemplates&&d.planTemplates.length){
+      _planTemplates=d.planTemplates;_planDetails=d.planDetails||[];
+      try{var ls2=JSON.parse(localStorage.getItem(BIZ_ID+'_settings')||'{}');ls2.planTemplates=d.planTemplates;ls2.planDetails=d.planDetails||[];localStorage.setItem(BIZ_ID+'_settings',JSON.stringify(ls2));}catch(e2){}
+      refreshP1PlanSel();
+    }
+  }).catch(function(){});
+}
+function refreshP1PlanSel() {
+  var sel=document.getElementById('p1-plan-sel');if(!sel)return;
+  var opts='<option value="">（プランを選択）</option>';
+  _planDetails.forEach(function(det){
+    var tmpl=_planTemplates.find(function(t){return t.id===det.templateId;});
+    var types=tmpl?tmpl.types:Object.keys(det.values||{});
+    types.forEach(function(tp){
+      var label=escHtml((tmpl?tmpl.name+'：':'')+tp),val=escHtml(det.id+':'+tp);
+      opts+='<option value="'+val+'"'+(p1Plan===(det.id+':'+tp)?' selected':'')+'>'+label+'</option>';
+    });
+  });
+  sel.innerHTML=opts;
+}
+function onP1PlanChange(val){p1Plan=val;renderPreview();}
+
 function guardNav(e) {
   if (!isDirty) return;
   if (!confirm('保存されていない変更があります。このページを離れますか？')) {
@@ -238,6 +295,12 @@ function guardNav(e) {
 
 
 /* ── Firestore ── */
+function ensureP1Blocks(arr) {
+  var defIds = DEFAULT_BLOCKS.p1.map(function(b){ return b.id; });
+  DEFAULT_BLOCKS.p1.forEach(function(db){ if(!arr.some(function(b){return b.id===db.id;})) arr.push(JSON.parse(JSON.stringify(db))); });
+  arr.sort(function(a,b){ var ai=defIds.indexOf(a.id),bi=defIds.indexOf(b.id); return(ai<0&&bi<0)?0:(ai<0?1:(bi<0?-1:ai-bi)); });
+  return arr;
+}
 function migrateBlocks(arr) {
   return (arr||[]).map(function(b) {
     if (b.style === 'link')      return Object.assign({}, b, { style:'body', text: b.url||b.text||'' });
@@ -253,7 +316,7 @@ function loadTemplate() {
       if (doc.exists && doc.data().blocks) {
         var s = doc.data().blocks;
         blocks = {
-          p1: migrateBlocks((s.p1&&s.p1.length) ? s.p1 : def.p1),
+          p1: ensureP1Blocks(migrateBlocks((s.p1&&s.p1.length) ? s.p1 : def.p1)),
           p2: migrateBlocks((s.p2&&s.p2.length) ? s.p2 : def.p2),
           p3: migrateBlocks((s.p3&&s.p3.length) ? s.p3 : def.p3)
         };
@@ -326,42 +389,29 @@ function renderPreview() {
   var el = document.getElementById('preview-content');
   if (!el) return;
   if (currentPage === 'p1') {
-    var gp = function(s){ return (blocks.p1||[]).find(function(b){return b.style===s;})||{}; };
-    var holiday  = processText(gp('p1-holiday').text  || '');
-    var exclude  = processText(gp('p1-exclude').text  || '');
-    var contract = processText(gp('p1-contract').text || '');
-    el.innerHTML =
-      '<table class="doc-table"><colgroup><col style="width:220px"><col><col style="width:220px"><col></colgroup>'
-      +'<tr class="sh"><td colspan="4">① 料金について</td></tr>'
-      +'<tr><td class="k">契約プラン</td><td class="v" colspan="3">—</td></tr>'
-      +'<tr><td class="k" style="vertical-align:middle;white-space:nowrap">月額費用（税抜）</td><td class="v" style="vertical-align:middle">—</td><td class="k" style="vertical-align:middle;white-space:nowrap">成約手数料</td><td class="v" style="vertical-align:middle">—</td></tr>'
-      +'<tr><td class="k" style="vertical-align:middle">契約期間</td><td class="v" colspan="3" style="vertical-align:middle">—<div style="font-size:10px;color:var(--muted);margin-top:2px">※ご契約は自動更新　※退会希望の場合、14日前に管理画面から申請が必要</div></td></tr>'
-      +'<tr><td class="k" style="white-space:nowrap">紹介件数想定（月間）</td><td class="v">—</td><td class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td><td class="v">—</td></tr>'
-      +'<tr><td class="k">最低保証</td><td class="v" colspan="3">—<span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td></tr>'
-      +'<tr class="sh"><td colspan="4">② 対応エリア</td></tr>'
-      +'<tr><td colspan="4" class="v" style="padding:8px 20px"><span style="font-size:11px;color:var(--muted)">エリアが未設定です</span></td></tr>'
-      +'<tr class="sh"><td colspan="4">③ お支払いについて</td></tr>'
-      +'<tr><td class="k">決済手段</td><td class="v" colspan="3">—</td></tr>'
-      +'<tr><td class="k">備考</td><td class="v" colspan="3">—</td></tr>'
-      +'<tr class="sh"><td colspan="4">④ 休業日について</td></tr>'
-      +'<tr><td colspan="4" class="v note" style="padding:8px 20px">'+holiday+'</td></tr>'
-      +'<tr class="sh"><td colspan="4">⑤ 除外となり得るお客様情報について</td></tr>'
-      +'<tr><td colspan="4" class="v note" style="padding:8px 20px">'+exclude+'</td></tr>'
-      +'<tr class="sh"><td colspan="4">⑦ 顧客管理システムのログイン情報について</td></tr>'
-      +'<tr><td class="k">ログインURL</td><td class="v" colspan="3">—</td></tr>'
-      +'<tr><td class="k">ID</td><td class="v" colspan="3">—</td></tr>'
-      +'<tr class="sh"><td colspan="4">⑧ ご成約報告について</td></tr>'
-      +'<tr><td colspan="4" class="v note" style="padding:8px 20px">'+contract+'</td></tr>'
-      +(function(){
-        return (blocks.p1||[]).filter(function(b){return b.style==='p1-sh'||b.style==='p1-key'||b.style==='p1-val';}).map(function(b){
-          var t=processText(b.text||'');
-          if(b.style==='p1-sh')  return '<tr class="sh"><td colspan="4">'+t+'</td></tr>';
-          if(b.style==='p1-key') return '<tr><td class="k">'+t+'</td><td class="v" colspan="3"></td></tr>';
-          if(b.style==='p1-val') return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
-          return '';
-        }).join('');
-      })()
-      +'</table>';
+    var _pv={};
+    if(p1Plan&&p1Plan.indexOf(':')>-1){
+      var _pp=p1Plan.split(':'),_d=_planDetails.find(function(d){return d.id===_pp[0];}),
+          _tm=_d&&_planTemplates.find(function(t){return t.id===_d.templateId;});
+      if(_tm&&_d){
+        var _tv=(_d.values||{})[_pp[1]]||{},_gi=function(i){return escHtml((_tm.items[i]&&_tv[_tm.items[i].id])||'—');};
+        _pv['_p1_p_name']=escHtml(_pp[1]);_pv['_p1_p_fee']=_gi(0);_pv['_p1_p_comm']=_gi(1);
+        _pv['_p1_p_guar']=_gi(2);_pv['_p1_p_mon']=_gi(3);_pv['_p1_p_per']=_gi(4);_pv['_p1_p_half']=_gi(5);
+      }
+    }
+    var rows=(blocks.p1||[]).map(function(b){
+      var t=processText(b.text||'');
+      switch(b.style){
+        case 'p1-sh':      return '<tr class="sh"><td colspan="4">'+t+'</td></tr>';
+        case 'p1-key':     return '<tr><td class="k">'+t+'</td><td class="v" colspan="3">'+(_pv[b.id]||'—')+'</td></tr>';
+        case 'p1-val':     return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
+        case 'p1-holiday': return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
+        case 'p1-exclude': return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
+        case 'p1-contract':return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
+        default:           return '<tr><td colspan="4" class="v">'+t+'</td></tr>';
+      }
+    }).join('');
+    el.innerHTML='<table class="doc-table"><colgroup><col style="width:220px"><col><col style="width:220px"><col></colgroup>'+rows+'</table>';
   } else {
     el.innerHTML = (blocks[currentPage]||[]).map(renderBlock).join('');
   }
@@ -418,7 +468,7 @@ function buildCard(b, idx) {
 
   /* 完全ロック（images） */
   /* P1固定テキストブロック: テキスト編集可、スタイル変更不可 */
-  if (P1_LABELS.hasOwnProperty(b.style)) {
+  if (P1_LABELS.hasOwnProperty(b.style) && b.id && b.id.indexOf('_p1_')===0) {
     var p1Lbl = P1_LABELS[b.style];
     var p1Pre = (b.text||'').replace(/\n/g,' ').substring(0,44) + ((b.text||'').length > 44 ? '…' : '');
     var p1Exp = !!expandedIds[b.id];
@@ -532,6 +582,8 @@ function buildCard(b, idx) {
 function renderEditor() {
   var list = document.getElementById('block-list');
   if (!list) return;
+  var bar = document.getElementById('p1-plan-bar');
+  if (bar) { bar.style.display = currentPage === 'p1' ? '' : 'none'; if (currentPage==='p1') refreshP1PlanSel(); }
   var arr = blocks[currentPage]||[];
   list.innerHTML = arr.map(function(b,i){ return buildCard(b,i); }).join('');
 }
@@ -666,6 +718,7 @@ function showToast(msg) {
 }
 
 loadTemplate();
+loadPlanData();
 </script>
 </body>
 </html>
