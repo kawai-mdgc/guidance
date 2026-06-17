@@ -493,15 +493,21 @@ function buildCard(b, idx) {
     var p1Exp = !!expandedIds[b.id];
     var p1BodyH = p1Exp ? '' : ' style="display:none"';
     var p1SO = P1_STYLE_OPTS.map(function(o){ return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('');
-    var _dumChk1 = '<label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+'> ダミーテキスト</label>';
+    var _dumDisabled = (b.style==='p1-key' && b.isFromTemplate);
+    var _dumChk1 = '<label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer'+(_dumDisabled?';opacity:0.4':'')+'"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+(_dumDisabled?' disabled':'')+'> ダミーテキスト</label>';
     var p1SR = '<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+p1SO+'</select>'+_dumChk1+'</div>';
+    var _ftRow = '';
+    if (b.style==='p1-key') {
+      var _ftTmpl=_planTemplates.find(function(t){return t.id===p1Plan;});
+      var _ftOpts=_ftTmpl?_ftTmpl.items.map(function(item){return '<option value="'+escHtml(item.label||'')+'"'+(b.text===(item.label||'')?' selected':'')+'>'+escHtml(item.label||'')+'</option>';}).join(''):'<option value="">（プラン形態を先に選択してください）</option>';
+      _ftRow='<div class="bc-row" style="margin-top:4px"><label style="font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap"><input type="checkbox" data-idx="'+idx+'" onchange="toggleFromTemplate(this)"'+(b.isFromTemplate?' checked':'')+'> 設定から引用</label>'+(b.isFromTemplate?'<select style="flex:1;margin-left:8px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" data-idx="'+idx+'" onchange="selectFromTemplate(this)">'+_ftOpts+'</select>':'')+'</div>';
+    }
     var p1Body = (b.style==='p1-2col')
       ? p1SR
         +'<div class="bc-row"><span class="bc-row-label">左・項目名</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.leftKey||'')+'" data-idx="'+idx+'" data-field="leftKey" oninput="updateBlock(this)" placeholder="例：月額費用（税抜）"></div>'
         +'<div class="bc-row"><span class="bc-row-label">右・項目名</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.rightKey||'')+'" data-idx="'+idx+'" data-field="rightKey" oninput="updateBlock(this)" placeholder="例：成約手数料"></div>'
-      : p1SR
-        +'<span class="bc-field-label">テキスト</span>'
-        +'<textarea class="bc-textarea" rows="4" data-idx="'+idx+'" data-field="text" oninput="updateBlock(this)">'+escHtml(b.text||'')+'</textarea>';
+      : p1SR+_ftRow
+        +(b.isFromTemplate?'':'<span class="bc-field-label">テキスト</span><textarea class="bc-textarea" rows="4" data-idx="'+idx+'" data-field="text" oninput="updateBlock(this)">'+escHtml(b.text||'')+'</textarea>');
     return '<div class="block-card"'+cardDnd+'>'
       +'<div class="bc-head" onclick="toggleCard(\''+bid+'\')">'
       +handle+'<span class="bc-badge" style="'+badgeStyle(b.style)+'">'+escHtml(p1Lbl)+'</span>'
@@ -687,6 +693,20 @@ function toggleDummy(chk) {
   var idx = parseInt(chk.dataset.idx);
   blocks[currentPage][idx].isDummy = chk.checked;
   renderPreview();
+}
+function toggleFromTemplate(chk) {
+  markDirty();
+  var idx = parseInt(chk.dataset.idx);
+  blocks[currentPage][idx].isFromTemplate = chk.checked;
+  renderAll();
+}
+function selectFromTemplate(sel) {
+  markDirty();
+  var idx = parseInt(sel.dataset.idx);
+  blocks[currentPage][idx].text = sel.value;
+  renderPreview();
+  var card = document.querySelector('#block-list .block-card[data-idx="'+idx+'"]');
+  if (card) { var pre = card.querySelector('.bc-preview'); if (pre) pre.textContent = sel.value.substring(0,44); }
 }
 
 function delBlock(idx) {
