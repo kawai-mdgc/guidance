@@ -420,7 +420,7 @@ function renderBlock(b) {
     case 'p1-holiday':  return '<div style="background:#f0eef8;border-left:3px solid #3F3277;padding:8px 12px;margin:4px 0;font-size:11px;line-height:1.7;border-radius:0 4px 4px 0"><strong style="font-size:9px;color:#3F3277;display:block;margin-bottom:3px">④ 休業日テキスト</strong>'+t+'</div>';
     case 'p1-exclude':  return '<div style="background:#f0eef8;border-left:3px solid #3F3277;padding:8px 12px;margin:4px 0;font-size:11px;line-height:1.7;border-radius:0 4px 4px 0"><strong style="font-size:9px;color:#3F3277;display:block;margin-bottom:3px">⑤ 除外テキスト</strong>'+t+'</div>';
     case 'p1-contract': return '<div style="background:#f0eef8;border-left:3px solid #3F3277;padding:8px 12px;margin:4px 0;font-size:11px;line-height:1.7;border-radius:0 4px 4px 0"><strong style="font-size:9px;color:#3F3277;display:block;margin-bottom:3px">⑧ 成約報告テキスト</strong>'+t+'</div>';
-    case 'p1-2col': { var _lk=escHtml(b.leftKey||''),_lv=escHtml(b.leftVal||''),_rk=escHtml(b.rightKey||''),_rv=escHtml(b.rightVal||''); return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:1px 0"><div style="background:#F3F3F3;padding:6px 10px;font-size:11.5px;font-weight:600">'+_lk+'</div><div style="background:#fff;padding:6px 10px;font-size:11.5px">'+_lv+'</div><div style="background:#F3F3F3;padding:6px 10px;font-size:11.5px;font-weight:600">'+_rk+'</div><div style="background:#fff;padding:6px 10px;font-size:11.5px">'+_rv+'</div></div>'; }
+    case 'p1-2col': { var _lk=escHtml(b.leftKey||''),_rk=escHtml(b.rightKey||''); return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:1px 0"><div style="background:#F3F3F3;padding:6px 10px;font-size:11.5px;font-weight:600">'+_lk+'</div><div style="background:#fff;padding:6px 10px;font-size:11.5px">—</div><div style="background:#F3F3F3;padding:6px 10px;font-size:11.5px;font-weight:600">'+_rk+'</div><div style="background:#fff;padding:6px 10px;font-size:11.5px">—</div></div>'; }
     case 'p1-sh':  return '<div style="background:'+BG_TEXT_BG+';color:'+BG_TEXT_COLOR+';font-size:11.5px;font-weight:700;padding:8px 12px;margin:1px 0;letter-spacing:.02em">'+t+'</div>';
     case 'p1-key': return '<div style="background:#F3F3F3;color:#444;font-size:11.5px;font-weight:600;padding:8px 12px;margin:1px 0;border-left:3px solid #ccc">'+t+'</div>';
     case 'p1-val': return '<div style="background:#fff;font-size:11.5px;padding:8px 12px;margin:1px 0;border:1px solid #e0e0e0;line-height:1.75">'+t+'</div>';
@@ -445,7 +445,7 @@ function renderPreview() {
     var rows=(blocks.p1||[]).map(function(b){
       var t=processText(b.text||'');
       switch(b.style){
-        case 'p1-2col':    return '<tr><td class="k">'+escHtml(b.leftKey||'')+'</td><td class="v">'+escHtml(b.leftVal||'')+'</td><td class="k">'+escHtml(b.rightKey||'')+'</td><td class="v">'+escHtml(b.rightVal||'')+'</td></tr>';
+        case 'p1-2col':    return '<tr><td class="k">'+escHtml(b.leftKey||'')+'</td><td class="v">—</td><td class="k">'+escHtml(b.rightKey||'')+'</td><td class="v">—</td></tr>';
         case 'p1-sh':      return '<tr class="sh"><td colspan="4">'+t+'</td></tr>';
         case 'p1-key':     return '<tr><td class="k">'+t+'</td><td class="v" colspan="3">'+(_pv[b.id]||'—')+'</td></tr>';
         case 'p1-val':     return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
@@ -539,9 +539,7 @@ function buildCard(b, idx) {
     var p1Body = (b.style==='p1-2col')
       ? p1SR
         +'<div class="bc-row"><span class="bc-row-label">左・項目名</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.leftKey||'')+'" data-idx="'+idx+'" data-field="leftKey" oninput="updateBlock(this)" placeholder="例：月額費用（税抜）"></div>'
-        +'<div class="bc-row"><span class="bc-row-label">左・値</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.leftVal||'')+'" data-idx="'+idx+'" data-field="leftVal" oninput="updateBlock(this)" placeholder="例：10万円"></div>'
         +'<div class="bc-row"><span class="bc-row-label">右・項目名</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.rightKey||'')+'" data-idx="'+idx+'" data-field="rightKey" oninput="updateBlock(this)" placeholder="例：成約手数料"></div>'
-        +'<div class="bc-row"><span class="bc-row-label">右・値</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.rightVal||'')+'" data-idx="'+idx+'" data-field="rightVal" oninput="updateBlock(this)" placeholder="例：5%"></div>'
       : p1SR
         +'<span class="bc-field-label">テキスト</span>'
         +'<textarea class="bc-textarea" rows="4" data-idx="'+idx+'" data-field="text" oninput="updateBlock(this)">'+escHtml(b.text||'')+'</textarea>';
@@ -621,8 +619,7 @@ function buildCard(b, idx) {
 
   /* 2ブロック（p1-2col） */
   if (b.style === 'p1-2col') {
-    var _2pre = [b.leftKey, b.leftVal].filter(Boolean).join('：');
-    if (b.rightKey) _2pre += (_2pre?'  |  ':'')+[b.rightKey, b.rightVal].filter(Boolean).join('：');
+    var _2pre = [b.leftKey, b.rightKey].filter(Boolean).join('  |  ');
     _2pre = _2pre.length > 44 ? _2pre.substring(0,44)+'…' : _2pre;
     var _2bH = expanded ? '' : ' style="display:none"';
     var _2so = P1_STYLE_OPTS.map(function(o){ return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('');
@@ -635,9 +632,7 @@ function buildCard(b, idx) {
       +'<div class="bc-body"'+_2bH+'>'
       +'<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+_2so+'</select></div>'
       +_inp('左・項目名','leftKey','例：月額費用（税抜）')
-      +_inp('左・値','leftVal','例：10万円')
       +_inp('右・項目名','rightKey','例：成約手数料')
-      +_inp('右・値','rightVal','例：5%')
       +'</div>'
       +'</div>';
   }
@@ -717,8 +712,7 @@ function updateBlock(inp) {
       var b = blocks[currentPage][idx];
       var raw;
       if (b.style==='p1-2col') {
-        raw=[b.leftKey,b.leftVal].filter(Boolean).join('：');
-        if(b.rightKey)raw+=( raw?'  |  ':'')+[b.rightKey,b.rightVal].filter(Boolean).join('：');
+        raw=[b.leftKey,b.rightKey].filter(Boolean).join('  |  ');
       } else if (b.style==='space') {
         raw=SPACE_LABEL[b.spaceSize||'medium']||'';
       } else {
