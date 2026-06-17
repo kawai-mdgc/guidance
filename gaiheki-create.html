@@ -754,8 +754,9 @@ a.lb-url:hover { text-decoration: underline; }
       <div class="field">
         <label>プラン</label>
         <select id="plan" onchange="updatePlanDefaults();render()">
+          <option value="">選択してください</option>
           <option value="light">ライト</option>
-          <option value="basic" selected>ベーシック</option>
+          <option value="basic">ベーシック</option>
           <option value="pro">プロ</option>
         </select>
       </div>
@@ -2116,6 +2117,7 @@ function populatePlanDetails() {
   if (!dets || !dets.length) return;
   const cur = sel.value;
   sel.innerHTML = '';
+  sel.appendChild(Object.assign(document.createElement('option'), {value:'', textContent:'選択してください'}));
   const sonoOther = [];
   dets.forEach(det => {
     const tmpl = tmpls && tmpls.find(t => t.id === det.templateId);
@@ -2146,7 +2148,10 @@ function populatePlanDetails() {
     sel.appendChild(grp);
   }
   sel.value = cur;
-  if (!sel.value && sel.options.length > 0) sel.selectedIndex = 0;
+  if (!sel.value && cur) {
+    const _m = Array.from(sel.options).find(o => o.value.includes(':') && o.value.split(':')[1] === cur);
+    if (_m) sel.value = _m.value;
+  }
 }
 function populateAssigneeSelect() {
   const list = getSettings().staffList;
@@ -2500,7 +2505,13 @@ function saveCase() {
   ['assignee','cs_assignee','company','contact_name','issue_date','plan','monthly_fee','commission','guarantee',
    'monthly_est','half_est','payment_status','payment_note','login_id'].forEach(f => {
     const el = document.getElementById(f);
-    if (el && d[f] !== undefined) el.value = d[f];
+    if (el && d[f] !== undefined) {
+      el.value = d[f];
+      if (f === 'plan' && !el.value && d[f]) {
+        const _m = Array.from(el.options).find(o => o.value.includes(':') && o.value.split(':')[1] === d[f]);
+        if (_m) el.value = _m.value;
+      }
+    }
   });
   if (d.guidance_status) {
     const r = document.querySelector(`input[name="guidance_status"][value="${d.guidance_status}"]`);
@@ -2606,7 +2617,13 @@ function saveCase() {
          'monthly_fee','commission','guarantee','monthly_est','half_est',
          'payment_status','payment_note','login_id'].forEach(function (f) {
           var el = document.getElementById(f);
-          if (el && d[f] !== undefined) el.value = d[f];
+          if (el && d[f] !== undefined) {
+            el.value = d[f];
+            if (f === 'plan' && !el.value && d[f]) {
+              var _m = Array.from(el.options).find(function(o){ return o.value.includes(':') && o.value.split(':')[1] === d[f]; });
+              if (_m) el.value = _m.value;
+            }
+          }
         });
         if (d.guidance_status) {
           var r = document.querySelector('input[name="guidance_status"][value="' + d.guidance_status + '"]');
