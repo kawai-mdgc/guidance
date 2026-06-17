@@ -388,6 +388,7 @@ function renderBlock(b) {
     case 'url-photo':return '<div style="margin-bottom:24px">'+processText(b.text||'▼写真アップロードフォーム')+'<br><span style="color:'+BG_TEXT_COLOR+';font-size:11px">（写真アップロードURL・設定画面で変更）</span></div>';
     case 'url-store':return '<div style="margin-bottom:48px">'+processText(b.text||'▼加盟店様の紹介ページ')+'<br><span style="color:'+BG_TEXT_COLOR+';font-size:11px">（加盟店紹介URL・設定画面で変更）</span></div>';
     case 'images':   return '<div style="display:flex;gap:8px;margin-top:10px;margin-bottom:8px"><div style="flex:1;aspect-ratio:4/3;border-radius:6px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa">写真1</div><div style="flex:1;aspect-ratio:4/3;border-radius:6px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa">写真2</div><div style="flex:1;aspect-ratio:4/3;border-radius:6px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa">写真3</div></div>';
+    case 'p1-2col': { var _lk=escHtml(b.leftKey||''),_lv=escHtml(b.leftVal||''),_rk=escHtml(b.rightKey||''),_rv=escHtml(b.rightVal||''); return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:1px 0"><div style="background:#F3F3F3;padding:6px 10px;font-size:11.5px;font-weight:600">'+_lk+'</div><div style="background:#fff;padding:6px 10px;font-size:11.5px">'+_lv+'</div><div style="background:#F3F3F3;padding:6px 10px;font-size:11.5px;font-weight:600">'+_rk+'</div><div style="background:#fff;padding:6px 10px;font-size:11.5px">'+_rv+'</div></div>'; }
     case 'p1-sh':  return '<div style="background:'+BG_TEXT_BG+';color:'+BG_TEXT_COLOR+';font-size:11.5px;font-weight:700;padding:8px 12px;margin:1px 0;letter-spacing:.02em">'+t+'</div>';
     case 'p1-key': return '<div style="background:#F3F3F3;color:#444;font-size:11.5px;font-weight:600;padding:8px 12px;margin:1px 0;border-left:3px solid #ccc">'+t+'</div>';
     case 'p1-val': return '<div style="background:#fff;font-size:11.5px;padding:8px 12px;margin:1px 0;border:1px solid #e0e0e0;line-height:1.75">'+t+'</div>';
@@ -412,6 +413,7 @@ function renderPreview() {
     var rows=(blocks.p1||[]).map(function(b){
       var t=processText(b.text||'');
       switch(b.style){
+        case 'p1-2col':    return '<tr><td class="k">'+escHtml(b.leftKey||'')+'</td><td class="v">'+escHtml(b.leftVal||'')+'</td><td class="k">'+escHtml(b.rightKey||'')+'</td><td class="v">'+escHtml(b.rightVal||'')+'</td></tr>';
         case 'p1-sh':      return '<tr class="sh"><td colspan="4">'+t+'</td></tr>';
         case 'p1-key':     return '<tr><td class="k">'+t+'</td><td class="v" colspan="3">'+(_pv[b.id]||'—')+'</td></tr>';
         case 'p1-val':     return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
@@ -440,24 +442,30 @@ var SEMI_URL_LABEL = {
   'url-store': '加盟店紹介URL（設定画面のURL設定で変更）'
 };
 
-var STYLE_OPTS = [
-  ['title','タイトル'],['body','本文'],['bg-text','背景ありテキスト'],
-  ['bold','太字'],['muted','補足テキスト'],['space','余白'],
-  ['p1-sh','P1 セクションタイトル'],['p1-key','P1 内訳行（グレー）'],['p1-val','P1 詳細行（白）']
+var P1_STYLE_OPTS = [
+  ['p1-sh','セクションタイトル'],['p1-key','内訳行（グレー）'],['p1-val','詳細行（白）'],['p1-2col','2ブロック']
 ];
-var STYLE_LABEL = { title:'タイトル', body:'本文', 'bg-text':'背景ありテキスト', bold:'太字', muted:'補足テキスト', space:'余白', 'p1-sh':'セクションタイトル', 'p1-key':'内訳行（グレー）', 'p1-val':'詳細行（白）' };
+var P2P3_STYLE_OPTS = [
+  ['title','タイトル'],['body','本文'],['bg-text','背景ありテキスト'],
+  ['bold','太字'],['muted','補足テキスト'],['space','余白']
+];
+var STYLE_OPTS = P2P3_STYLE_OPTS;
+function getStyleOpts() { return currentPage==='p1' ? P1_STYLE_OPTS : P2P3_STYLE_OPTS; }
+var STYLE_LABEL = { title:'タイトル', body:'本文', 'bg-text':'背景ありテキスト', bold:'太字', muted:'補足テキスト', space:'余白', 'p1-sh':'セクションタイトル', 'p1-key':'内訳行（グレー）', 'p1-val':'詳細行（白）', 'p1-2col':'2ブロック' };
 var SPACE_LABEL  = { small:'小（16px）', medium:'中（32px）', large:'大（64px）' };
 
 function badgeStyle(s) {
-  if (s==='title'||s==='bg-text') return 'background:'+BG_TEXT_BG+';color:'+BG_TEXT_COLOR;
-  if (s==='bold')  return 'background:#2d2d2d;color:#fff';
-  if (s==='muted') return 'background:#ebebeb;color:#999';
-  if (s==='space')        return 'background:#e8f5e9;color:#2e7d32';
-  if (s==='url-ext')    return 'background:#e3f2fd;color:#1565c0';
-  if (s==='link-locked') return 'background:#e3f2fd;color:#1565c0';
-  if (s==='p1-sh')  return 'background:'+BG_TEXT_BG+';color:'+BG_TEXT_COLOR;
-  if (s==='p1-key') return 'background:#e8e8e8;color:#444';
-  if (s==='p1-val') return 'background:#fff;color:#555;border:1px solid #ddd';
+  if (s==='p1-sh')   return 'background:#E3F2FD;color:#1565C0';
+  if (s==='p1-key')  return 'background:#EEEEEE;color:#424242';
+  if (s==='p1-val')  return 'background:#E8F5E9;color:#2E7D32';
+  if (s==='p1-2col') return 'background:#FFF3E0;color:#E65100';
+  if (s==='title')   return 'background:#EDE7F6;color:#4527A0';
+  if (s==='body')    return 'background:#EEEEEE;color:#424242';
+  if (s==='bg-text') return 'background:#E3F2FD;color:#1565C0';
+  if (s==='bold')    return 'background:#212121;color:#fff';
+  if (s==='muted')   return 'background:#F5F5F5;color:#9E9E9E';
+  if (s==='space')   return 'background:#FFF9C4;color:#F57F17';
+  if (s==='url-ext'||s==='link-locked') return 'background:#E1F5FE;color:#01579B';
   return 'background:#f0f0f0;color:#555';
 }
 
@@ -480,20 +488,28 @@ function buildCard(b, idx) {
   /* P1固定テキストブロック: テキスト編集可、スタイル変更不可 */
   if (P1_LABELS.hasOwnProperty(b.style) && b.id && b.id.indexOf('_p1_')===0) {
     var p1Lbl = P1_LABELS[b.style];
-    var p1Pre = (b.text||'').replace(/\n/g,' ').substring(0,44) + ((b.text||'').length > 44 ? '…' : '');
+    var p1Pre = (b.text||b.leftKey||'').replace(/\n/g,' ').substring(0,44) + ((b.text||b.leftKey||'').length > 44 ? '…' : '');
     var p1Exp = !!expandedIds[b.id];
     var p1BodyH = p1Exp ? '' : ' style="display:none"';
+    var p1SO = P1_STYLE_OPTS.map(function(o){ return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('');
+    var p1SR = '<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+p1SO+'</select></div>';
+    var p1Body = (b.style==='p1-2col')
+      ? p1SR
+        +'<div class="bc-row"><span class="bc-row-label">左・項目名</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.leftKey||'')+'" data-idx="'+idx+'" data-field="leftKey" oninput="updateBlock(this)" placeholder="例：月額費用（税抜）"></div>'
+        +'<div class="bc-row"><span class="bc-row-label">左・値</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.leftVal||'')+'" data-idx="'+idx+'" data-field="leftVal" oninput="updateBlock(this)" placeholder="例：10万円"></div>'
+        +'<div class="bc-row"><span class="bc-row-label">右・項目名</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.rightKey||'')+'" data-idx="'+idx+'" data-field="rightKey" oninput="updateBlock(this)" placeholder="例：成約手数料"></div>'
+        +'<div class="bc-row"><span class="bc-row-label">右・値</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.rightVal||'')+'" data-idx="'+idx+'" data-field="rightVal" oninput="updateBlock(this)" placeholder="例：5%"></div>'
+      : p1SR
+        +'<span class="bc-field-label">テキスト</span>'
+        +'<textarea class="bc-textarea" rows="4" data-idx="'+idx+'" data-field="text" oninput="updateBlock(this)">'+escHtml(b.text||'')+'</textarea>';
     return '<div class="block-card"'+cardDnd+'>'
       +'<div class="bc-head" onclick="toggleCard(\''+bid+'\')">'
-      +handle+'<span class="bc-badge" style="background:#e8e6f3;color:#3F3277">'+escHtml(p1Lbl)+'</span>'
+      +handle+'<span class="bc-badge" style="'+badgeStyle(b.style)+'">'+escHtml(p1Lbl)+'</span>'
       +'<span class="bc-preview">'+escHtml(p1Pre)+'</span>'
       +'<span class="bc-arrow">'+(p1Exp?'▼':'▶')+'</span>'
       +del
       +'</div>'
-      +'<div class="bc-body"'+p1BodyH+'>'
-      +'<span class="bc-field-label">テキスト</span>'
-      +'<textarea class="bc-textarea" rows="4" data-idx="'+idx+'" data-field="text" oninput="updateBlock(this)">'+escHtml(b.text||'')+'</textarea>'
-      +'</div>'
+      +'<div class="bc-body"'+p1BodyH+'>'+p1Body+'</div>'
       +'</div>';
   }
 
@@ -568,7 +584,7 @@ function buildCard(b, idx) {
   rawPre = rawPre.length > 44 ? rawPre.substring(0,44)+'…' : rawPre;
   var bodyH = expanded ? '' : ' style="display:none"';
 
-  var opts = STYLE_OPTS.map(function(o){
+  var opts = getStyleOpts().map(function(o){
     return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>';
   }).join('');
   var styleRow = '<div class="bc-row"><span class="bc-row-label">スタイル</span>'
@@ -649,7 +665,7 @@ function delBlock(idx) {
 
 function addBlock() {
   markDirty();
-  var nb = { id:'new_'+Date.now(), style:'body', text:'' };
+  var nb = { id:'new_'+Date.now(), style: currentPage==='p1'?'p1-sh':'body', text:'' };
   blocks[currentPage].push(nb);
   expandedIds[nb.id] = true;   /* 追加時は展開状態 */
   renderAll();
