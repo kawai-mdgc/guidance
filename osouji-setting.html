@@ -1087,7 +1087,7 @@ function ptConfirmCopy(){
 }
 
 function ptDelete(id){if(!confirm('このプラン形態を削除しますか？'))return;planTemplates=planTemplates.filter(t=>t.id!==id);planDetails=planDetails.filter(d=>d.templateId!==id);checkDirty('plan');ptRenderAll();pdRenderAll();}
-function ptUpdateName(id,v){const t=_ptGet(id);if(t){t.name=v;checkDirty('plan');const h=document.getElementById('hname-pt-'+id);if(h)h.textContent=v||'（名前未設定）';}}
+function ptUpdateName(id,v){const t=_ptGet(id);if(t){t.name=v;checkDirty('plan');const h=document.getElementById('hname-pt-'+id);if(h)h.textContent=v||'（名前未設定）';planDetails.filter(d=>d.templateId===id).forEach(d=>{const s=document.getElementById('pdhead-name-'+d.id);if(s)s.textContent='プラン形態：'+(v||'（名前未設定）');});}}
 function _ptReRenderTypes(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-types-'+tmplId);if(el)el.innerHTML=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${tmplId}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${tmplId}',${ti})">削除</button></div>`).join('');}
 function _pdSyncTemplate(tmplId){const tmpl=_ptGet(tmplId);if(!tmpl)return;planDetails.filter(d=>d.templateId===tmplId).forEach(d=>{const body=document.getElementById('body-pd-'+d.id);if(!body)return;const grid=body.querySelector('.plan-grid');if(grid)grid.innerHTML=tmpl.types.map(tp=>_pdTypeCard(d,tmpl,tp)).join('');});}
 function ptTypeAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.types.push('');checkDirty('plan');_ptReRenderTypes(tmplId);_pdSyncTemplate(tmplId);}
@@ -1109,7 +1109,7 @@ function _pdGroup(det){
   const cards=tmpl.types.map(tp=>_pdTypeCard(det,tmpl,tp)).join('');
   return `<div id="pdgroup-${det.id}" style="margin-bottom:14px">
   <div class="plan-tmpl-head" style="background:#ffffff;border:1px solid var(--border);border-radius:6px;padding:10px 14px">
-    <span style="flex:1;font-size:13px;font-weight:700;color:var(--main)">プラン形態：${escHtml(tmpl.name)}</span>
+    <span id="pdhead-name-${det.id}" style="flex:1;font-size:13px;font-weight:700;color:var(--main)">プラン形態：${escHtml(tmpl.name)}</span>
     <button class="btn-edit" onclick="toggleCollapse('pd-${det.id}')">編集</button>
     <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pdDelete('${det.id}')">削除</button>
   </div>
