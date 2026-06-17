@@ -2047,42 +2047,46 @@ function populatePaymentMethodSelect() {
 function updatePlanDefaults() {
   const plan = document.getElementById('plan').value;
   const s = getSettings();
-  // planDetails対応 (format: detId:type)
-  if (s.planDetails && s.planTemplates && plan.includes(':')) {
-    const [detId, type] = plan.split(':');
-    const det = s.planDetails.find(d => d.id === detId);
-    if (det) {
-      const tmpl = s.planTemplates.find(t => t.id === det.templateId);
-      if (tmpl && type) {
-        const tv = (det.values||{})[type] || {};
-        const vals = tmpl.items.map(item => tv[item.id] || '');
-        document.getElementById('monthly_fee').value  = vals[0] || '';
-        document.getElementById('commission').value   = vals[1] || '';
-        document.getElementById('guarantee').value    = vals[2] || '';
-        document.getElementById('monthly_est').value  = vals[3] || '';
-        document.getElementById('half_est').value     = vals[5] || '';
-        return;
-      }
-    }
-  }
-  const isVp = plan.startsWith('vp_');
-  if (isVp) {
+  const TYPE_STATIC = {ライト:'light',ベーシック:'basic',プロ:'pro'};
+  const applyStatic = (key) => {
+    const d = s.plans?.[key] || DEFAULT_SETTINGS.plans?.[key];
+    if (!d) return false;
+    document.getElementById('monthly_fee').value = d.fee;
+    document.getElementById('commission').value  = d.commission;
+    document.getElementById('guarantee').value   = d.guarantee;
+    document.getElementById('monthly_est').value = d.monthly;
+    document.getElementById('half_est').value    = d.half;
+    return true;
+  };
+  if (plan.startsWith('vp_')) {
     const vp = (s.volumePlans || []).find(p => p.id === plan) || {};
     document.getElementById('monthly_fee').value = '0円';
     document.getElementById('commission').value  = (vp.achievementFee || '') + '%';
     document.getElementById('guarantee').value   = '';
     document.getElementById('monthly_est').value = vp.monthlyEstimate || '';
     document.getElementById('half_est').value    = '';
-  } else {
-    const d = s.plans?.[plan] || DEFAULT_SETTINGS.plans?.[plan];
-    if (d) {
-      document.getElementById('monthly_fee').value = d.fee;
-      document.getElementById('commission').value  = d.commission;
-      document.getElementById('guarantee').value   = d.guarantee;
-      document.getElementById('monthly_est').value = d.monthly;
-      document.getElementById('half_est').value    = d.half;
-    }
+    return;
   }
+  if (plan.includes(':')) {
+    const [detId, type] = plan.split(':');
+    const det = s.planDetails && s.planDetails.find(d => d.id === detId);
+    const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
+    if (tmpl && det) {
+      const tv = (det.values||{})[type] || {};
+      const vals = tmpl.items.map(item => tv[item.id]||'');
+      if (vals.some(v => v)) {
+        document.getElementById('monthly_fee').value  = vals[0]||'';
+        document.getElementById('commission').value   = vals[1]||'';
+        document.getElementById('guarantee').value    = vals[2]||'';
+        document.getElementById('monthly_est').value  = vals[3]||'';
+        document.getElementById('half_est').value     = vals[5]!==undefined?vals[5]:'';
+        return;
+      }
+    }
+    applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
+    return;
+  }
+  applyStatic(plan);
 }
 
 function populateVolumePlans() {
@@ -2295,7 +2299,8 @@ function render() {
   set('p-date3', '発行日：' + dateLabel);
   set('p-date4', '発行日：' + dateLabel);
   renderP4();
-  setVal('p-plan',       planLabel[v('plan')]);
+  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:({light:'ライト',basic:'ベーシック',pro:'プロ'}[_pv]||planLabel[_pv]||_pv);
+  setVal('p-plan',       _pname);
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
   if (!v('plan').startsWith('vp_')) {
