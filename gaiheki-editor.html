@@ -346,6 +346,9 @@ function renderBlock(b) {
     case 'p1-holiday':  return '<div style="background:#f0eef8;border-left:3px solid #3F3277;padding:8px 12px;margin:4px 0;font-size:11px;line-height:1.7;border-radius:0 4px 4px 0"><strong style="font-size:9px;color:#3F3277;display:block;margin-bottom:3px">④ 休業日テキスト</strong>'+t+'</div>';
     case 'p1-exclude':  return '<div style="background:#f0eef8;border-left:3px solid #3F3277;padding:8px 12px;margin:4px 0;font-size:11px;line-height:1.7;border-radius:0 4px 4px 0"><strong style="font-size:9px;color:#3F3277;display:block;margin-bottom:3px">⑤ 除外テキスト</strong>'+t+'</div>';
     case 'p1-contract': return '<div style="background:#f0eef8;border-left:3px solid #3F3277;padding:8px 12px;margin:4px 0;font-size:11px;line-height:1.7;border-radius:0 4px 4px 0"><strong style="font-size:9px;color:#3F3277;display:block;margin-bottom:3px">⑧ 成約報告テキスト</strong>'+t+'</div>';
+    case 'p1-sh':  return '<div style="background:'+BG_TEXT_BG+';color:'+BG_TEXT_COLOR+';font-size:11.5px;font-weight:700;padding:8px 12px;margin:1px 0;letter-spacing:.02em">'+t+'</div>';
+    case 'p1-key': return '<div style="background:#F3F3F3;color:#444;font-size:11.5px;font-weight:600;padding:8px 12px;margin:1px 0;border-left:3px solid #ccc">'+t+'</div>';
+    case 'p1-val': return '<div style="background:#fff;font-size:11.5px;padding:8px 12px;margin:1px 0;border:1px solid #e0e0e0;line-height:1.75">'+t+'</div>';
         default:         return '<div>'+t+'</div>';
   }
 }
@@ -380,6 +383,15 @@ function renderPreview() {
       +'<tr><td class="k">ID</td><td class="v" colspan="3">—</td></tr>'
       +'<tr class="sh"><td colspan="4">⑧ ご成約報告について</td></tr>'
       +'<tr><td colspan="4" class="v note" style="padding:8px 20px">'+contract+'</td></tr>'
+      +(function(){
+        return (blocks.p1||[]).filter(function(b){return b.style==='p1-sh'||b.style==='p1-key'||b.style==='p1-val';}).map(function(b){
+          var t=processText(b.text||'');
+          if(b.style==='p1-sh')  return '<tr class="sh"><td colspan="4">'+t+'</td></tr>';
+          if(b.style==='p1-key') return '<tr><td class="k">'+t+'</td><td class="v" colspan="3"></td></tr>';
+          if(b.style==='p1-val') return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
+          return '';
+        }).join('');
+      })()
       +'</table>';
   } else {
     el.innerHTML = (blocks[currentPage]||[]).map(renderBlock).join('');
@@ -388,7 +400,7 @@ function renderPreview() {
 
 /* ── Editor card builder ── */
 var FULLY_LOCKED = { 'images': '🔒 写真サンプル画像（3枚）' };
-var P1_LABELS = { 'p1-holiday': '④ 休業日テキスト', 'p1-exclude': '⑤ 除外テキスト', 'p1-contract': '⑧ 成約報告テキスト' };
+var P1_LABELS = { 'p1-holiday': '④ 休業日テキスト', 'p1-exclude': '⑤ 除外テキスト', 'p1-contract': '⑧ 成約報告テキスト', 'p1-sh': 'セクションタイトル', 'p1-key': '内訳行（グレー）', 'p1-val': '詳細行（白）' };
 
 var SEMI_LOCKED = {
   'url-photo':      '写真URL（🔒）',
@@ -411,9 +423,10 @@ var SEMI_URL_LABEL = {
 
 var STYLE_OPTS = [
   ['title','タイトル'],['body','本文'],['bg-text','背景ありテキスト'],
-  ['bold','太字'],['muted','補足テキスト'],['space','余白']
+  ['bold','太字'],['muted','補足テキスト'],['space','余白'],
+  ['p1-sh','P1 セクションタイトル'],['p1-key','P1 内訳行（グレー）'],['p1-val','P1 詳細行（白）']
 ];
-var STYLE_LABEL = { title:'タイトル', body:'本文', 'bg-text':'背景ありテキスト', bold:'太字', muted:'補足テキスト', space:'余白' };
+var STYLE_LABEL = { title:'タイトル', body:'本文', 'bg-text':'背景ありテキスト', bold:'太字', muted:'補足テキスト', space:'余白', 'p1-sh':'セクションタイトル', 'p1-key':'内訳行（グレー）', 'p1-val':'詳細行（白）' };
 var SPACE_LABEL  = { small:'小（16px）', medium:'中（32px）', large:'大（64px）' };
 
 function badgeStyle(s) {
@@ -424,6 +437,9 @@ function badgeStyle(s) {
   if (s==='url-ext')    return 'background:#e3f2fd;color:#1565c0';
   if (s==='url-form1'||s==='url-form2') return 'background:#e3f2fd;color:#1565c0';
   if (s==='link-locked') return 'background:#e3f2fd;color:#1565c0';
+  if (s==='p1-sh')  return 'background:'+BG_TEXT_BG+';color:'+BG_TEXT_COLOR;
+  if (s==='p1-key') return 'background:#e8e8e8;color:#444';
+  if (s==='p1-val') return 'background:#fff;color:#555;border:1px solid #ddd';
   return 'background:#f0f0f0;color:#555';
 }
 
