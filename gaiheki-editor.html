@@ -163,7 +163,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
       <button class="h-tab" data-page="p3" onclick="switchPage('p3')">P3 成約施策</button>
     </div>
     <div id="p1-plan-bar" style="display:none;padding:8px 12px 6px;border-bottom:1px solid var(--border);background:var(--bg);margin-bottom:8px">
-      <label style="font-size:11px;font-weight:600;color:var(--label);display:block;margin-bottom:4px">① 料金について — プラン切り替え</label>
+      <label style="font-size:11px;font-weight:600;color:var(--label);display:block;margin-bottom:4px">① 料金について — プラン形態を選択</label>
       <select id="p1-plan-sel" onchange="onP1PlanChange(this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit;background:var(--white)">
         <option value="">（プランを選択）</option>
       </select>
@@ -287,14 +287,9 @@ function loadPlanData() {
 }
 function refreshP1PlanSel() {
   var sel=document.getElementById('p1-plan-sel');if(!sel)return;
-  var opts='<option value="">（プランを選択）</option>';
-  _planDetails.forEach(function(det){
-    var tmpl=_planTemplates.find(function(t){return t.id===det.templateId;});
-    var types=tmpl?tmpl.types:Object.keys(det.values||{});
-    types.forEach(function(tp){
-      var label=escHtml((tmpl?tmpl.name+'：':'')+tp),val=escHtml(det.id+':'+tp);
-      opts+='<option value="'+val+'"'+(p1Plan===(det.id+':'+tp)?' selected':'')+'>'+label+'</option>';
-    });
+  var opts='<option value="">（プラン形態を選択）</option>';
+  _planTemplates.forEach(function(tmpl){
+    opts+='<option value="'+escHtml(tmpl.id)+'"'+(p1Plan===tmpl.id?' selected':'')+'>'+escHtml(tmpl.name||'（名前未設定）')+'</option>';
   });
   sel.innerHTML=opts;
 }
@@ -531,7 +526,7 @@ function buildCard(b, idx) {
     var p1Exp = !!expandedIds[b.id];
     var p1BodyH = p1Exp ? '' : ' style="display:none"';
     return '<div class="block-card"'+cardDnd+'>'
-      +'<div class="bc-head" onclick="toggleCard(\'+bid+\')">'
+      +'<div class="bc-head" onclick="toggleCard(\''+bid+'\')">'
       +handle+'<span class="bc-badge" style="background:#e8e6f3;color:#3F3277">'+escHtml(p1Lbl)+'</span>'
       +'<span class="bc-preview">'+escHtml(p1Pre)+'</span>'
       +'<span class="bc-arrow">'+(p1Exp?'▼':'▶')+'</span>'
