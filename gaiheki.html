@@ -61,9 +61,6 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
 .card-company{font-size:14px;font-weight:700;line-height:1.4;flex:1;margin-right:8px}
 .card-plan{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
-.card-plan.light{background:#EDFFD6;color:#4A8C00}
-.card-plan.basic{background:#FFF0E0;color:#E07000}
-.card-plan.pro{background:#E0F4FF;color:#0077B6}
 
 .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .card-assignee{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--purple);background:var(--purple-light);padding:2px 8px;border-radius:4px}
@@ -306,7 +303,23 @@ function deleteCase(id, e) {
   renderPage();
 }
 
-const planLabel = {light:'LIGHT', basic:'BASIC', pro:'PRO'};
+function getPlanTag(raw){
+  const name=(raw||'').includes(':')?raw.split(':')[1]:(raw||'');
+  const disp=name.replace(/プラン$/,'').trim();
+  const MAP={
+    light:{label:'LIGHT',bg:'#EDFFD6',color:'#4A8C00'},
+    basic:{label:'BASIC',bg:'#FFF0E0',color:'#E07000'},
+    pro:{label:'PRO',bg:'#E0F4FF',color:'#0077B6'},
+    'ライト':{label:'LIGHT',bg:'#EDFFD6',color:'#4A8C00'},
+    'ベーシック':{label:'BASIC',bg:'#FFF0E0',color:'#E07000'},
+    'プロ':{label:'PRO',bg:'#E0F4FF',color:'#0077B6'},
+  };
+  if(name.includes('従量'))return{label:'従量',bg:'#EDE7F6',color:'#6A1B9A'};
+  if(MAP[name])return MAP[name];
+  const P=[{bg:'#E8F5E9',color:'#2E7D32'},{bg:'#FFF3E0',color:'#E65100'},{bg:'#E3F2FD',color:'#1565C0'},{bg:'#FCE4EC',color:'#880E4F'},{bg:'#F3E5F5',color:'#6A1B9A'},{bg:'#E0F7FA',color:'#00695C'},{bg:'#FFF9C4',color:'#F57F17'},{bg:'#EFEBE9',color:'#4E342E'}];
+  let h=0;for(let i=0;i<disp.length;i++)h=(h*31+disp.charCodeAt(i))&0xffff;
+  const p=P[h%P.length];return{label:disp||name,bg:p.bg,color:p.color};
+}
 
 function setFilter(filter) {
   currentFilter = filter;
@@ -374,7 +387,7 @@ function renderCards() {
   const newCard = `<a href="${newUrl}" class="card-new"><div class="card-new-inner"><div class="card-new-icon">＋</div><div class="card-new-label">新規作成</div></div></a>`;
 
   grid.innerHTML = newCard + filtered.map(c => {
-    const plan = c.plan || 'basic';
+    const tag = getPlanTag(c.plan);
     const areas = c.formData?.areas || [];
     const areaText = areas.length
       ? areas.map(a => typeof a === 'string' ? a : (a.city || a.pref || '')).filter(Boolean).join('、')
@@ -387,7 +400,7 @@ function renderCards() {
       <a href="gaiheki-create.html?id=${c.id}&business=gaiheki" class="card">
         <div class="card-top">
           <div class="card-company">${escHtml(c.company || '（会社名未入力）')}</div>
-          <div class="card-plan ${plan}">${planLabel[plan] || plan}</div>
+          <div class="card-plan" style="background:${tag.bg};color:${tag.color}">${tag.label}</div>
         </div>
         <div class="card-meta">
           <div class="card-assignee">👤 ${escHtml(c.assignee || '—')}</div>

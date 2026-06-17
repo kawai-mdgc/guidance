@@ -2454,7 +2454,7 @@ function saveCase() {
   const existing = getCases();
   const existingCase = existing.find(c => c.id === id);
   const caseData = {
-    id, assignee: v('assignee'), company: v('company') || v('contact_name'), plan: v('plan'),
+    id, assignee: v('assignee'), company: v('company') || v('contact_name'), plan: v('plan').includes(':') ? v('plan').split(':')[1] : v('plan'),
     guidance_status: (document.querySelector('input[name="guidance_status"]:checked') || {}).value || '未実施',
     createdAt: existingCase ? existingCase.createdAt : new Date().toISOString().split('T')[0],
     formData: collectFormData(),
@@ -2543,7 +2543,7 @@ function saveCase() {
       id: id,
       assignee: v('assignee'),
       company: v('company') || v('contact_name'),
-      plan: v('plan'),
+      plan: v('plan').includes(':') ? v('plan').split(':')[1] : v('plan'),
       guidance_status: (document.querySelector('input[name="guidance_status"]:checked') || {}).value || '未実施',
       createdAt: existingCase ? existingCase.createdAt : new Date().toISOString().split('T')[0],
       formData: collectFormData(),
