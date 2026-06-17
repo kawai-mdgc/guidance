@@ -287,11 +287,12 @@ function loadPlanData() {
 }
 function refreshP1PlanSel() {
   var sel=document.getElementById('p1-plan-sel');if(!sel)return;
-  var opts='<option value="">（プラン形態を選択）</option>';
+  var opts='';
   _planTemplates.forEach(function(tmpl){
     opts+='<option value="'+escHtml(tmpl.id)+'"'+(p1Plan===tmpl.id?' selected':'')+'>'+escHtml(tmpl.name||'（名前未設定）')+'</option>';
   });
   sel.innerHTML=opts;
+  if (!p1Plan && _planTemplates.length) { p1Plan=_planTemplates[0].id; sel.value=p1Plan; renderPreview(); }
 }
 function onP1PlanChange(val){p1Plan=val;renderPreview();}
 
