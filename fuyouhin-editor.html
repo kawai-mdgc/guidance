@@ -137,7 +137,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
 <div class="header">
   <a href="fuyouhin.html" class="h-logo" onclick="guardNav(event)"><img src="fuyouhin-logo.png" alt="不用品回収の窓口" height="32"></a>
   <div style="flex:1"></div>
-  <button class="btn-save" id="btn-save" onclick="saveTemplate()">保存</button>
+  <button class="btn-save" id="btn-save" onclick="saveTemplate()" disabled>保存</button>
   <a href="fuyouhin-setting.html" class="btn-back" onclick="guardNav(event)">戻る</a>
 </div>
 
@@ -250,9 +250,19 @@ var db          = firebase.firestore();
 var dragSrcIdx  = -1;
 var expandedIds = {};   /* blockId -> true/false */
 var isDirty = false;
-
-function markDirty() { isDirty = true; }
-function clearDirty() { isDirty = false; }
+var _originalBlocks = null;
+function syncDirtyState() {
+  isDirty = _originalBlocks !== null && JSON.stringify(blocks) !== _originalBlocks;
+  var btn = document.getElementById('btn-save');
+  if (btn && btn.textContent !== '保存中...') btn.disabled = !isDirty;
+}
+function markDirty() { setTimeout(syncDirtyState, 0); }
+function clearDirty() {
+  _originalBlocks = JSON.stringify(blocks);
+  isDirty = false;
+  var btn = document.getElementById('btn-save');
+  if (btn) btn.disabled = true;
+}
 
 /* ── Plan data for P1 ── */
 var _planTemplates = [], _planDetails = [], p1Plan = '';
@@ -323,11 +333,15 @@ function loadTemplate() {
       } else {
         blocks = { p1: JSON.parse(JSON.stringify(def.p1)), p2: JSON.parse(JSON.stringify(def.p2)), p3: JSON.parse(JSON.stringify(def.p3)) };
       }
+      _originalBlocks = JSON.stringify(blocks);
+      var _sb=document.getElementById('btn-save');if(_sb)_sb.disabled=true;
       renderAll(); scalePreview();
     })
     .catch(function(e) {
       console.error('[Editor]', e.message);
       blocks = JSON.parse(JSON.stringify(DEFAULT_BLOCKS));
+      _originalBlocks = JSON.stringify(blocks);
+      var _sb=document.getElementById('btn-save');if(_sb)_sb.disabled=true;
       renderAll(); scalePreview();
     });
 }
@@ -336,7 +350,7 @@ function saveTemplate() {
   var btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '保存中...';
   db.collection('templates').doc(BIZ_ID).set({ blocks: { p1: blocks.p1, p2: blocks.p2, p3: blocks.p3 }, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-    .then(function() { clearDirty(); showToast('保存しました'); btn.disabled = false; btn.textContent = '保存'; })
+    .then(function() { clearDirty(); showToast('保存しました'); btn.textContent = '保存'; })
     .catch(function(e) { alert('保存に失敗: '+e.message); btn.disabled = false; btn.textContent = '保存'; });
 }
 
@@ -345,6 +359,7 @@ function resetToDefault() {
   blocks = { p1: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p1)), p2: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p2)), p3: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p3)) };
   expandedIds = {};
   renderAll();
+  markDirty();
 }
 
 /* ── Page switch ── */
@@ -478,6 +493,7 @@ function buildCard(b, idx) {
       +handle+'<span class="bc-badge" style="background:#e8e6f3;color:#3F3277">'+escHtml(p1Lbl)+'</span>'
       +'<span class="bc-preview">'+escHtml(p1Pre)+'</span>'
       +'<span class="bc-arrow">'+(p1Exp?'▼':'▶')+'</span>'
+      +del
       +'</div>'
       +'<div class="bc-body"'+p1BodyH+'>'
       +'<span class="bc-field-label">テキスト</span>'
