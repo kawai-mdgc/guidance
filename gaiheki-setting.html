@@ -650,22 +650,32 @@ function pmRender() {
       ? `<button class="btn-pm-add" onclick="pmAddGroup('${m.id}')">＋ グループを追加</button>` : '';
     return `<div class="pm-method">
   <div class="pm-method-head">
-    <input class="pm-method-name" type="text" value="${escHtml(m.name)}" oninput="pmUpdateName('${m.id}',this.value)" placeholder="決済手段名">
-    <button class="pm-toggle-groups ${m.useGroups?'on':''}" onclick="pmToggleGroups('${m.id}')" title="グループ管理">${m.useGroups?'グループON':'グループOFF'}</button>
+    <span id="pm-head-name-${m.id}" style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${escHtml(m.name||'（名前未設定）')}</span>
+    <button class="btn-edit" onclick="toggleCollapse('pm-${m.id}')">編集</button>
     <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="pmDeleteMethod('${m.id}')">削除</button>
   </div>
-  <div class="pm-body">${groupsHTML}${addGroupBtn}</div>
+  <div id="body-pm-${m.id}" class="pm-body" style="display:none">
+    <div style="margin-bottom:8px"><input class="pm-method-name" type="text" value="${escHtml(m.name)}" oninput="pmUpdateName('${m.id}',this.value)" placeholder="決済手段名"></div>
+    <button class="pm-toggle-groups ${m.useGroups?'on':''}" onclick="pmToggleGroups('${m.id}')">${m.useGroups?'グループON':'グループOFF'}</button>
+    <div style="margin-top:8px">${groupsHTML}${addGroupBtn}</div>
+  </div>
 </div>`;
   }).join('');
 }
 
 function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+function pmRenderPreserveOpen(){
+  const open=new Set(pmConfig.filter(m=>{const el=document.getElementById('body-pm-'+m.id);return el&&el.style.display!=='none';}).map(m=>m.id));
+  pmRender();
+  open.forEach(id=>{const el=document.getElementById('body-pm-'+id);if(el)el.style.display='';});
+}
 function pmAddMethod() {
   const id = pmNewId();
   checkDirty('payment');
   pmConfig.push({ id, name: '', useGroups: false, groups: [{ id: pmNewId(), label: null, notes: [] }] });
   pmRender();
+  const body=document.getElementById('body-pm-'+id);if(body)body.style.display='';
 }
 function pmDeleteMethod(id) {
   if (!confirm('削除しますか？')) return;
@@ -674,8 +684,9 @@ function pmDeleteMethod(id) {
   pmRender();
 }
 function pmUpdateName(id, name) {
-  const m = pmConfig.find(x => x.id === id); if (m) m.name = name;
+  const m = pmConfig.find(x => x.id === id); if (!m) return; m.name = name;
   checkDirty('payment');
+  const s=document.getElementById('pm-head-name-'+id);if(s)s.textContent=name||'（名前未設定）';
 }
 function pmToggleGroups(id) {
   const m = pmConfig.find(x => x.id === id);
@@ -683,17 +694,17 @@ function pmToggleGroups(id) {
   m.useGroups = !m.useGroups;
   if (m.useGroups && m.groups.length === 1 && !m.groups[0].label) m.groups[0].label = '';
   checkDirty('payment');
-  pmRender();
+  pmRenderPreserveOpen();
 }
 function pmAddGroup(methodId) {
   const m = pmConfig.find(x => x.id === methodId);
   if (m) { m.groups.push({ id: pmNewId(), label: '', notes: [] }); checkDirty('payment'); }
-  pmRender();
+  pmRenderPreserveOpen();
 }
 function pmDeleteGroup(methodId, groupId) {
   const m = pmConfig.find(x => x.id === methodId);
   if (m) { m.groups = m.groups.filter(g => g.id !== groupId); checkDirty('payment'); }
-  pmRender();
+  pmRenderPreserveOpen();
 }
 function pmUpdateGroupLabel(methodId, groupId, label) {
   const m = pmConfig.find(x => x.id === methodId);
@@ -705,13 +716,13 @@ function pmAddNote(methodId, groupId) {
   const m = pmConfig.find(x => x.id === methodId);
   const g = m?.groups.find(g => g.id === groupId);
   if (g) { g.notes.push(''); checkDirty('payment'); }
-  pmRender();
+  pmRenderPreserveOpen();
 }
 function pmDeleteNote(methodId, groupId, idx) {
   const m = pmConfig.find(x => x.id === methodId);
   const g = m?.groups.find(g => g.id === groupId);
   if (g) { g.notes.splice(idx, 1); checkDirty('payment'); }
-  pmRender();
+  pmRenderPreserveOpen();
 }
 function pmUpdateNote(methodId, groupId, idx, value) {
   const m = pmConfig.find(x => x.id === methodId);
