@@ -104,6 +104,14 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
 /* トースト */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px); background: #1a1a1a; color: var(--white); padding: 11px 28px; border-radius: 6px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 999; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ── P1テーブルプレビュー ── */
+.doc-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.doc-table td{border:1px solid var(--border);vertical-align:top;padding:8px 12px;}
+.sh td{background:#F8FBFF;color:#297DCE;font-size:11.5px;font-weight:700;padding:8px 12px;border-top:1px solid var(--border)!important;border-left:1px solid var(--border)!important;letter-spacing:.02em;}
+.k{background:var(--bg)!important;color:#297DCE!important;font-size:11.5px!important;font-weight:600!important;width:220px!important;min-width:220px!important;max-width:220px!important;vertical-align:middle!important;white-space:nowrap!important;padding:8px 20px!important;}
+.v{background:var(--white);color:var(--text);font-size:11.5px;}
+.sub-note{font-size:10px;color:var(--muted);margin-left:8px;font-weight:400;}
+.note{font-size:11.5px;color:var(--label);line-height:1.75;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -150,8 +158,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
 
   <div class="editor-pane">
     <div class="editor-tabs-sticky">
-      <button class="h-tab" data-page="p1" onclick="switchPage('p1')">P1 基本事項</button>
-      <button class="h-tab active" data-page="p2" onclick="switchPage('p2')">P2 写真のお願い</button>
+      <button class="h-tab active" data-page="p1" onclick="switchPage('p1')">P1 基本事項</button>
+      <button class="h-tab" data-page="p2" onclick="switchPage('p2')">P2 写真のお願い</button>
       <button class="h-tab" data-page="p3" onclick="switchPage('p3')">P3 成約施策</button>
     </div>
     <div class="editor-head">ブロック一覧（ヘッダーをクリックして展開）</div>
@@ -211,7 +219,7 @@ var DEFAULT_BLOCKS = {
 };
 
 /* ── State ── */
-var currentPage = 'p2';
+var currentPage = 'p1';
 var blocks      = { p2: [], p3: [] };
 var db          = firebase.firestore();
 var dragSrcIdx  = -1;
@@ -313,7 +321,38 @@ function renderBlock(b) {
 
 function renderPreview() {
   var el = document.getElementById('preview-content');
-  if (el) el.innerHTML = (blocks[currentPage]||[]).map(renderBlock).join('');
+  if (!el) return;
+  if (currentPage === 'p1') {
+    var gp = function(s){ return (blocks.p1||[]).find(function(b){return b.style===s;})||{}; };
+    var holiday  = processText(gp('p1-holiday').text  || '');
+    var exclude  = processText(gp('p1-exclude').text  || '');
+    var contract = processText(gp('p1-contract').text || '');
+    el.innerHTML =
+      '<table class="doc-table"><colgroup><col style="width:220px"><col><col style="width:220px"><col></colgroup>'
+      +'<tr class="sh"><td colspan="4">① 料金について</td></tr>'
+      +'<tr><td class="k">契約プラン</td><td class="v" colspan="3">—</td></tr>'
+      +'<tr><td class="k" style="vertical-align:middle;white-space:nowrap">月額費用（税抜）</td><td class="v" style="vertical-align:middle">—</td><td class="k" style="vertical-align:middle;white-space:nowrap">成約手数料</td><td class="v" style="vertical-align:middle">—</td></tr>'
+      +'<tr><td class="k" style="vertical-align:middle">契約期間</td><td class="v" colspan="3" style="vertical-align:middle">—<div style="font-size:10px;color:var(--muted);margin-top:2px">※ご契約は自動更新　※退会希望の場合、14日前に管理画面から申請が必要</div></td></tr>'
+      +'<tr><td class="k" style="white-space:nowrap">紹介件数想定（月間）</td><td class="v">—</td><td class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td><td class="v">—</td></tr>'
+      +'<tr><td class="k">最低保証</td><td class="v" colspan="3">—<span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td></tr>'
+      +'<tr class="sh"><td colspan="4">② 対応エリア</td></tr>'
+      +'<tr><td colspan="4" class="v" style="padding:8px 20px"><span style="font-size:11px;color:var(--muted)">エリアが未設定です</span></td></tr>'
+      +'<tr class="sh"><td colspan="4">③ お支払いについて</td></tr>'
+      +'<tr><td class="k">決済手段</td><td class="v" colspan="3">—</td></tr>'
+      +'<tr><td class="k">備考</td><td class="v" colspan="3">—</td></tr>'
+      +'<tr class="sh"><td colspan="4">④ 休業日について</td></tr>'
+      +'<tr><td colspan="4" class="v note" style="padding:8px 20px">'+holiday+'</td></tr>'
+      +'<tr class="sh"><td colspan="4">⑤ 除外となり得るお客様情報について</td></tr>'
+      +'<tr><td colspan="4" class="v note" style="padding:8px 20px">'+exclude+'</td></tr>'
+      +'<tr class="sh"><td colspan="4">⑦ 顧客管理システムのログイン情報について</td></tr>'
+      +'<tr><td class="k">ログインURL</td><td class="v" colspan="3">—</td></tr>'
+      +'<tr><td class="k">ID</td><td class="v" colspan="3">—</td></tr>'
+      +'<tr class="sh"><td colspan="4">⑧ ご成約報告について</td></tr>'
+      +'<tr><td colspan="4" class="v note" style="padding:8px 20px">'+contract+'</td></tr>'
+      +'</table>';
+  } else {
+    el.innerHTML = (blocks[currentPage]||[]).map(renderBlock).join('');
+  }
 }
 
 /* ── Editor card builder ── */
