@@ -1053,7 +1053,8 @@ function _piCard(tmplId,item){
 }
 function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');}
 
-function ptAdd(){planTemplates.push({id:_ptId(),name:'',types:[],items:[]});checkDirty('plan');ptRenderAll();}
+function _pdAutoAdd(tmplId){if(planDetails.some(d=>d.templateId===tmplId))return;const tmpl=_ptGet(tmplId);if(!tmpl)return;const values={};tmpl.types.forEach(tp=>{values[tp]={};});planDetails.push({id:_pdId(),templateId:tmplId,values});checkDirty('plan');pdRenderAll();}
+function ptAdd(){const t={id:_ptId(),name:'',types:[],items:[]};planTemplates.push(t);checkDirty('plan');ptRenderAll();_pdAutoAdd(t.id);}
 function ptAddCopy(){
   if(!planTemplates.length){alert('コピー元になるプラン形態がありません。まず新規追加してください。');return;}
   if(document.getElementById('pt-copy-sel'))return;
@@ -1080,10 +1081,11 @@ function ptConfirmCopy(){
   planTemplates.push(newTmpl);checkDirty('plan');
   document.getElementById('pt-copy-sel')?.remove();
   ptRenderAll();
+  _pdAutoAdd(newId);
   document.getElementById('ptcard-'+newId)?.scrollIntoView({behavior:'smooth'});
 }
 
-function ptDelete(id){if(!confirm('このプラン形態を削除しますか？'))return;planTemplates=planTemplates.filter(t=>t.id!==id);checkDirty('plan');ptRenderAll();}
+function ptDelete(id){if(!confirm('このプラン形態を削除しますか？'))return;planTemplates=planTemplates.filter(t=>t.id!==id);planDetails=planDetails.filter(d=>d.templateId!==id);checkDirty('plan');ptRenderAll();pdRenderAll();}
 function ptUpdateName(id,v){const t=_ptGet(id);if(t){t.name=v;checkDirty('plan');const h=document.getElementById('hname-pt-'+id);if(h)h.textContent=v||'（名前未設定）';}}
 function _ptReRenderTypes(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-types-'+tmplId);if(el)el.innerHTML=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${tmplId}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${tmplId}',${ti})">削除</button></div>`).join('');}
 function _pdSyncTemplate(tmplId){const tmpl=_ptGet(tmplId);if(!tmpl)return;planDetails.filter(d=>d.templateId===tmplId).forEach(d=>{const body=document.getElementById('body-pd-'+d.id);if(!body)return;const grid=body.querySelector('.plan-grid');if(grid)grid.innerHTML=tmpl.types.map(tp=>_pdTypeCard(d,tmpl,tp)).join('');});}
