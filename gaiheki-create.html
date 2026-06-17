@@ -2112,19 +2112,35 @@ function populatePlanDetails() {
   if (!dets || !dets.length) return;
   const cur = sel.value;
   sel.innerHTML = '';
+  const sonoOther = [];
   dets.forEach(det => {
     const tmpl = tmpls && tmpls.find(t => t.id === det.templateId);
-    const grp = document.createElement('optgroup');
-    grp.label = tmpl ? tmpl.name : '未分類';
     const types = tmpl ? tmpl.types : Object.keys(det.values || {});
-    types.forEach(tp => {
-      const o = document.createElement('option');
-      o.value = det.id + ':' + tp;
-      o.textContent = tp;
-      grp.appendChild(o);
-    });
-    sel.appendChild(grp);
+    if (types.length >= 2) {
+      const grp = document.createElement('optgroup');
+      grp.label = tmpl ? tmpl.name : '未分類';
+      types.forEach(tp => {
+        const o = document.createElement('option');
+        o.value = det.id + ':' + tp;
+        o.textContent = tp;
+        grp.appendChild(o);
+      });
+      sel.appendChild(grp);
+    } else {
+      types.forEach(tp => {
+        const o = document.createElement('option');
+        o.value = det.id + ':' + tp;
+        o.textContent = tp;
+        sonoOther.push(o);
+      });
+    }
   });
+  if (sonoOther.length > 0) {
+    const grp = document.createElement('optgroup');
+    grp.label = 'その他';
+    sonoOther.forEach(o => grp.appendChild(o));
+    sel.appendChild(grp);
+  }
   sel.value = cur;
   if (!sel.value && sel.options.length > 0) sel.selectedIndex = 0;
 }
