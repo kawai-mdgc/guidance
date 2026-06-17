@@ -68,6 +68,10 @@ a.header-logo:hover { opacity: 0.8; }
   padding-bottom: 10px; margin-bottom: 14px;
   border-bottom: 2px solid var(--main);
 }
+.pt-thumb-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.pt-thumb-card { background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; min-width: 80px; flex: 1; }
+.pt-thumb-head { font-size: 11px; font-weight: 700; color: var(--main); border-bottom: 1.5px solid var(--main); padding-bottom: 4px; margin-bottom: 5px; }
+.pt-thumb-item { font-size: 10px; color: var(--muted); line-height: 1.7; }
 
 /* ── フィールド ── */
 .field { margin-bottom: 13px; }
@@ -1024,10 +1028,17 @@ function ptRenderAll(){
 function toggleCollapse(id){
   const body=document.getElementById('body-'+id);
   const icon=document.getElementById('icon-'+id);
+  const thumb=document.getElementById('thumb-'+id);
   if(!body)return;
   const hidden=body.style.display==='none';
   body.style.display=hidden?'':'none';
+  if(thumb)thumb.style.display=hidden?'none':'';
   if(icon)icon.textContent=hidden?'▼':'▶';
+}
+function _ptThumbHtml(t){
+  if(!t.types.length)return'';
+  const items=t.items.map(i=>`<div class="pt-thumb-item">${escHtml(i.label||'')}</div>`).join('');
+  return t.types.map(tp=>`<div class="pt-thumb-card"><div class="pt-thumb-head">${escHtml(tp||'（種類未設定）')}</div>${items}</div>`).join('');
 }
 function _ptCard(t){
   const typesHtml=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${t.id}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${t.id}',${ti})">削除</button></div>`).join('');
@@ -1039,6 +1050,7 @@ function _ptCard(t){
     <button class="btn-edit" onclick="toggleCollapse('pt-${t.id}')">編集</button>
     <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="ptDelete('${t.id}')">削除</button>
   </div>
+  <div id="thumb-pt-${t.id}" class="pt-thumb-grid">${_ptThumbHtml(t)}</div>
   <div id="body-pt-${t.id}" style="display:none">
     <div class="field" style="margin-bottom:10px"><label>プラン形態名</label><input class="plan-tmpl-name" value="${escHtml(t.name)}" oninput="ptUpdateName('${t.id}',this.value)" placeholder="例：月額プラン"></div>
     <span class="plan-sub-label">プラン種類</span>
@@ -1053,7 +1065,9 @@ function _ptCard(t){
 function _piCard(tmplId,item){
   return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div></div>`;
 }
-function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');}
+function _ptReRenderThumb(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('thumb-pt-'+tmplId);if(el)el.innerHTML=_ptThumbHtml(t);}
+function _ptReRenderTypes(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-types-'+tmplId);if(el)el.innerHTML=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${tmplId}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${tmplId}',${ti})">削除</button></div>`).join('');_ptReRenderThumb(tmplId);}
+function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');_ptReRenderThumb(tmplId);}
 
 function ptAdd(){planTemplates.push({id:_ptId(),name:'',types:[],items:[]});checkDirty('plan');ptRenderAll();}
 function ptAddCopy(){
@@ -1089,10 +1103,10 @@ function ptDelete(id){if(!confirm('このプラン形態を削除しますか？
 function ptUpdateName(id,v){const t=_ptGet(id);if(t){t.name=v;checkDirty('plan');const h=document.getElementById('hname-pt-'+id);if(h)h.textContent=v||'（名前未設定）';}}
 function ptTypeAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.types.push('');checkDirty('plan');_ptReRenderTypes(tmplId);}
 function ptTypeDelete(tmplId,idx){const t=_ptGet(tmplId);if(!t)return;t.types.splice(idx,1);checkDirty('plan');_ptReRenderTypes(tmplId);}
-function ptTypeUpdate(tmplId,idx,v){const t=_ptGet(tmplId);if(t){t.types[idx]=v;checkDirty('plan');}}
+function ptTypeUpdate(tmplId,idx,v){const t=_ptGet(tmplId);if(t){t.types[idx]=v;checkDirty('plan');_ptReRenderThumb(tmplId);}}
 function ptItemAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.items.push({id:_piId(),label:'',valueType:'single',choices:[]});checkDirty('plan');_ptReRenderItems(tmplId);}
 function ptItemDelete(tmplId,itemId){const t=_ptGet(tmplId);if(!t)return;t.items=t.items.filter(i=>i.id!==itemId);checkDirty('plan');_ptReRenderItems(tmplId);}
-function ptItemUpdateLabel(tmplId,itemId,v){const i=_piGet(tmplId,itemId);if(i){i.label=v;checkDirty('plan');}}
+function ptItemUpdateLabel(tmplId,itemId,v){const i=_piGet(tmplId,itemId);if(i){i.label=v;checkDirty('plan');_ptReRenderThumb(tmplId);}}
 function ptItemSetType(tmplId,itemId,type){const i=_piGet(tmplId,itemId);if(!i)return;i.valueType=type;checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
 
 /* ── Detail render (group-based) ── */
