@@ -760,28 +760,30 @@ a.lb-url:hover { text-decoration: underline; }
           <option value="pro">プロ</option>
         </select>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label>月額費用（税抜）</label>
-          <input type="text" id="monthly_fee" placeholder="例：7万円" oninput="render()">
+      <div id="plan-detail-fields" style="display:none">
+        <div class="field-row">
+          <div class="field">
+            <label>月額費用（税抜）</label>
+            <input type="text" id="monthly_fee" placeholder="例：7万円" oninput="render()">
+          </div>
+          <div class="field">
+            <label>成約手数料</label>
+            <input type="text" id="commission" placeholder="5%" oninput="render()">
+          </div>
         </div>
         <div class="field">
-          <label>成約手数料</label>
-          <input type="text" id="commission" placeholder="5%" oninput="render()">
+          <label>最低保証</label>
+          <input type="text" id="guarantee" placeholder="25件" oninput="render()">
         </div>
-      </div>
-      <div class="field">
-        <label>最低保証</label>
-        <input type="text" id="guarantee" placeholder="25件" oninput="render()">
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>月間紹介件数（想定）</label>
-          <input type="text" id="monthly_est" placeholder="5〜8件" oninput="render()">
-        </div>
-        <div class="field">
-          <label>6ヶ月紹介件数</label>
-          <input type="text" id="half_est" placeholder="40〜55件" oninput="render()">
+        <div class="field-row">
+          <div class="field">
+            <label>月間紹介件数（想定）</label>
+            <input type="text" id="monthly_est" placeholder="5〜8件" oninput="render()">
+          </div>
+          <div class="field">
+            <label>6ヶ月紹介件数</label>
+            <input type="text" id="half_est" placeholder="40〜55件" oninput="render()">
+          </div>
         </div>
       </div>
       <div class="f-sec">対応エリア</div>
@@ -2047,6 +2049,8 @@ function populatePaymentMethodSelect() {
 
 function updatePlanDefaults() {
   const plan = document.getElementById('plan').value;
+  const _pf = document.getElementById('plan-detail-fields');
+  if (_pf) _pf.style.display = plan ? '' : 'none';
   const s = getSettings();
   const TYPE_STATIC = {ライト:'light',ベーシック:'basic',プロ:'pro'};
   const applyStatic = (key) => {
@@ -2530,6 +2534,8 @@ function saveCase() {
   updatePaymentNoteOptions();
   const pnEl = document.getElementById('payment_note');
   if (pnEl && d.payment_note) pnEl.value = d.payment_note;
+  const _pf = document.getElementById('plan-detail-fields');
+  if (_pf) _pf.style.display = document.getElementById('plan')?.value ? '' : 'none';
   render();
   populateCsAssigneeUI(d.cs_assignee || '');
   scalePreview();
@@ -2642,6 +2648,8 @@ function saveCase() {
         if (typeof updatePaymentNoteOptions === 'function') updatePaymentNoteOptions();
         var pnEl = document.getElementById('payment_note');
         if (pnEl && d.payment_note) pnEl.value = d.payment_note;
+        var _pf = document.getElementById('plan-detail-fields');
+        if (_pf) _pf.style.display = document.getElementById('plan')?.value ? '' : 'none';
         if (typeof render === 'function') render();
         if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI(d.cs_assignee || ''); else if (typeof renderP4 === 'function') renderP4();
         console.log('[FS] 編集データ読み込み完了:', editId);
