@@ -295,6 +295,7 @@ a.header-logo:hover { opacity: 0.8; }
     messagingSenderId: "1080989158935",
     appId: "1:1080989158935:web:4b75da9e3252e8086a5652"
   });
+  firebase.firestore().settings({ ignoreUndefinedProperties: true });
   firebase.auth().onAuthStateChanged(function(user) {
     if (!user || !(user.email || '').endsWith('@madoguchi.inc')) {
       location.replace('login.html');

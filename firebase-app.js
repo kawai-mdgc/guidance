@@ -13,4 +13,5 @@ if (!firebase.apps.length) {
   firebase.initializeApp(FIREBASE_CONFIG);
 }
 const db   = firebase.firestore();
+db.settings({ ignoreUndefinedProperties: true });
 const auth = firebase.auth();
