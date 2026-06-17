@@ -618,6 +618,29 @@ function buildCard(b, idx) {
       +'</div>';
   }
 
+  /* 2ブロック（p1-2col） */
+  if (b.style === 'p1-2col') {
+    var _2pre = [b.leftKey, b.leftVal].filter(Boolean).join('：');
+    if (b.rightKey) _2pre += (_2pre?'  |  ':'')+[b.rightKey, b.rightVal].filter(Boolean).join('：');
+    _2pre = _2pre.length > 44 ? _2pre.substring(0,44)+'…' : _2pre;
+    var _2bH = expanded ? '' : ' style="display:none"';
+    var _2so = P1_STYLE_OPTS.map(function(o){ return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('');
+    var _inp = function(lbl,fld,ph){ return '<div class="bc-row"><span class="bc-row-label">'+lbl+'</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b[fld]||'')+'" data-idx="'+idx+'" data-field="'+fld+'" oninput="updateBlock(this)" placeholder="'+ph+'"></div>'; };
+    return '<div class="block-card"'+cardDnd+'>'
+      +'<div class="bc-head" onclick="toggleCard(\''+bid+'\')">'
+      +handle+'<span class="bc-badge" style="background:#FFF3E0;color:#E65100">2ブロック</span>'
+      +'<span class="bc-preview">'+escHtml(_2pre||'（空）')+'</span>'+arrow+del
+      +'</div>'
+      +'<div class="bc-body"'+_2bH+'>'
+      +'<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+_2so+'</select></div>'
+      +_inp('左・項目名','leftKey','例：月額費用（税抜）')
+      +_inp('左・値','leftVal','例：10万円')
+      +_inp('右・項目名','rightKey','例：成約手数料')
+      +_inp('右・値','rightVal','例：5%')
+      +'</div>'
+      +'</div>';
+  }
+
   /* 通常ブロック */
   var label  = STYLE_LABEL[b.style] || b.style;
   var badge  = '<span class="bc-badge" style="'+badgeStyle(b.style)+'">'+label+'</span>';
@@ -691,9 +714,15 @@ function updateBlock(inp) {
     var pre = card.querySelector('.bc-preview');
     if (pre) {
       var b = blocks[currentPage][idx];
-      var raw = b.style==='space'
-        ? (SPACE_LABEL[b.spaceSize||'medium']||'')
-        : (b.text||'').replace(/\n/g,' ').replace(/\*\*/g,'');
+      var raw;
+      if (b.style==='p1-2col') {
+        raw=[b.leftKey,b.leftVal].filter(Boolean).join('：');
+        if(b.rightKey)raw+=( raw?'  |  ':'')+[b.rightKey,b.rightVal].filter(Boolean).join('：');
+      } else if (b.style==='space') {
+        raw=SPACE_LABEL[b.spaceSize||'medium']||'';
+      } else {
+        raw=(b.text||'').replace(/\n/g,' ').replace(/\*\*/g,'');
+      }
       pre.textContent = raw.length > 44 ? raw.substring(0,44)+'…' : raw;
     }
   }
