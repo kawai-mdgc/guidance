@@ -1087,12 +1087,14 @@ function ptConfirmCopy(){
 
 function ptDelete(id){if(!confirm('このプラン形態を削除しますか？'))return;planTemplates=planTemplates.filter(t=>t.id!==id);checkDirty('plan');ptRenderAll();}
 function ptUpdateName(id,v){const t=_ptGet(id);if(t){t.name=v;checkDirty('plan');const h=document.getElementById('hname-pt-'+id);if(h)h.textContent=v||'（名前未設定）';}}
-function ptTypeAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.types.push('');checkDirty('plan');_ptReRenderTypes(tmplId);}
-function ptTypeDelete(tmplId,idx){const t=_ptGet(tmplId);if(!t)return;t.types.splice(idx,1);checkDirty('plan');_ptReRenderTypes(tmplId);}
-function ptTypeUpdate(tmplId,idx,v){const t=_ptGet(tmplId);if(t){t.types[idx]=v;checkDirty('plan');}}
-function ptItemAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.items.push({id:_piId(),label:'',valueType:'single',choices:[]});checkDirty('plan');_ptReRenderItems(tmplId);}
-function ptItemDelete(tmplId,itemId){const t=_ptGet(tmplId);if(!t)return;t.items=t.items.filter(i=>i.id!==itemId);checkDirty('plan');_ptReRenderItems(tmplId);}
-function ptItemUpdateLabel(tmplId,itemId,v){const i=_piGet(tmplId,itemId);if(i){i.label=v;checkDirty('plan');}}
+function _ptReRenderTypes(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-types-'+tmplId);if(el)el.innerHTML=t.types.map((tp,ti)=>`<div style="display:flex;gap:5px;margin-bottom:5px"><input type="text" value="${escHtml(tp)}" style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="ptTypeUpdate('${tmplId}',${ti},this.value)"><button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptTypeDelete('${tmplId}',${ti})">削除</button></div>`).join('');}
+function _pdSyncTemplate(tmplId){const tmpl=_ptGet(tmplId);if(!tmpl)return;planDetails.filter(d=>d.templateId===tmplId).forEach(d=>{const body=document.getElementById('body-pd-'+d.id);if(!body)return;const grid=body.querySelector('.plan-grid');if(grid)grid.innerHTML=tmpl.types.map(tp=>_pdTypeCard(d,tmpl,tp)).join('');});}
+function ptTypeAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.types.push('');checkDirty('plan');_ptReRenderTypes(tmplId);_pdSyncTemplate(tmplId);}
+function ptTypeDelete(tmplId,idx){const t=_ptGet(tmplId);if(!t)return;const old=t.types[idx];t.types.splice(idx,1);checkDirty('plan');_ptReRenderTypes(tmplId);planDetails.filter(d=>d.templateId===tmplId).forEach(d=>{if(d.values)delete d.values[old];});_pdSyncTemplate(tmplId);}
+function ptTypeUpdate(tmplId,idx,v){const t=_ptGet(tmplId);if(!t)return;const old=t.types[idx];t.types[idx]=v;checkDirty('plan');planDetails.filter(d=>d.templateId===tmplId).forEach(d=>{if(d.values&&old in d.values){d.values[v]=d.values[old];delete d.values[old];}});_pdSyncTemplate(tmplId);}
+function ptItemAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.items.push({id:_piId(),label:'',valueType:'single',choices:[]});checkDirty('plan');_ptReRenderItems(tmplId);_pdSyncTemplate(tmplId);}
+function ptItemDelete(tmplId,itemId){const t=_ptGet(tmplId);if(!t)return;t.items=t.items.filter(i=>i.id!==itemId);checkDirty('plan');_ptReRenderItems(tmplId);_pdSyncTemplate(tmplId);}
+function ptItemUpdateLabel(tmplId,itemId,v){const i=_piGet(tmplId,itemId);if(i){i.label=v;checkDirty('plan');_pdSyncTemplate(tmplId);}}
 function ptItemSetType(tmplId,itemId,type){const i=_piGet(tmplId,itemId);if(!i)return;i.valueType=type;checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
 
 /* ── Detail render (group-based) ── */
