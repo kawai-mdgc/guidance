@@ -448,16 +448,16 @@ function renderPreview() {
         case 'p1-2col':    return '<tr><td class="k">'+escHtml(b.leftKey||'')+'</td><td class="v">—</td><td class="k">'+escHtml(b.rightKey||'')+'</td><td class="v">—</td></tr>';
         case 'p1-sh':      return '<tr class="sh"><td colspan="4">'+t+'</td></tr>';
         case 'p1-key':     return '<tr><td class="k">'+t+'</td><td class="v" colspan="3">'+(_pv[b.id]||'—')+'</td></tr>';
-        case 'p1-val':     return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
-        case 'p1-holiday': return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
-        case 'p1-exclude': return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
-        case 'p1-contract':return '<tr><td colspan="4" class="v note" style="padding:8px 20px">'+t+'</td></tr>';
-        default:           return '<tr><td colspan="4" class="v">'+t+'</td></tr>';
+        case 'p1-val':     return '<tr><td colspan="4" class="v note" style="padding:8px 20px'+(b.isDummy?';color:#bbb':'')+' ">'+t+'</td></tr>';
+        case 'p1-holiday': return '<tr><td colspan="4" class="v note" style="padding:8px 20px'+(b.isDummy?';color:#bbb':'')+' ">'+t+'</td></tr>';
+        case 'p1-exclude': return '<tr><td colspan="4" class="v note" style="padding:8px 20px'+(b.isDummy?';color:#bbb':'')+' ">'+t+'</td></tr>';
+        case 'p1-contract':return '<tr><td colspan="4" class="v note" style="padding:8px 20px'+(b.isDummy?';color:#bbb':'')+' ">'+t+'</td></tr>';
+        default:           return '<tr><td colspan="4" class="v"'+(b.isDummy?' style="color:#bbb"':'')+'>'+t+'</td></tr>';
       }
     }).join('');
     el.innerHTML='<table class="doc-table"><colgroup><col style="width:220px"><col><col style="width:220px"><col></colgroup>'+rows+'</table>';
   } else {
-    el.innerHTML = (blocks[currentPage]||[]).map(renderBlock).join('');
+    el.innerHTML = (blocks[currentPage]||[]).map(function(b){ var h=renderBlock(b); return b.isDummy?'<div style="opacity:0.5;color:#bbb">'+h+'</div>':h; }).join('');
   }
 }
 
@@ -535,7 +535,8 @@ function buildCard(b, idx) {
     var p1Exp = !!expandedIds[b.id];
     var p1BodyH = p1Exp ? '' : ' style="display:none"';
     var p1SO = P1_STYLE_OPTS.map(function(o){ return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('');
-    var p1SR = '<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+p1SO+'</select></div>';
+    var _dumChk1 = '<label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+'> ダミーテキスト</label>';
+    var p1SR = '<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+p1SO+'</select>'+_dumChk1+'</div>';
     var p1Body = (b.style==='p1-2col')
       ? p1SR
         +'<div class="bc-row"><span class="bc-row-label">左・項目名</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b.leftKey||'')+'" data-idx="'+idx+'" data-field="leftKey" oninput="updateBlock(this)" placeholder="例：月額費用（税抜）"></div>'
@@ -630,7 +631,7 @@ function buildCard(b, idx) {
       +'<span class="bc-preview">'+escHtml(_2pre||'（空）')+'</span>'+arrow+del
       +'</div>'
       +'<div class="bc-body"'+_2bH+'>'
-      +'<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+_2so+'</select></div>'
+      +'<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+_2so+'</select><label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+'> ダミーテキスト</label></div>'
       +_inp('左・項目名','leftKey','例：月額費用（税抜）')
       +_inp('右・項目名','rightKey','例：成約手数料')
       +'</div>'
@@ -650,7 +651,8 @@ function buildCard(b, idx) {
     return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>';
   }).join('');
   var styleRow = '<div class="bc-row"><span class="bc-row-label">スタイル</span>'
-    +'<select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+opts+'</select></div>';
+    +'<select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+opts+'</select>'
+    +'<label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+'> ダミーテキスト</label></div>';
 
   var bodyContent = (b.style==='space')
     ? '<div class="bc-row"><span class="bc-row-label">サイズ</span>'
@@ -721,6 +723,13 @@ function updateBlock(inp) {
       pre.textContent = raw.length > 44 ? raw.substring(0,44)+'…' : raw;
     }
   }
+}
+
+function toggleDummy(chk) {
+  markDirty();
+  var idx = parseInt(chk.dataset.idx);
+  blocks[currentPage][idx].isDummy = chk.checked;
+  renderPreview();
 }
 
 function delBlock(idx) {
