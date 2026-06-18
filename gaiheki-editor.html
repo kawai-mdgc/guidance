@@ -341,8 +341,10 @@ function ensureP3Blocks(arr) {
 }
 
 function loadTemplate() {
-  db.collection('templates').doc(BIZ_ID).get({ source: 'server' })
+  console.log('[Editor] loadTemplate 開始:', BIZ_ID);
+  db.collection('templates').doc(BIZ_ID).get()
     .then(function(doc) {
+      console.log('[Editor] loadTemplate 完了: exists=', doc.exists);
       var def = JSON.parse(JSON.stringify(DEFAULT_BLOCKS));
       if (doc.exists && doc.data().blocks) {
         var s = doc.data().blocks;
@@ -352,6 +354,7 @@ function loadTemplate() {
           p3: ensureP3Blocks(migrateBlocks((s.p3&&s.p3.length) ? s.p3 : def.p3))
         };
       } else {
+        console.log('[Editor] テンプレートなし、デフォルト使用');
         blocks = { p1: JSON.parse(JSON.stringify(def.p1)), p2: JSON.parse(JSON.stringify(def.p2)), p3: JSON.parse(JSON.stringify(def.p3)) };
       }
       _originalBlocks = JSON.stringify(blocks);
@@ -359,8 +362,9 @@ function loadTemplate() {
       renderAll(); scalePreview();
     })
     .catch(function(e) {
-      console.error('[Editor]', e.message);
-      blocks = JSON.parse(JSON.stringify(DEFAULT_BLOCKS));
+      console.error('[Editor] loadTemplate 失敗:', e.code, e.message, e);
+      var def = JSON.parse(JSON.stringify(DEFAULT_BLOCKS));
+      blocks = { p1: JSON.parse(JSON.stringify(def.p1)), p2: JSON.parse(JSON.stringify(def.p2)), p3: JSON.parse(JSON.stringify(def.p3)) };
       _originalBlocks = JSON.stringify(blocks);
       var _sb=document.getElementById('btn-save');if(_sb)_sb.disabled=true;
       renderAll(); scalePreview();
@@ -368,25 +372,27 @@ function loadTemplate() {
 }
 
 function saveTemplate() {
+  var user = firebase.auth().currentUser;
+  if (!user) {
+    console.error('[Editor] 保存失敗: 未認証');
+    alert('認証が必要です。ページを再読み込みしてください。');
+    return;
+  }
   var btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '保存中...';
-  var data = {
-    blocks: {
-      p1: JSON.parse(JSON.stringify(blocks.p1||[])),
-      p2: JSON.parse(JSON.stringify(blocks.p2||[])),
-      p3: JSON.parse(JSON.stringify(blocks.p3||[]))
-    },
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  console.log('[Editor] 保存開始:', BIZ_ID, data);
-  db.collection('templates').doc(BIZ_ID).set(data)
+  var p1clean = JSON.parse(JSON.stringify(blocks.p1||[]));
+  var p2clean = JSON.parse(JSON.stringify(blocks.p2||[]));
+  var p3clean = JSON.parse(JSON.stringify(blocks.p3||[]));
+  console.log('[Editor] 保存開始 uid='+user.uid+' biz='+BIZ_ID+' p1='+p1clean.length+' p2='+p2clean.length+' p3='+p3clean.length);
+  var ref = db.collection('templates').doc(BIZ_ID);
+  ref.set({ blocks: { p1: p1clean, p2: p2clean, p3: p3clean }, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
     .then(function() {
       console.log('[Editor] 保存成功:', BIZ_ID);
       clearDirty(); showToast('保存しました'); btn.textContent = '保存';
     })
     .catch(function(e) {
-      console.error('[Editor] 保存失敗:', e.code, e.message);
-      alert('保存に失敗しました: ' + e.message);
+      console.error('[Editor] 保存失敗 code='+e.code+' msg='+e.message, e);
+      alert('保存に失敗しました（' + (e.code||'unknown') + '）: ' + e.message);
       btn.disabled = false; btn.textContent = '保存';
     });
 }

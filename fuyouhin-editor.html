@@ -317,7 +317,8 @@ function migrateBlocks(arr) {
 }
 
 function loadTemplate() {
-  db.collection('templates').doc(BIZ_ID).get({ source: 'server' })
+  console.log('[Editor] loadTemplate 開始:', BIZ_ID);
+  db.collection('templates').doc(BIZ_ID).get()
     .then(function(doc) {
       var def = JSON.parse(JSON.stringify(DEFAULT_BLOCKS));
       if (doc.exists && doc.data().blocks) {
@@ -344,25 +345,27 @@ function loadTemplate() {
 }
 
 function saveTemplate() {
+  var user = firebase.auth().currentUser;
+  if (!user) {
+    console.error('[Editor] 保存失敗: 未認証');
+    alert('認証が必要です。ページを再読み込みしてください。');
+    return;
+  }
   var btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '保存中...';
-  var data = {
-    blocks: {
-      p1: JSON.parse(JSON.stringify(blocks.p1||[])),
-      p2: JSON.parse(JSON.stringify(blocks.p2||[])),
-      p3: JSON.parse(JSON.stringify(blocks.p3||[]))
-    },
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  console.log('[Editor] 保存開始:', BIZ_ID, data);
-  db.collection('templates').doc(BIZ_ID).set(data)
+  var p1clean = JSON.parse(JSON.stringify(blocks.p1||[]));
+  var p2clean = JSON.parse(JSON.stringify(blocks.p2||[]));
+  var p3clean = JSON.parse(JSON.stringify(blocks.p3||[]));
+  console.log('[Editor] 保存開始 uid='+user.uid+' biz='+BIZ_ID+' p1='+p1clean.length+' p2='+p2clean.length+' p3='+p3clean.length);
+  var ref = db.collection('templates').doc(BIZ_ID);
+  ref.set({ blocks: { p1: p1clean, p2: p2clean, p3: p3clean }, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
     .then(function() {
       console.log('[Editor] 保存成功:', BIZ_ID);
       clearDirty(); showToast('保存しました'); btn.textContent = '保存';
     })
     .catch(function(e) {
-      console.error('[Editor] 保存失敗:', e.code, e.message);
-      alert('保存に失敗しました: ' + e.message);
+      console.error('[Editor] 保存失敗 code='+e.code+' msg='+e.message, e);
+      alert('保存に失敗しました（' + (e.code||'unknown') + '）: ' + e.message);
       btn.disabled = false; btn.textContent = '保存';
     });
 }
