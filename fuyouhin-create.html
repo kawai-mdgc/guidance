@@ -478,27 +478,27 @@ a.lb-url:hover { text-decoration: underline; }
 
       <tr class="sh"><td colspan="4">① 料金について</td></tr>
       <tr><td class="k">契約プラン</td><td class="v" colspan="3" id="p-plan">—</td></tr>
-      <tr>
+      <tr id="p1-fee-row">
         <td id="p-lbl-fee" class="k" style="vertical-align:middle;white-space:nowrap">月額費用（税抜）</td>
         <td class="v" style="vertical-align:middle"><span id="p-fee">—</span></td>
         <td id="p-lbl-commission" class="k" style="vertical-align:middle;white-space:nowrap">成約手数料</td>
         <td class="v" style="vertical-align:middle"><span id="p-commission">—</span></td>
       </tr>
-      <tr>
+      <tr id="p1-period-row">
         <td id="p-lbl-period" class="k" style="vertical-align:middle">契約期間</td>
         <td class="v" colspan="3" style="vertical-align:middle"><span id="p-period">—</span><div style="font-size:10px;color:var(--muted);margin-top:2px">※ご契約は自動更新　※退会希望の場合、14日前に管理画面から申請が必要</div></td>
       </tr>
-      <tr>
+      <tr id="p1-monthly-row">
         <td id="p-lbl-monthly" class="k" style="white-space:nowrap">紹介件数想定（月間）</td>
         <td class="v" id="p-monthly">—</td>
         <td id="p-lbl-half" class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td>
         <td class="v" id="p-half">—</td>
       </tr>
-      <tr>
+      <tr id="p1-guarantee-row">
         <td id="p-lbl-guarantee" class="k">最低保証</td>
         <td class="v" colspan="3"><span id="p-guarantee">—</span><span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td>
       </tr>
-
+      <tbody id="p1-custom-rows"></tbody>
 
       <tr class="sh"><td colspan="4">② 対応エリア</td></tr>
       <tr><td colspan="4" class="v" id="p-areas" style="padding:8px 20px"><span style="font-size:11px;color:var(--muted)">エリアが未設定です</span></td></tr>
@@ -2034,6 +2034,50 @@ function populatePaymentMethodSelect() {
   sel.innerHTML = '<option value="">選択してください</option>' + opts;
 }
 
+function syncP1Rows() {
+  const plan = v('plan');
+  const s = getSettings();
+  const customBody = document.getElementById('p1-custom-rows');
+  const fixedIds = ['p1-fee-row','p1-period-row','p1-monthly-row','p1-guarantee-row'];
+  const getText = id => { const el = document.getElementById(id); return el ? (el.textContent||el.innerText||'').trim() : ''; };
+  const isBlank = val => !val || val === '—';
+
+  if (plan && plan.includes(':')) {
+    const [detId, type] = plan.split(':');
+    const det = s.planDetails && s.planDetails.find(d => d.id === detId);
+    const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
+    if (tmpl) {
+      fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+      const valIds = ['p-fee','p-commission','p-guarantee','p-monthly','p-period','p-half'];
+      let html = '';
+      tmpl.items.forEach(function(item, idx) {
+        const el = document.getElementById('plan-item-' + item.id);
+        const val = el ? el.value : getText(idx < valIds.length ? valIds[idx] : '');
+        if (isBlank(val)) return;
+        html += '<tr><td class="k" style="white-space:nowrap">' + esc(item.label) + '</td><td class="v" colspan="3">' + esc(val) + '</td></tr>';
+      });
+      if (customBody) customBody.innerHTML = html;
+      return;
+    }
+  }
+
+  if (customBody) customBody.innerHTML = '';
+  if (!plan) { fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; }); return; }
+
+  const show = (id, ...valIds) => {
+    const row = document.getElementById(id); if (!row) return;
+    row.style.display = valIds.every(vid => isBlank(getText(vid))) ? 'none' : '';
+  };
+  show('p1-fee-row', 'p-fee', 'p-commission');
+  show('p1-period-row', 'p-period');
+  show('p1-monthly-row', 'p-monthly', 'p-half');
+  const guarRow = document.getElementById('p1-guarantee-row');
+  if (guarRow) {
+    const isVp = plan.startsWith('vp_');
+    guarRow.style.display = (!isVp && isBlank(getText('p-guarantee'))) ? 'none' : (isVp ? 'none' : '');
+  }
+}
+
 function updatePreviewLabels(tmpl) {
   const DFLT = ['月額費用（税抜）','成約手数料','最低保証','紹介件数想定（月間）','契約期間','紹介件数想定（6ヶ月）'];
   const MAP = [['p-lbl-fee',0],['p-lbl-commission',1],['p-lbl-guarantee',2],['p-lbl-monthly',3],['p-lbl-period',4],['p-lbl-half',5]];
@@ -2415,6 +2459,7 @@ function render() {
   setLink('p-gift-work',   s.giftWorkUrl);
   setLink('p-login-url',   s.loginUrl);
   set('p-holiday-text', s.holidayText);
+  syncP1Rows();
 }
 
 function set(id, val) {
