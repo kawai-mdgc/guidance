@@ -2783,22 +2783,35 @@ function saveCase() {
     if (typeof render === 'function') render();
   }
 
-  /* ── テンプレート読み込み（常に最新のtemplates/{biz}を使用） ── */
-  firebase.auth().onAuthStateChanged(function(user) {
-    if (!user) return;
-    var dbT = firebase.firestore();
-    console.log('[FS] テンプレート読み込み開始: osouji');
-    dbT.collection('templates').doc('osouji').get()
+  /* ── テンプレート読み込み ── */
+  function _loadTemplate() {
+    console.log('[Template] templates/osouji 読み込み開始');
+    firebase.firestore().collection('templates').doc('osouji').get()
       .then(function(d) {
-        if (d.exists && d.data().blocks) {
-          console.log('[FS] テンプレート適用 blocks:', Object.keys(d.data().blocks));
+        if (d.exists && d.data() && d.data().blocks) {
+          console.log('[Template] 適用 keys=' + Object.keys(d.data().blocks).join(','));
           applyTemplate(d.data().blocks);
         } else {
-          console.log('[FS] templates/osouji が存在しないためデフォルト表示');
+          console.warn('[Template] templates/osouji が存在しません。エディタで保存してください。');
         }
       })
-      .catch(function(e) { console.error('[FS] テンプレート読み込みエラー:', e.code, e.message); });
-  });
+      .catch(function(e) {
+        console.error('[Template] 読み込みエラー:', e.code, e.message);
+      });
+  }
+  var _tplLoaded = false;
+  function _tryLoadTemplate() {
+    if (_tplLoaded) return;
+    _tplLoaded = true;
+    _loadTemplate();
+  }
+  if (firebase.auth().currentUser) {
+    _tryLoadTemplate();
+  } else {
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) _tryLoadTemplate();
+    });
+  }
 })();
 </script>
 
