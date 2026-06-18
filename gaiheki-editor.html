@@ -397,18 +397,32 @@ function saveTemplate() {
   var p3clean = JSON.parse(JSON.stringify(blocks.p3||[]));
   var blocksData = { p1: p1clean, p2: p2clean, p3: p3clean };
   extraPages.forEach(function(p){ blocksData[p.key] = JSON.parse(JSON.stringify(blocks[p.key]||[])); });
-  console.log('[Editor] 保存開始 uid='+user.uid+' biz='+BIZ_ID+' p1='+p1clean.length+' p2='+p2clean.length+' p3='+p3clean.length+' extra='+extraPages.length);
+  var savePath = 'templates/' + BIZ_ID;
+  console.group('[Editor] 保存開始');
+  console.log('パス:', savePath);
+  console.log('uid:', user.uid);
+  console.log('ブロック数 p1=' + p1clean.length + ' p2=' + p2clean.length + ' p3=' + p3clean.length + ' extra=' + extraPages.length);
+  console.log('p2 blocks:', JSON.stringify(p2clean));
+  console.log('p3 blocks:', JSON.stringify(p3clean));
+  console.groupEnd();
   var ref = db.collection('templates').doc(BIZ_ID);
-  ref.set({ blocks: blocksData, extraPages: JSON.parse(JSON.stringify(extraPages)), updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-    .then(function() {
-      console.log('[Editor] 保存成功:', BIZ_ID);
-      clearDirty(); showToast('保存しました'); btn.textContent = '保存';
-    })
-    .catch(function(e) {
-      console.error('[Editor] 保存失敗 code='+e.code+' msg='+e.message, e);
-      alert('保存に失敗しました（' + (e.code||'unknown') + '）: ' + e.message);
-      btn.disabled = false; btn.textContent = '保存';
-    });
+  try {
+    ref.set({ blocks: blocksData, extraPages: JSON.parse(JSON.stringify(extraPages)), updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .then(function() {
+        console.log('[Editor] 保存成功:', savePath, 'p2='+p2clean.length+' p3='+p3clean.length);
+        clearDirty(); showToast('保存しました'); btn.textContent = '保存';
+        alert('保存しました（パス: ' + savePath + '）');
+      })
+      .catch(function(e) {
+        console.error('[Editor] 保存失敗 path='+savePath+' code='+e.code+' msg='+e.message, e);
+        alert('保存に失敗しました\nパス: ' + savePath + '\nエラー: ' + e.message + ' (' + (e.code||'unknown') + ')');
+        btn.disabled = false; btn.textContent = '保存';
+      });
+  } catch(ex) {
+    console.error('[Editor] 保存例外:', ex);
+    alert('保存中に例外が発生しました: ' + ex.message);
+    btn.disabled = false; btn.textContent = '保存';
+  }
 }
 
 function resetToDefault() {
@@ -937,8 +951,11 @@ function showToast(msg) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
+var _editorInitDone = false;
 firebase.auth().onAuthStateChanged(function(user) {
   if (!user) return;
+  if (_editorInitDone) return; // token refresh 時に再ロードしない
+  _editorInitDone = true;
   loadTemplate();
   loadPlanData();
 });
