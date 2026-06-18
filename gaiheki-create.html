@@ -2830,7 +2830,23 @@ function saveCase() {
       }
     }
     var p2=document.getElementById('p2-content'), p3=document.getElementById('p3-content');
-    if (tblocks.p1) tblocks.p1.forEach(function(b){ rBlock(b); }); // P1副作用でDOM更新
+    // P1ブロック処理: テキスト副作用＋ラベルセル同期
+    var _p1LblMap = {
+      '_p1_p_fee':  'p-lbl-fee',
+      '_p1_p_comm': 'p-lbl-commission',
+      '_p1_p_guar': 'p-lbl-guarantee',
+      '_p1_p_mon':  'p-lbl-monthly',
+      '_p1_p_per':  'p-lbl-period',
+      '_p1_p_half': 'p-lbl-half',
+    };
+    if (tblocks.p1) tblocks.p1.forEach(function(b) {
+      rBlock(b); // p1-holiday/exclude/contract → _tplP1Texts 更新
+      if (b.style === 'p1-key' && _p1LblMap[b.id]) {
+        var lblEl = document.getElementById(_p1LblMap[b.id]);
+        if (lblEl && b.text) lblEl.textContent = b.text;
+      }
+    });
+    console.log('[Template] P1ブロック適用完了');
     if (p2 && Array.isArray(tblocks.p2)) {
       p2.innerHTML = tblocks.p2.map(rBlock).join('');
       console.log('[Template] P2適用: '+tblocks.p2.length+'ブロック');
