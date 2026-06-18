@@ -553,7 +553,7 @@ function buildCard(b, idx) {
     var p1BodyH = p1Exp ? '' : ' style="display:none"';
     var p1SO = P1_STYLE_OPTS.map(function(o){ return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('');
     var _dumDisabled = (b.style==='p1-key' && b.isFromTemplate);
-    var _dumChk1 = '<label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer'+(_dumDisabled?';opacity:0.4':'')+'"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+(_dumDisabled?' disabled':'')+'> ダミーテキスト</label>';
+    var _dumChk1 = (b.style==='p1-val') ? '<label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+'> ダミーテキスト</label>' : '';
     var p1SR = '<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+p1SO+'</select>'+_dumChk1+'</div>';
     var _ftRow = '';
     if (b.style==='p1-key') {
@@ -647,16 +647,25 @@ function buildCard(b, idx) {
     _2pre = _2pre.length > 44 ? _2pre.substring(0,44)+'…' : _2pre;
     var _2bH = expanded ? '' : ' style="display:none"';
     var _2so = P1_STYLE_OPTS.map(function(o){ return '<option value="'+o[0]+'"'+(b.style===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('');
-    var _inp = function(lbl,fld,ph){ return '<div class="bc-row"><span class="bc-row-label">'+lbl+'</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b[fld]||'')+'" data-idx="'+idx+'" data-field="'+fld+'" oninput="updateBlock(this)" placeholder="'+ph+'"></div>'; };
+    var _inp2 = function(lbl,fld,ph){ return '<div class="bc-row"><span class="bc-row-label">'+lbl+'</span><input type="text" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" value="'+escHtml(b[fld]||'')+'" data-idx="'+idx+'" data-field="'+fld+'" oninput="updateBlock(this)" placeholder="'+ph+'"></div>'; };
+    var _2ftTmpl=_planTemplates.find(function(t){return t.id===p1Plan;});
+    var _2fmkOpts=function(cur){return _2ftTmpl?_2ftTmpl.items.map(function(item){return '<option value="'+escHtml(item.label||'')+'"'+(cur===(item.label||'')?' selected':'')+'>'+escHtml(item.label||'')+'</option>';}).join(''):'<option value="">（プラン形態を先に選択）</option>';};
+    var _2leftF = b.isFromTemplate
+      ? '<div class="bc-row"><span class="bc-row-label">左・項目</span><select style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" data-idx="'+idx+'" data-field="leftKey" onchange="selectFromTemplateField(this)">'+_2fmkOpts(b.leftKey||'')+'</select></div>'
+      : _inp2('左・項目名','leftKey','例：月額費用（税抜）');
+    var _2rightF = b.isFromTemplate
+      ? '<div class="bc-row"><span class="bc-row-label">右・項目</span><select style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" data-idx="'+idx+'" data-field="rightKey" onchange="selectFromTemplateField(this)">'+_2fmkOpts(b.rightKey||'')+'</select></div>'
+      : _inp2('右・項目名','rightKey','例：成約手数料');
     return '<div class="block-card"'+cardDnd+'>'
       +'<div class="bc-head" onclick="toggleCard(\''+bid+'\')">'
       +handle+'<span class="bc-badge" style="background:#FFF3E0;color:#E65100">2ブロック</span>'
       +'<span class="bc-preview">'+escHtml(_2pre||'（空）')+'</span>'+arrow+del
       +'</div>'
       +'<div class="bc-body"'+_2bH+'>'
-      +'<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+_2so+'</select><label style="font-size:11px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px;margin-left:8px;cursor:pointer"><input type="checkbox" data-idx="'+idx+'" onchange="toggleDummy(this)"'+(b.isDummy?' checked':'')+'> ダミーテキスト</label></div>'
-      +_inp('左・項目名','leftKey','例：月額費用（税抜）')
-      +_inp('右・項目名','rightKey','例：成約手数料')
+      +'<div class="bc-row"><span class="bc-row-label">スタイル</span><select class="bc-style-sel" data-idx="'+idx+'" onchange="updateStyle(this)">'+_2so+'</select></div>'
+      +'<div class="bc-row" style="margin-top:4px"><label style="font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap"><input type="checkbox" data-idx="'+idx+'" onchange="toggleFromTemplate(this)"'+(b.isFromTemplate?' checked':'')+'> 設定から引用</label></div>'
+      +_2leftF
+      +_2rightF
       +'</div>'
       +'</div>';
   }
@@ -767,6 +776,20 @@ function selectFromTemplate(sel) {
   renderPreview();
   var card = document.querySelector('#block-list .block-card[data-idx="'+idx+'"]');
   if (card) { var pre = card.querySelector('.bc-preview'); if (pre) pre.textContent = sel.value.substring(0,44); }
+}
+function selectFromTemplateField(sel) {
+  markDirty();
+  var idx = parseInt(sel.dataset.idx);
+  blocks[currentPage][idx][sel.dataset.field] = sel.value;
+  renderPreview();
+  var card = document.querySelector('#block-list .block-card[data-idx="'+idx+'"]');
+  if (card) {
+    var pre = card.querySelector('.bc-preview');
+    if (pre) {
+      var b2=blocks[currentPage][idx];
+      pre.textContent=[b2.leftKey,b2.rightKey].filter(Boolean).join('  |  ').substring(0,44);
+    }
+  }
 }
 
 function delBlock(idx) {
