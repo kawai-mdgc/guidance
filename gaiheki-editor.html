@@ -100,6 +100,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
 /* ブロック追加ボタン */
 .btn-add { width: 100%; padding: 11px; background: none; border: 1px dashed var(--border); border-radius: 6px; color: var(--label); font-size: 13px; cursor: pointer; transition: all .12s; margin-top: 4px; }
 .btn-add:hover { border-color: var(--action); color: var(--action); background: #f7f6fb; }
+/* ページ追加ボタン */
+.btn-add-page { padding: 4px 10px; border: 1px dashed var(--border); border-radius: 4px; background: none; font-size: 12px; color: var(--label); cursor: pointer; transition: all .12s; white-space: nowrap; flex-shrink: 0; }
+.btn-add-page:hover { border-color: var(--action); color: var(--action); }
 
 /* トースト */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px); background: #1a1a1a; color: var(--white); padding: 11px 28px; border-radius: 6px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 999; }
@@ -161,6 +164,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; backg
       <button class="h-tab active" data-page="p1" onclick="switchPage('p1')">P1 基本事項</button>
       <button class="h-tab" data-page="p2" onclick="switchPage('p2')">P2 写真のお願い</button>
       <button class="h-tab" data-page="p3" onclick="switchPage('p3')">P3 成約施策</button>
+      <span id="extra-page-tabs" style="display:contents"></span>
+      <button class="btn-add-page" onclick="addPage()" title="ページを追加">＋追加</button>
     </div>
     <div id="p1-plan-bar" style="display:none;padding:8px 12px 6px;border-bottom:1px solid var(--border);background:var(--bg);margin-bottom:8px">
       <label style="font-size:11px;font-weight:600;color:var(--label);display:block;margin-bottom:4px">① 料金について — プラン形態を選択</label>
@@ -256,6 +261,7 @@ var dragSrcIdx  = -1;
 var expandedIds = {};   /* blockId -> true/false */
 var isDirty = false;
 var _originalBlocks = null;
+var extraPages = []; // [{key:'p4', label:'P4 ページ名'}, ...]
 function syncDirtyState() {
   isDirty = _originalBlocks !== null && JSON.stringify(blocks) !== _originalBlocks;
   var btn = document.getElementById('btn-save');
@@ -353,10 +359,16 @@ function loadTemplate() {
           p2: migrateBlocks((s.p2&&s.p2.length) ? s.p2 : def.p2),
           p3: ensureP3Blocks(migrateBlocks((s.p3&&s.p3.length) ? s.p3 : def.p3))
         };
+        if (doc.data().extraPages) {
+          extraPages = doc.data().extraPages;
+          extraPages.forEach(function(p){ blocks[p.key] = migrateBlocks((s[p.key]&&s[p.key].length)?s[p.key]:[]); });
+        } else { extraPages = []; }
       } else {
         console.log('[Editor] テンプレートなし、デフォルト使用');
         blocks = { p1: JSON.parse(JSON.stringify(def.p1)), p2: JSON.parse(JSON.stringify(def.p2)), p3: JSON.parse(JSON.stringify(def.p3)) };
+        extraPages = [];
       }
+      renderExtraTabs();
       _originalBlocks = JSON.stringify(blocks);
       var _sb=document.getElementById('btn-save');if(_sb)_sb.disabled=true;
       renderAll(); scalePreview();
@@ -383,9 +395,11 @@ function saveTemplate() {
   var p1clean = JSON.parse(JSON.stringify(blocks.p1||[]));
   var p2clean = JSON.parse(JSON.stringify(blocks.p2||[]));
   var p3clean = JSON.parse(JSON.stringify(blocks.p3||[]));
-  console.log('[Editor] 保存開始 uid='+user.uid+' biz='+BIZ_ID+' p1='+p1clean.length+' p2='+p2clean.length+' p3='+p3clean.length);
+  var blocksData = { p1: p1clean, p2: p2clean, p3: p3clean };
+  extraPages.forEach(function(p){ blocksData[p.key] = JSON.parse(JSON.stringify(blocks[p.key]||[])); });
+  console.log('[Editor] 保存開始 uid='+user.uid+' biz='+BIZ_ID+' p1='+p1clean.length+' p2='+p2clean.length+' p3='+p3clean.length+' extra='+extraPages.length);
   var ref = db.collection('templates').doc(BIZ_ID);
-  ref.set({ blocks: { p1: p1clean, p2: p2clean, p3: p3clean }, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+  ref.set({ blocks: blocksData, extraPages: JSON.parse(JSON.stringify(extraPages)), updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
     .then(function() {
       console.log('[Editor] 保存成功:', BIZ_ID);
       clearDirty(); showToast('保存しました'); btn.textContent = '保存';
@@ -400,7 +414,10 @@ function saveTemplate() {
 function resetToDefault() {
   if (!confirm('デフォルト状態に戻しますか？（「保存」するまでFirestoreには反映されません）')) return;
   blocks = { p1: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p1)), p2: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p2)), p3: JSON.parse(JSON.stringify(DEFAULT_BLOCKS.p3)) };
+  extraPages = [];
   expandedIds = {};
+  if (['p1','p2','p3'].indexOf(currentPage) < 0) currentPage = 'p1';
+  renderExtraTabs();
   renderAll();
   markDirty();
 }
@@ -412,6 +429,40 @@ function switchPage(page) {
   currentPage = page;
   document.querySelectorAll('.h-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.page===page); });
   renderAll();
+}
+
+function renderExtraTabs() {
+  var container = document.getElementById('extra-page-tabs');
+  if (!container) return;
+  container.innerHTML = extraPages.map(function(p) {
+    return '<button class="h-tab' + (currentPage===p.key?' active':'') + '" data-page="' + escHtml(p.key) + '" onclick="switchPage(\'' + escId(p.key) + '\')">'
+      + escHtml(p.label)
+      + '<span onclick="event.stopPropagation();removePage(\'' + escId(p.key) + '\')" style="margin-left:6px;opacity:.55;font-size:10px;line-height:1" title="削除">✕</span>'
+      + '</button>';
+  }).join('');
+}
+
+function addPage() {
+  var nextNum = 4 + extraPages.length;
+  var defaultLabel = 'P' + nextNum;
+  var label = prompt('新しいページの名前を入力してください:', defaultLabel);
+  if (label === null) return;
+  label = label.trim() || defaultLabel;
+  var key = 'p' + nextNum;
+  extraPages.push({key: key, label: label});
+  if (!blocks[key]) blocks[key] = [];
+  markDirty();
+  renderExtraTabs();
+  switchPage(key);
+}
+
+function removePage(key) {
+  if (!confirm('「' + (extraPages.find(function(p){return p.key===key;})||{}).label + '」を削除しますか？')) return;
+  extraPages = extraPages.filter(function(p){ return p.key !== key; });
+  delete blocks[key];
+  markDirty();
+  renderExtraTabs();
+  if (currentPage === key) switchPage('p3');
 }
 
 /* ── Render helpers ── */
