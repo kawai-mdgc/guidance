@@ -2730,88 +2730,58 @@ function saveCase() {
       .catch(function (e) { console.error('[FS] 案件読み込みエラー:', e.code, e.message); });
   });
 
-  /* ── テンプレートブロック適用 ── */
-  function applyTemplate(tblocks) {
-    var BG = '#F2F7FD', MC = '#297DCE';
-    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function proc(s) { return esc(s).replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); }
-    function rBlock(b) {
-      var t=proc(b.text), u=esc(b.url||'');
-      switch(b.style) {
-        case 'title':     return '<div style="font-size:20px;font-weight:700;color:var(--text);margin-top:40px;margin-bottom:18px">'+t+'</div>';
-        case 'body':      return '<div style="margin-bottom:12px">'+t+'</div>';
-        case 'bg-text':   return '<div style="margin-top:8px;margin-bottom:12px"><span style="display:inline-block;background:'+BG+';color:'+MC+';font-weight:700;padding:3px 10px;border-radius:3px;margin-bottom:4px">'+t+'</span></div>';
-        case 'bold':      return '<div style="margin-bottom:12px"><strong>'+t+'</strong></div>';
-        case 'muted':     return '<div style="margin-bottom:12px;color:var(--muted);font-size:10.5px">'+t+'</div>';
-        case 'link':      return '<div style="margin-bottom:12px">'+(b.text?'<div style="margin-bottom:2px">'+t+'</div>':'')+'<a class="url-val" href="'+u+'" target="_blank">'+u+'</a></div>';
-        case 'link-card': return '<div style="margin-bottom:12px">'+(b.text?'<div style="font-weight:600;margin-bottom:2px">'+t+'</div>':'')+'<a href="'+u+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:1px 6px;line-height:1.4;text-decoration:none;color:var(--text);font-size:13px;transition:background .12s" onmouseover="this.style.background=\'#e8eaed\'" onmouseout="this.style.background=\'#f1f3f4\'">📄 '+esc(b.linkLabel||b.url||'')+'</a></div>';
-        case 'url-ext': var uet=proc(b.text||''),ueu=esc(b.url||'#'); return '<div style="margin-bottom:24px">'+uet+'<br><a class="url-val" href="'+ueu+'" target="_blank">'+ueu+'</a></div>';
-        case 'link-locked': var llt=proc(b.text||''),llu=esc(b.url||'#'); return '<div style="margin-bottom:8px"><a href="'+llu+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:4px 12px;text-decoration:none;color:var(--text);font-size:12px;font-weight:600" onmouseover="this.style.background=\'#e8eaed\'" onmouseout="this.style.background=\'#f1f3f4\'">🔗 '+llt+'</a></div>';
-        case 'url-photo': return '<div style="margin-bottom:24px">'+proc(b.text||'▼写真アップロードフォーム')+'<br><a class="url-val" id="p-photo-url" href="#" target="_blank">（URL未設定）</a></div>';
-        case 'url-store': return '<div style="margin-bottom:48px">'+proc(b.text||'▼加盟店様の紹介ページ')+'<br><a class="url-val" id="p-store-url" href="#" target="_blank">（URL未設定）</a></div>';
-        case 'images':    return '<div style="display:flex;gap:8px;margin-top:10px;margin-bottom:8px"><img src="images/gaiheki/photo1.jpg" alt="施工写真1" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/gaiheki/photo2.jpg" alt="施工写真2" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/gaiheki/photo3.jpg" alt="施工写真3" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"></div>';
-        default:          return '<div style="margin-bottom:12px">'+t+'</div>';
-      }
+  /* ── テンプレート読み込み・P2/P3プレビュー反映 ── */
+  function _renderBlock(b) {
+    var BG='#F2F7FD', MC='#297DCE';
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function proc(s){return esc(s||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');}
+    var t=proc(b.text), u=esc(b.url||'');
+    switch(b.style){
+      case 'title':    return '<div style="font-size:20px;font-weight:700;color:var(--text);margin-top:48px">'+t+'</div>';
+      case 'body':     return '<div>'+t+'</div>';
+      case 'bg-text':  return '<div><span style="display:inline-block;background:'+BG+';color:'+MC+';font-weight:700;padding:3px 10px;border-radius:3px">'+t+'</span></div>';
+      case 'bold':     return '<div><strong>'+t+'</strong></div>';
+      case 'muted':    return '<div style="color:var(--muted);font-size:10.5px">'+t+'</div>';
+      case 'space':    return '<div style="height:'+(({'small':'16px','medium':'32px','large':'64px'})[b.spaceSize||'medium']||'32px')+'"></div>';
+      case 'link-card': return '<div>'+(b.text?'<div style="font-weight:600;margin-bottom:2px">'+t+'</div>':'')+'<a href="'+u+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:1px 6px;line-height:1.4;text-decoration:none;color:var(--text);font-size:13px" onmouseover="this.style.background=\'#e8eaed\'" onmouseout="this.style.background=\'#f1f3f4\'">\u{1f4c4} '+esc(b.linkLabel||b.url||'')+'</a></div>';
+      case 'url-ext':  return '<div>'+proc(b.text||'')+'<br><a class="url-val" href="'+u+'" target="_blank">'+u+'</a></div>';
+      case 'link-locked': return '<div><a href="'+u+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:4px 12px;text-decoration:none;color:var(--text);font-size:12px;font-weight:600" onmouseover="this.style.background=\'#e8eaed\'" onmouseout="this.style.background=\'#f1f3f4\'">🔗 '+t+'</a></div>';
+      case 'url-photo': return '<div>'+proc(b.text||'▼写真アップロードフォーム')+'<br><a class="url-val" id="p-photo-url" href="#" target="_blank">（URL未設定）</a></div>';
+      case 'url-store': return '<div>'+proc(b.text||'▼加盟店様の紹介ページ')+'<br><a class="url-val" id="p-store-url" href="#" target="_blank">（URL未設定）</a></div>';
+      case 'images':   return '<div style="display:flex;gap:8px"><img src="images/fuyouhin/photo1.jpg" alt="施工写真1" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/fuyouhin/photo2.jpg" alt="施工写真2" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/fuyouhin/photo3.jpg" alt="施工写真3" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"></div>';
+      default:         return t ? '<div>'+t+'</div>' : '';
     }
-    var p2=document.getElementById('p2-content'), p3=document.getElementById('p3-content');
-    var _p1LblMap = {
-      '_p1_p_fee':  'p-lbl-fee',
-      '_p1_p_comm': 'p-lbl-commission',
-      '_p1_p_guar': 'p-lbl-guarantee',
-      '_p1_p_mon':  'p-lbl-monthly',
-      '_p1_p_per':  'p-lbl-period',
-      '_p1_p_half': 'p-lbl-half',
-    };
-    if (tblocks.p1) tblocks.p1.forEach(function(b) {
-      if (b.style==='p1-holiday')  { _tplP1Texts.holiday=b.text;  var e=document.getElementById('p-holiday-text');  if(e) e.innerHTML=proc(b.text); }
-      if (b.style==='p1-exclude')  { _tplP1Texts.exclude=b.text;  var e=document.getElementById('p-exclude-text');  if(e) e.innerHTML=proc(b.text); }
-      if (b.style==='p1-contract') { _tplP1Texts.contract=b.text; var e=document.getElementById('p-contract-text'); if(e) e.innerHTML=proc(b.text); }
-      if (b.style === 'p1-key' && _p1LblMap[b.id]) {
-        var lblEl = document.getElementById(_p1LblMap[b.id]);
-        if (lblEl && b.text) lblEl.textContent = b.text;
-      }
-    });
-    console.log('[Template] P1ブロック適用完了');
-    if (p2 && Array.isArray(tblocks.p2)) {
-      p2.innerHTML = tblocks.p2.map(rBlock).join('');
-      console.log('[Template] P2適用: '+tblocks.p2.length+'ブロック');
-    }
-    if (p3 && Array.isArray(tblocks.p3)) {
-      p3.innerHTML = tblocks.p3.map(rBlock).join('');
-      console.log('[Template] P3適用: '+tblocks.p3.length+'ブロック');
-    }
-    if (typeof render === 'function') render();
   }
-
-  /* ── テンプレート読み込み ── */
-  function _loadTemplate() {
-    console.log('[Template] templates/fuyouhin 読み込み開始');
+  function _applyTplData(data) {
+    function proc(s){return String(s||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');}
+    var p1=data.p1Blocks||(data.blocks&&data.blocks.p1)||[];
+    var p2=data.p2Blocks||(data.blocks&&data.blocks.p2)||[];
+    var p3=data.p3Blocks||(data.blocks&&data.blocks.p3)||[];
+    p1.forEach(function(b){
+      if(b.style==='p1-holiday'){_tplP1Texts.holiday=b.text;var e=document.getElementById('p-holiday-text');if(e)e.innerHTML=proc(b.text);}
+      if(b.style==='p1-exclude'){_tplP1Texts.exclude=b.text;var e=document.getElementById('p-exclude-text');if(e)e.innerHTML=proc(b.text);}
+      if(b.style==='p1-contract'){_tplP1Texts.contract=b.text;var e=document.getElementById('p-contract-text');if(e)e.innerHTML=proc(b.text);}
+      if(b.style==='p1-key'){var lm={'_p1_p_fee':'p-lbl-fee','_p1_p_comm':'p-lbl-commission','_p1_p_guar':'p-lbl-guarantee','_p1_p_mon':'p-lbl-monthly','_p1_p_per':'p-lbl-period','_p1_p_half':'p-lbl-half'};var el=document.getElementById(lm[b.id]||'');if(el&&b.text)el.textContent=b.text;}
+    });
+    var p2El=document.getElementById('p2-content');
+    if(p2El&&p2.length>0) p2El.innerHTML=p2.map(_renderBlock).join('');
+    var p3El=document.getElementById('p3-content');
+    if(p3El&&p3.length>0) p3El.innerHTML=p3.map(_renderBlock).join('');
+    if(typeof render==='function') render();
+    console.log('[Template] 適用完了 p2='+p2.length+' p3='+p3.length);
+  }
+  var _tplDone=false;
+  function _loadAndApply(){
+    if(_tplDone)return; _tplDone=true;
     firebase.firestore().collection('templates').doc('fuyouhin').get()
-      .then(function(d) {
-        if (d.exists && d.data() && d.data().blocks) {
-          console.log('[Template] 適用 keys=' + Object.keys(d.data().blocks).join(','));
-          applyTemplate(d.data().blocks);
-        } else {
-          console.warn('[Template] templates/fuyouhin が存在しません。エディタで保存してください。');
-        }
+      .then(function(doc){
+        if(!doc.exists||!doc.data()){console.log('[Template] 未保存');return;}
+        _applyTplData(doc.data());
       })
-      .catch(function(e) {
-        console.error('[Template] 読み込みエラー:', e.code, e.message);
-      });
+      .catch(function(e){console.error('[Template] エラー:',e.message);});
   }
-  var _tplLoaded = false;
-  function _tryLoadTemplate() {
-    if (_tplLoaded) return;
-    _tplLoaded = true;
-    _loadTemplate();
-  }
-  if (firebase.auth().currentUser) {
-    _tryLoadTemplate();
-  } else {
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (user) _tryLoadTemplate();
-    });
-  }
+  if(firebase.auth().currentUser){_loadAndApply();}
+  else{firebase.auth().onAuthStateChanged(function(u){if(u)_loadAndApply();});}
 })();
 </script>
 

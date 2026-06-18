@@ -340,17 +340,18 @@ function loadTemplate() {
     .then(function(doc) {
       console.log('[Editor] loadTemplate 完了: exists=', doc.exists);
       var def = JSON.parse(JSON.stringify(DEFAULT_BLOCKS));
-      if (doc.exists && doc.data().blocks) {
-        var s = doc.data().blocks;
+      if (doc.exists && doc.data()) {
+        var d = doc.data();
+        // 新形式(p1Blocks)・旧形式(blocks.p1)の両方に対応
+        var p1data = d.p1Blocks || (d.blocks&&d.blocks.p1) || def.p1;
+        var p2data = d.p2Blocks || (d.blocks&&d.blocks.p2) || def.p2;
+        var p3data = d.p3Blocks || (d.blocks&&d.blocks.p3) || def.p3;
         blocks = {
-          p1: ensureP1Blocks(migrateBlocks((s.p1&&s.p1.length) ? s.p1 : def.p1)),
-          p2: migrateBlocks((s.p2&&s.p2.length) ? s.p2 : def.p2),
-          p3: ensureP3Blocks(migrateBlocks((s.p3&&s.p3.length) ? s.p3 : def.p3))
+          p1: ensureP1Blocks(migrateBlocks(p1data.length ? p1data : def.p1)),
+          p2: migrateBlocks(p2data.length ? p2data : def.p2),
+          p3: ensureP3Blocks(migrateBlocks(p3data.length ? p3data : def.p3))
         };
-        if (doc.data().extraPages) {
-          extraPages = doc.data().extraPages;
-          extraPages.forEach(function(p){ blocks[p.key] = migrateBlocks((s[p.key]&&s[p.key].length)?s[p.key]:[]); });
-        } else { extraPages = []; }
+        extraPages = [];
       } else {
         console.log('[Editor] テンプレートなし、デフォルト使用');
         blocks = { p1: JSON.parse(JSON.stringify(def.p1)), p2: JSON.parse(JSON.stringify(def.p2)), p3: JSON.parse(JSON.stringify(def.p3)) };
@@ -383,19 +384,16 @@ function saveTemplate() {
   var p1clean = JSON.parse(JSON.stringify(blocks.p1||[]));
   var p2clean = JSON.parse(JSON.stringify(blocks.p2||[]));
   var p3clean = JSON.parse(JSON.stringify(blocks.p3||[]));
-  var blocksData = { p1: p1clean, p2: p2clean, p3: p3clean };
-  extraPages.forEach(function(p){ blocksData[p.key] = JSON.parse(JSON.stringify(blocks[p.key]||[])); });
   var savePath = 'templates/' + BIZ_ID;
-  console.group('[Editor] 保存開始');
-  console.log('パス:', savePath);
-  console.log('uid:', user.uid);
-  console.log('ブロック数 p1=' + p1clean.length + ' p2=' + p2clean.length + ' p3=' + p3clean.length + ' extra=' + extraPages.length);
-  console.log('p2 blocks:', JSON.stringify(p2clean));
-  console.log('p3 blocks:', JSON.stringify(p3clean));
-  console.groupEnd();
+  console.log('[Editor] 保存: ' + savePath + ' p1=' + p1clean.length + ' p2=' + p2clean.length + ' p3=' + p3clean.length);
   var ref = db.collection('templates').doc(BIZ_ID);
   try {
-    ref.set({ blocks: blocksData, extraPages: JSON.parse(JSON.stringify(extraPages)), updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+    ref.set({
+      p1Blocks: p1clean,
+      p2Blocks: p2clean,
+      p3Blocks: p3clean,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    })
       .then(function() {
         console.log('[Editor] 保存成功:', savePath, 'p2='+p2clean.length+' p3='+p3clean.length);
         clearDirty(); showToast('保存しました'); btn.textContent = '保存';
