@@ -2831,29 +2831,32 @@ function saveCase() {
     }
     var p2=document.getElementById('p2-content'), p3=document.getElementById('p3-content');
     if (tblocks.p1) tblocks.p1.forEach(function(b){ rBlock(b); }); // P1副作用でDOM更新
-    if (p2 && tblocks.p2) p2.innerHTML = tblocks.p2.map(rBlock).join('');
-    if (p3 && tblocks.p3) p3.innerHTML = tblocks.p3.map(rBlock).join('');
+    if (p2 && Array.isArray(tblocks.p2)) {
+      p2.innerHTML = tblocks.p2.map(rBlock).join('');
+      console.log('[Template] P2適用: '+tblocks.p2.length+'ブロック');
+    }
+    if (p3 && Array.isArray(tblocks.p3)) {
+      p3.innerHTML = tblocks.p3.map(rBlock).join('');
+      console.log('[Template] P3適用: '+tblocks.p3.length+'ブロック');
+    }
     if (typeof render === 'function') render();
   }
 
-  /* ── テンプレート／スナップショット読み込み ── */
+  /* ── テンプレート読み込み（常に最新のtemplates/{biz}を使用） ── */
   firebase.auth().onAuthStateChanged(function(user) {
     if (!user) return;
-    var editId2 = new URLSearchParams(location.search).get('id');
     var dbT = firebase.firestore();
-    var src;
-    if (editId2) {
-      src = dbT.collection('caseSnapshots').doc(editId2).get()
-        .then(function(snap) {
-          return (snap.exists && snap.data().blocks) ? snap.data() : dbT.collection('templates').doc('gaiheki').get().then(function(d) { return d.exists ? d.data() : null; });
-        });
-    } else {
-      src = dbT.collection('templates').doc('gaiheki').get()
-        .then(function(d) { return d.exists ? d.data() : null; });
-    }
-    src.then(function(data) {
-      if (data && data.blocks) applyTemplate(data.blocks);
-    }).catch(function(e) { console.warn('[FS] template load:', e.message); });
+    console.log('[FS] テンプレート読み込み開始: gaiheki');
+    dbT.collection('templates').doc('gaiheki').get()
+      .then(function(d) {
+        if (d.exists && d.data().blocks) {
+          console.log('[FS] テンプレート適用 blocks:', Object.keys(d.data().blocks));
+          applyTemplate(d.data().blocks);
+        } else {
+          console.log('[FS] templates/gaiheki が存在しないためデフォルト表示');
+        }
+      })
+      .catch(function(e) { console.error('[FS] テンプレート読み込みエラー:', e.code, e.message); });
   });
 })();
 </script>
