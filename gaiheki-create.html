@@ -1836,6 +1836,7 @@ const DEFAULT_SETTINGS = {
 };
 
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
+let _tplP1Texts = {}; // エディタのテンプレートブロックから取得したP1テキスト
 
 function getSettings() {
   if (_settingsOverride) return _settingsOverride;
@@ -2503,7 +2504,16 @@ function render() {
   setLink('p-gift-survey', s.giftSurveyUrl);
   setLink('p-gift-work',   s.giftWorkUrl);
   setLink('p-login-url',   s.loginUrl);
-  set('p-holiday-text', s.holidayText);
+  // テンプレートブロックが優先。なければ設定値にフォールバック
+  const _proc = function(v){ return String(v||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); };
+  const _applyP1Text = function(elId, tplVal, settingVal) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (tplVal !== undefined) { el.innerHTML = _proc(tplVal); } else { el.textContent = settingVal || ''; }
+  };
+  _applyP1Text('p-holiday-text',  _tplP1Texts.holiday,  s.holidayText);
+  _applyP1Text('p-exclude-text',  _tplP1Texts.exclude,  s.excludeText);
+  _applyP1Text('p-contract-text', _tplP1Texts.contract, '');
   syncP1Rows();
 }
 
@@ -2813,9 +2823,9 @@ function saveCase() {
         case 'url-store': return '<div>'+proc(b.text||'▼加盟店様の紹介ページ')+'<br><a class="url-val" id="p-store-url" href="#" target="_blank">（URL未設定）</a></div>';
         case 'images':    return '<div style="display:flex;gap:8px"><img src="images/gaiheki/photo1.jpg" alt="施工写真1" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/gaiheki/photo2.jpg" alt="施工写真2" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"><img src="images/gaiheki/photo3.jpg" alt="施工写真3" style="flex:1;min-width:0;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:#e8e8e8" onerror="this.style.background=\'#e8e8e8\';this.style.display=\'block\';this.removeAttribute(\'src\')"></div>';
         case 'space':     return '<div style="height:'+(({'small':'16px','medium':'32px','large':'64px'})[b.spaceSize||'medium']||'32px')+'">'+'</div>';
-        case 'p1-holiday':  var el1=document.getElementById('p-holiday-text'); if(el1) el1.innerHTML=proc(b.text); return '';
-        case 'p1-exclude':  var el2=document.getElementById('p-exclude-text'); if(el2) el2.innerHTML=proc(b.text); return '';
-        case 'p1-contract': var el3=document.getElementById('p-contract-text'); if(el3) el3.innerHTML=proc(b.text); return '';
+        case 'p1-holiday':  _tplP1Texts.holiday=b.text; var el1=document.getElementById('p-holiday-text'); if(el1) el1.innerHTML=proc(b.text); return '';
+        case 'p1-exclude':  _tplP1Texts.exclude=b.text; var el2=document.getElementById('p-exclude-text'); if(el2) el2.innerHTML=proc(b.text); return '';
+        case 'p1-contract': _tplP1Texts.contract=b.text; var el3=document.getElementById('p-contract-text'); if(el3) el3.innerHTML=proc(b.text); return '';
                 default:          return '<div>'+t+'</div>';
       }
     }

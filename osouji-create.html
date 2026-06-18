@@ -510,7 +510,7 @@ a.lb-url:hover { text-decoration: underline; }
 
 
       <tr class="sh"><td colspan="4">④ 休業日について</td></tr>
-      <tr><td colspan="4" class="v note" style="padding:8px 20px">弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。<br>配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。</td></tr>
+      <tr><td colspan="4" class="v note" id="p-holiday-text" style="padding:8px 20px">弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。<br>配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。</td></tr>
 
 
       <tr class="sh"><td colspan="4">⑤ 除外となり得るお客様情報について</td></tr>
@@ -525,7 +525,7 @@ a.lb-url:hover { text-decoration: underline; }
 
 
       <tr class="sh"><td colspan="4">⑧ ご成約報告について</td></tr>
-      <tr><td colspan="4" class="v note" style="padding:8px 20px">①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。</td></tr>
+      <tr><td colspan="4" class="v note" id="p-contract-text" style="padding:8px 20px">①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。</td></tr>
 
     </table>
   </div>
@@ -1822,6 +1822,7 @@ const DEFAULT_SETTINGS = {
 };
 
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
+let _tplP1Texts = {}; // エディタのテンプレートブロックから取得したP1テキスト
 
 function getSettings() {
   if (_settingsOverride) return _settingsOverride;
@@ -2441,7 +2442,15 @@ function render() {
   setLink('p-gift-survey', s.giftSurveyUrl);
   setLink('p-gift-work',   s.giftWorkUrl);
   setLink('p-login-url',   s.loginUrl);
-  set('p-holiday-text', s.holidayText);
+  const _proc2 = function(v){ return String(v||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); };
+  const _applyP1Text2 = function(elId, tplVal, settingVal) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (tplVal !== undefined) { el.innerHTML = _proc2(tplVal); } else { el.textContent = settingVal || ''; }
+  };
+  _applyP1Text2('p-holiday-text',  _tplP1Texts.holiday,  s.holidayText);
+  _applyP1Text2('p-exclude-text',  _tplP1Texts.exclude,  s.excludeText);
+  _applyP1Text2('p-contract-text', _tplP1Texts.contract, '');
   syncP1Rows();
 }
 
@@ -2745,6 +2754,11 @@ function saveCase() {
       }
     }
     var p2=document.getElementById('p2-content'), p3=document.getElementById('p3-content');
+    if (tblocks.p1) tblocks.p1.forEach(function(b) {
+      if (b.style==='p1-holiday')  { _tplP1Texts.holiday=b.text;  var e=document.getElementById('p-holiday-text');  if(e) e.innerHTML=proc(b.text); }
+      if (b.style==='p1-exclude')  { _tplP1Texts.exclude=b.text;  var e=document.getElementById('p-exclude-text');  if(e) e.innerHTML=proc(b.text); }
+      if (b.style==='p1-contract') { _tplP1Texts.contract=b.text; var e=document.getElementById('p-contract-text'); if(e) e.innerHTML=proc(b.text); }
+    });
     if (p2 && tblocks.p2) p2.innerHTML = tblocks.p2.map(rBlock).join('');
     if (p3 && tblocks.p3) p3.innerHTML = tblocks.p3.map(rBlock).join('');
     if (typeof render === 'function') render();
