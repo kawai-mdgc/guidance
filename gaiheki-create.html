@@ -2050,28 +2050,36 @@ function populatePaymentMethodSelect() {
 
 function buildPlanCustomFields(det, tmpl, type) {
   const tv = (det.values || {})[type] || {};
-  let html = '';
-  tmpl.items.forEach(function(item) {
+  const items = tmpl.items;
+  const buildField = function(item) {
     const val = tv[item.id];
     const lbl = esc(item.label || '');
-    html += '<div class="field" style="margin-bottom:10px"><label>' + lbl + '</label>';
+    let f = '<div class="field"><label>' + lbl + '</label>';
     if (item.valueType === 'multiple' && Array.isArray(val) && val.length > 0) {
-      html += '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">';
+      f += '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">';
       val.forEach(function(choice, ci) {
         const cid = 'plan-item-' + item.id + '-' + ci;
-        html += '<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">'
+        f += '<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">'
           + '<input type="radio" name="plan-item-' + item.id + '" id="' + cid + '" value="' + esc(choice) + '" onchange="onPlanItemChange()">'
           + '<span>' + esc(choice) + '</span></label>';
       });
-      html += '</div>';
+      f += '</div>';
     } else {
       const sv = Array.isArray(val) ? (val[0] || '') : (typeof val === 'string' ? val : '');
-      html += '<input type="text" id="plan-item-' + item.id
+      f += '<input type="text" id="plan-item-' + item.id
         + '" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit"'
         + ' value="' + esc(sv) + '" oninput="onPlanItemChange()" placeholder="' + lbl + '">';
     }
-    html += '</div>';
-  });
+    return f + '</div>';
+  };
+  let html = '';
+  for (let i = 0; i < items.length; i += 2) {
+    if (i + 1 < items.length) {
+      html += '<div class="field-row">' + buildField(items[i]) + buildField(items[i + 1]) + '</div>';
+    } else {
+      html += buildField(items[i]);
+    }
+  }
   return html;
 }
 function getPlanItemValues() {
