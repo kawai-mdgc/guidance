@@ -479,23 +479,23 @@ a.lb-url:hover { text-decoration: underline; }
       <tr class="sh"><td colspan="4">① 料金について</td></tr>
       <tr><td class="k">契約プラン</td><td class="v" colspan="3" id="p-plan">—</td></tr>
       <tr>
-        <td class="k" style="vertical-align:middle;white-space:nowrap">月額費用（税抜）</td>
+        <td id="p-lbl-fee" class="k" style="vertical-align:middle;white-space:nowrap">月額費用（税抜）</td>
         <td class="v" style="vertical-align:middle"><span id="p-fee">—</span></td>
-        <td class="k" style="vertical-align:middle;white-space:nowrap">成約手数料</td>
+        <td id="p-lbl-commission" class="k" style="vertical-align:middle;white-space:nowrap">成約手数料</td>
         <td class="v" style="vertical-align:middle"><span id="p-commission">—</span></td>
       </tr>
       <tr>
-        <td class="k" style="vertical-align:middle">契約期間</td>
+        <td id="p-lbl-period" class="k" style="vertical-align:middle">契約期間</td>
         <td class="v" colspan="3" style="vertical-align:middle"><span id="p-period">—</span><div style="font-size:10px;color:var(--muted);margin-top:2px">※ご契約は自動更新　※退会希望の場合、14日前に管理画面から申請が必要</div></td>
       </tr>
       <tr>
-        <td class="k" style="white-space:nowrap">紹介件数想定（月間）</td>
+        <td id="p-lbl-monthly" class="k" style="white-space:nowrap">紹介件数想定（月間）</td>
         <td class="v" id="p-monthly">—</td>
-        <td class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td>
+        <td id="p-lbl-half" class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td>
         <td class="v" id="p-half">—</td>
       </tr>
       <tr>
-        <td class="k">最低保証</td>
+        <td id="p-lbl-guarantee" class="k">最低保証</td>
         <td class="v" colspan="3"><span id="p-guarantee">—</span><span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td>
       </tr>
 
@@ -2034,6 +2034,11 @@ function populatePaymentMethodSelect() {
   sel.innerHTML = '<option value="">選択してください</option>' + opts;
 }
 
+function updatePreviewLabels(tmpl) {
+  const DFLT = ['月額費用（税抜）','成約手数料','最低保証','紹介件数想定（月間）','契約期間','紹介件数想定（6ヶ月）'];
+  const MAP = [['p-lbl-fee',0],['p-lbl-commission',1],['p-lbl-guarantee',2],['p-lbl-monthly',3],['p-lbl-period',4],['p-lbl-half',5]];
+  MAP.forEach(([id,idx]) => { const el=document.getElementById(id); if(el) el.textContent=(tmpl&&tmpl.items[idx]?.label)||DFLT[idx]; });
+}
 function buildPlanCustomFields(det, tmpl, type) {
   const tv = (det.values || {})[type] || {};
   const items = tmpl.items;
@@ -2042,14 +2047,12 @@ function buildPlanCustomFields(det, tmpl, type) {
     const lbl = esc(item.label || '');
     let f = '<div class="field"><label>' + lbl + '</label>';
     if (item.valueType === 'multiple' && Array.isArray(val) && val.length > 0) {
-      f += '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">';
-      val.forEach(function(choice, ci) {
-        const cid = 'plan-item-' + item.id + '-' + ci;
-        f += '<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">'
-          + '<input type="radio" name="plan-item-' + item.id + '" id="' + cid + '" value="' + esc(choice) + '" onchange="onPlanItemChange()">'
-          + '<span>' + esc(choice) + '</span></label>';
+      f += '<select id="plan-item-' + item.id + '" onchange="onPlanItemChange()" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit">'
+        + '<option value="">選択してください</option>';
+      val.forEach(function(choice) {
+        f += '<option value="' + esc(choice) + '">' + esc(choice) + '</option>';
       });
-      f += '</div>';
+      f += '</select>';
     } else {
       const sv = Array.isArray(val) ? (val[0] || '') : (typeof val === 'string' ? val : '');
       f += '<input type="text" id="plan-item-' + item.id
@@ -2112,6 +2115,7 @@ function initPlanCustomFields(planItems) {
   const _pf = document.getElementById('plan-detail-fields');
   if (_cf) { _cf.innerHTML = buildPlanCustomFields(det, tmpl, type); _cf.style.display = ''; }
   if (_pf) _pf.style.display = 'none';
+  updatePreviewLabels(tmpl);
   if (planItems && typeof planItems === 'object') {
     Object.keys(planItems).forEach(itemId => {
       const val = planItems[itemId];
@@ -2157,6 +2161,7 @@ function updatePlanDefaults() {
     if (tmpl && det) {
       if (_cf) { _cf.innerHTML = buildPlanCustomFields(det, tmpl, type); _cf.style.display = ''; }
       if (_pf) _pf.style.display = 'none';
+      updatePreviewLabels(tmpl);
       const tv = (det.values||{})[type] || {};
       const getV = idx => { const it = tmpl.items[idx]; if (!it) return ''; const val = tv[it.id]; return Array.isArray(val)?(val[0]||''):(val||''); };
       document.getElementById('monthly_fee').value  = getV(0);
