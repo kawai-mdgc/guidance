@@ -2053,8 +2053,6 @@ function syncP1Rows() {
   const s = getSettings();
   const customBody = document.getElementById('p1-custom-rows');
   const fixedIds = ['p1-fee-row','p1-period-row','p1-monthly-row','p1-guarantee-row'];
-  const getText = id => { const el = document.getElementById(id); return el ? (el.textContent||el.innerText||'').trim() : ''; };
-  const isBlank = val => !val || val === '—';
 
   if (plan && plan.includes(':')) {
     const [detId, type] = plan.split(':');
@@ -2062,12 +2060,10 @@ function syncP1Rows() {
     const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
     if (tmpl) {
       fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
-      const valIds = ['p-fee','p-commission','p-guarantee','p-monthly','p-period','p-half'];
       let html = '';
-      tmpl.items.forEach(function(item, idx) {
+      tmpl.items.forEach(function(item) {
         const el = document.getElementById('plan-item-' + item.id);
-        const val = el ? el.value : getText(idx < valIds.length ? valIds[idx] : '');
-        if (isBlank(val)) return;
+        const val = el ? (el.value || '—') : '—';
         html += '<tr><td class="k" style="white-space:nowrap">' + esc(item.label) + '</td><td class="v" colspan="3">' + esc(val) + '</td></tr>';
       });
       if (customBody) customBody.innerHTML = html;
@@ -2076,20 +2072,7 @@ function syncP1Rows() {
   }
 
   if (customBody) customBody.innerHTML = '';
-  if (!plan) { fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; }); return; }
-
-  const show = (id, ...valIds) => {
-    const row = document.getElementById(id); if (!row) return;
-    row.style.display = valIds.every(vid => isBlank(getText(vid))) ? 'none' : '';
-  };
-  show('p1-fee-row', 'p-fee', 'p-commission');
-  show('p1-period-row', 'p-period');
-  show('p1-monthly-row', 'p-monthly', 'p-half');
-  const guarRow = document.getElementById('p1-guarantee-row');
-  if (guarRow) {
-    const isVp = plan.startsWith('vp_');
-    guarRow.style.display = (!isVp && isBlank(getText('p-guarantee'))) ? 'none' : (isVp ? 'none' : '');
-  }
+  fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display = plan ? '' : 'none'; });
 }
 
 function updatePreviewLabels(tmpl) {
