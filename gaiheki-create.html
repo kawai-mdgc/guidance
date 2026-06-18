@@ -786,6 +786,7 @@ a.lb-url:hover { text-decoration: underline; }
           </div>
         </div>
       </div>
+      <div id="plan-custom-fields" style="display:none"></div>
       <div class="f-sec">対応エリア</div>
       <div class="area-select-row">
         <select id="area-region" onchange="areaOnRegion()">
@@ -2047,9 +2048,92 @@ function populatePaymentMethodSelect() {
   sel.innerHTML = '<option value="">選択してください</option>' + opts;
 }
 
+function buildPlanCustomFields(det, tmpl, type) {
+  const tv = (det.values || {})[type] || {};
+  let html = '';
+  tmpl.items.forEach(function(item) {
+    const val = tv[item.id];
+    const lbl = esc(item.label || '');
+    html += '<div class="field" style="margin-bottom:10px"><label>' + lbl + '</label>';
+    if (item.valueType === 'multiple' && Array.isArray(val) && val.length > 0) {
+      html += '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">';
+      val.forEach(function(choice, ci) {
+        const cid = 'plan-item-' + item.id + '-' + ci;
+        html += '<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">'
+          + '<input type="radio" name="plan-item-' + item.id + '" id="' + cid + '" value="' + esc(choice) + '" onchange="onPlanItemChange()">'
+          + '<span>' + esc(choice) + '</span></label>';
+      });
+      html += '</div>';
+    } else {
+      const sv = Array.isArray(val) ? (val[0] || '') : (typeof val === 'string' ? val : '');
+      html += '<input type="text" id="plan-item-' + item.id
+        + '" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit"'
+        + ' value="' + esc(sv) + '" oninput="onPlanItemChange()" placeholder="' + lbl + '">';
+    }
+    html += '</div>';
+  });
+  return html;
+}
+function getPlanItemValues() {
+  const plan = v('plan');
+  if (!plan.includes(':')) return {};
+  const [detId, type] = plan.split(':');
+  const s = getSettings();
+  const det = s.planDetails && s.planDetails.find(d => d.id === detId);
+  const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
+  if (!tmpl || !det) return {};
+  const res = {};
+  tmpl.items.forEach(item => {
+    const radio = document.querySelector('input[name="plan-item-' + item.id + '"]:checked');
+    if (radio) { res[item.id] = radio.value; return; }
+    const txt = document.getElementById('plan-item-' + item.id);
+    if (txt) res[item.id] = txt.value;
+  });
+  return res;
+}
+function onPlanItemChange() {
+  const plan = v('plan');
+  if (plan.includes(':')) {
+    const [detId, type] = plan.split(':');
+    const s = getSettings();
+    const det = s.planDetails && s.planDetails.find(d => d.id === detId);
+    const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
+    if (tmpl) {
+      const getV = idx => { const it = tmpl.items[idx]; if (!it) return ''; const r = document.querySelector('input[name="plan-item-'+it.id+'"]:checked'); return r ? r.value : (document.getElementById('plan-item-'+it.id)?.value||''); };
+      const fMap = [['monthly_fee',0],['commission',1],['guarantee',2],['monthly_est',3],['half_est',5]];
+      fMap.forEach(([fid,idx]) => { const el = document.getElementById(fid); if (el) el.value = getV(idx); });
+    }
+  }
+  render();
+}
+function initPlanCustomFields(planItems) {
+  const plan = v('plan');
+  if (!plan || !plan.includes(':')) return;
+  const [detId, type] = plan.split(':');
+  const s = getSettings();
+  const det = s.planDetails && s.planDetails.find(d => d.id === detId);
+  const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
+  if (!tmpl || !det) return;
+  const _cf = document.getElementById('plan-custom-fields');
+  const _pf = document.getElementById('plan-detail-fields');
+  if (_cf) { _cf.innerHTML = buildPlanCustomFields(det, tmpl, type); _cf.style.display = ''; }
+  if (_pf) _pf.style.display = 'none';
+  if (planItems && typeof planItems === 'object') {
+    Object.keys(planItems).forEach(itemId => {
+      const val = planItems[itemId];
+      const radio = document.querySelector('input[name="plan-item-' + itemId + '"][value="' + val.replace(/"/g,'\\"') + '"]');
+      if (radio) { radio.checked = true; return; }
+      const txt = document.getElementById('plan-item-' + itemId);
+      if (txt) txt.value = val;
+    });
+  }
+}
+
 function updatePlanDefaults() {
   const plan = document.getElementById('plan').value;
   const _pf = document.getElementById('plan-detail-fields');
+  const _cf = document.getElementById('plan-custom-fields');
+  if (_cf) _cf.style.display = 'none';
   if (_pf) _pf.style.display = plan ? '' : 'none';
   const s = getSettings();
   const TYPE_STATIC = {ライト:'light',ベーシック:'basic',プロ:'pro'};
@@ -2077,17 +2161,20 @@ function updatePlanDefaults() {
     const det = s.planDetails && s.planDetails.find(d => d.id === detId);
     const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
     if (tmpl && det) {
+      // Generate dynamic form fields
+      if (_cf) { _cf.innerHTML = buildPlanCustomFields(det, tmpl, type); _cf.style.display = ''; }
+      if (_pf) _pf.style.display = 'none';
+      // Populate fixed fields for preview compatibility
       const tv = (det.values||{})[type] || {};
-      const vals = tmpl.items.map(item => tv[item.id]||'');
-      if (vals.some(v => v)) {
-        document.getElementById('monthly_fee').value  = vals[0]||'';
-        document.getElementById('commission').value   = vals[1]||'';
-        document.getElementById('guarantee').value    = vals[2]||'';
-        document.getElementById('monthly_est').value  = vals[3]||'';
-        document.getElementById('half_est').value     = vals[5]!==undefined?vals[5]:'';
-        return;
-      }
+      const getV = idx => { const it = tmpl.items[idx]; if (!it) return ''; const val = tv[it.id]; return Array.isArray(val)?(val[0]||''):(val||''); };
+      document.getElementById('monthly_fee').value  = getV(0);
+      document.getElementById('commission').value   = getV(1);
+      document.getElementById('guarantee').value    = getV(2);
+      document.getElementById('monthly_est').value  = getV(3);
+      document.getElementById('half_est').value     = getV(5);
+      return;
     }
+    if (_pf) _pf.style.display = '';
     applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
     return;
   }
@@ -2415,6 +2502,7 @@ function collectFormData() {
   data.guidance_status = statusEl ? statusEl.value : '未実施';
   fields.forEach(f => { const el = document.getElementById(f); if(el) data[f] = el.value; });
   data.areas = [...areas];
+  data.planItems = getPlanItemValues();
   return data;
 }
 
@@ -2536,6 +2624,7 @@ function saveCase() {
   if (pnEl && d.payment_note) pnEl.value = d.payment_note;
   const _pf = document.getElementById('plan-detail-fields');
   if (_pf) _pf.style.display = document.getElementById('plan')?.value ? '' : 'none';
+  initPlanCustomFields(d.planItems);
   render();
   populateCsAssigneeUI(d.cs_assignee || '');
   scalePreview();
@@ -2650,6 +2739,7 @@ function saveCase() {
         if (pnEl && d.payment_note) pnEl.value = d.payment_note;
         var _pf = document.getElementById('plan-detail-fields');
         if (_pf) _pf.style.display = document.getElementById('plan')?.value ? '' : 'none';
+        if (typeof initPlanCustomFields === 'function') initPlanCustomFields(d.planItems);
         if (typeof render === 'function') render();
         if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI(d.cs_assignee || ''); else if (typeof renderP4 === 'function') renderP4();
         console.log('[FS] 編集データ読み込み完了:', editId);
