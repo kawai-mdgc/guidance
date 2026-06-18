@@ -1220,6 +1220,9 @@ function saveStaffSection() {
     clearDirty('staff');
     saveSectionData('staffList', { staffList: [...staffList] });
     snapshotSection('staff');
+    firebase.firestore().collection('settings').doc('osouji').set(
+      { staffList: [...staffList] }, { merge: true }
+    ).catch(function(e) { console.warn('Firestore staff save:', e); });
   } catch(e) { console.error('saveStaffSection エラー:', e); }
 }
 
@@ -1725,6 +1728,27 @@ function escHtml(s) {
   };
 
   load();
+})();
+
+/* ── 担当者リスト先頭追加マイグレーション ── */
+(function() {
+  var REQUIRED_FIRST = '小野悠祐';
+  var BIZ = 'osouji';
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) return;
+    if (staffList.length && staffList[0] === REQUIRED_FIRST) return;
+    staffList = [REQUIRED_FIRST].concat(staffList.filter(function(n){ return n !== REQUIRED_FIRST; }));
+    try {
+      var ls = JSON.parse(localStorage.getItem('osouji_settings') || '{}');
+      ls.staffList = staffList;
+      localStorage.setItem('osouji_settings', JSON.stringify(ls));
+    } catch(e) {}
+    renderStaffList();
+    firebase.firestore().collection('settings').doc(BIZ).set(
+      { staffList: staffList }, { merge: true }
+    ).then(function(){ console.log('[Migration] staffList 先頭に追加:', REQUIRED_FIRST); })
+     .catch(function(e){ console.warn('[Migration] staffList Firestore エラー:', e); });
+  });
 })();
 
 </script>
