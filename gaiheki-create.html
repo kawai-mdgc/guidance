@@ -480,9 +480,9 @@ a.lb-url:hover { text-decoration: underline; }
       <tr><td class="k">契約プラン</td><td class="v" colspan="3" id="p-plan">—</td></tr>
       <tr id="p1-fee-row">
         <td id="p-lbl-fee" class="k" style="vertical-align:middle;white-space:nowrap">月額費用（税抜）</td>
-        <td class="v" style="vertical-align:middle"><span id="p-fee">—</span></td>
+        <td class="v" style="vertical-align:middle"><span id="p-fee">—</span><div id="p-note-fee" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
         <td id="p-lbl-commission" class="k" style="vertical-align:middle;white-space:nowrap">成約手数料</td>
-        <td class="v" style="vertical-align:middle"><span id="p-commission">—</span></td>
+        <td class="v" style="vertical-align:middle"><span id="p-commission">—</span><div id="p-note-commission" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
       </tr>
       <tr id="p1-period-row">
         <td id="p-lbl-period" class="k" style="vertical-align:middle">契約期間</td>
@@ -490,13 +490,13 @@ a.lb-url:hover { text-decoration: underline; }
       </tr>
       <tr id="p1-monthly-row">
         <td id="p-lbl-monthly" class="k" style="white-space:nowrap">紹介件数想定（月間）</td>
-        <td class="v" id="p-monthly">—</td>
+        <td class="v"><span id="p-monthly">—</span><div id="p-note-monthly" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
         <td id="p-lbl-half" class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td>
-        <td class="v" id="p-half">—</td>
+        <td class="v"><span id="p-half">—</span><div id="p-note-half" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
       </tr>
       <tr id="p1-guarantee-row">
         <td id="p-lbl-guarantee" class="k">最低保証</td>
-        <td class="v" colspan="3"><span id="p-guarantee">—</span><span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td>
+        <td class="v" colspan="3"><span id="p-guarantee">—</span><div id="p-note-guarantee" style="font-size:10px;color:#666;margin-top:2px;display:none"></div><span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td>
       </tr>
       <tbody id="p1-custom-rows"></tbody>
 
@@ -965,6 +965,34 @@ a.lb-url:hover { text-decoration: underline; }
         </div>
       </div>
       <div id="plan-custom-fields" style="display:none"></div>
+      <div id="plan-notes-toggle" style="display:none;margin-top:10px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--label)">
+          <input type="checkbox" id="show_notes" onchange="togglePlanNotes();render()">
+          注釈を追加する
+        </label>
+        <div id="plan-notes-area" style="display:none;margin-top:8px;border-left:3px solid var(--border);padding-left:10px">
+          <div class="field">
+            <label style="font-size:11px;color:#888">月額費用 の注釈</label>
+            <input type="text" id="note_fee" placeholder="例）※返金がある場合は6ヶ月後となります" oninput="render()">
+          </div>
+          <div class="field">
+            <label style="font-size:11px;color:#888">成約手数料 の注釈</label>
+            <input type="text" id="note_commission" placeholder="例）..." oninput="render()">
+          </div>
+          <div class="field">
+            <label style="font-size:11px;color:#888">最低保証 の注釈</label>
+            <input type="text" id="note_guarantee" placeholder="例）..." oninput="render()">
+          </div>
+          <div class="field">
+            <label style="font-size:11px;color:#888">月間紹介件数 の注釈</label>
+            <input type="text" id="note_monthly" placeholder="例）..." oninput="render()">
+          </div>
+          <div class="field">
+            <label style="font-size:11px;color:#888">6ヶ月紹介件数 の注釈</label>
+            <input type="text" id="note_half" placeholder="例）..." oninput="render()">
+          </div>
+        </div>
+      </div>
       <div class="f-sec">対応エリア</div>
       <div class="area-select-row">
         <select id="area-region" onchange="areaOnRegion()">
@@ -2353,6 +2381,8 @@ function updatePlanDefaults() {
   const _cf = document.getElementById('plan-custom-fields');
   if (_cf) _cf.style.display = 'none';
   if (_pf) _pf.style.display = plan ? '' : 'none';
+  const _nt = document.getElementById('plan-notes-toggle');
+  if (_nt) _nt.style.display = plan ? '' : 'none';
   const s = getSettings();
   const TYPE_STATIC = {ライト:'light',ベーシック:'basic',プロ:'pro'};
   const applyStatic = (key) => {
@@ -2621,6 +2651,13 @@ function render() {
   setVal('p-plan',       _pname);
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
+  ['fee','commission','guarantee','monthly','half'].forEach(k => {
+    const el = document.getElementById('p-note-' + k);
+    if (!el) return;
+    const val = v('note_' + k);
+    el.textContent = val || '';
+    el.style.display = val ? '' : 'none';
+  });
   if (!v('plan').startsWith('vp_')) {
     {
       let periodVal = (s.plans?.[v('plan')] || s.plans?.basic || {}).contractPeriod || '';
@@ -2726,13 +2763,22 @@ function setLink(id, url) {
 function getCases() {
   try { return JSON.parse(localStorage.getItem('gaiheki_cases') || '[]'); } catch(e) { return []; }
 }
+function togglePlanNotes() {
+  const checked = document.getElementById('show_notes')?.checked;
+  const area = document.getElementById('plan-notes-area');
+  if (area) area.style.display = checked ? '' : 'none';
+}
+
 function collectFormData() {
   const statusEl = document.querySelector('input[name="guidance_status"]:checked');
   const fields = ['assignee','cs_assignee','company','contact_name','issue_date','plan','monthly_fee','commission','guarantee',
-    'monthly_est','half_est','payment_status','payment_note','login_id'];
+    'monthly_est','half_est','payment_status','payment_note','login_id',
+    'note_fee','note_commission','note_guarantee','note_monthly','note_half'];
   const data = {};
   data.guidance_status = statusEl ? statusEl.value : '未実施';
   fields.forEach(f => { const el = document.getElementById(f); if(el) data[f] = el.value; });
+  const snEl = document.getElementById('show_notes');
+  if (snEl) data.show_notes = snEl.checked;
   data.areas = [...areas];
   data.planItems = getPlanItemValues();
   return data;
@@ -2827,7 +2873,8 @@ function saveCase() {
   }
   const d = c.formData;
   ['assignee','cs_assignee','company','contact_name','issue_date','plan','monthly_fee','commission','guarantee',
-   'monthly_est','half_est','payment_status','payment_note','login_id'].forEach(f => {
+   'monthly_est','half_est','payment_status','payment_note','login_id',
+   'note_fee','note_commission','note_guarantee','note_monthly','note_half'].forEach(f => {
     const el = document.getElementById(f);
     if (el && d[f] !== undefined) {
       el.value = d[f];
@@ -2837,6 +2884,10 @@ function saveCase() {
       }
     }
   });
+  if (d.show_notes) {
+    const cb = document.getElementById('show_notes');
+    if (cb) { cb.checked = true; togglePlanNotes(); }
+  }
   if (d.guidance_status) {
     const r = document.querySelector(`input[name="guidance_status"][value="${d.guidance_status}"]`);
     if (r) r.checked = true;
@@ -2942,7 +2993,8 @@ function saveCase() {
         if (!d) return;
         ['assignee','cs_assignee','company','contact_name','issue_date','plan',
          'monthly_fee','commission','guarantee','monthly_est','half_est',
-         'payment_status','payment_note','login_id'].forEach(function (f) {
+         'payment_status','payment_note','login_id',
+         'note_fee','note_commission','note_guarantee','note_monthly','note_half'].forEach(function (f) {
           var el = document.getElementById(f);
           if (el && d[f] !== undefined) {
             el.value = d[f];
@@ -2952,6 +3004,10 @@ function saveCase() {
             }
           }
         });
+        if (d.show_notes) {
+          var cb2 = document.getElementById('show_notes');
+          if (cb2) { cb2.checked = true; togglePlanNotes(); }
+        }
         if (d.guidance_status) {
           var r = document.querySelector('input[name="guidance_status"][value="' + d.guidance_status + '"]');
           if (r) r.checked = true;
