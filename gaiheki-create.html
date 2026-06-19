@@ -558,15 +558,19 @@ a.lb-url:hover { text-decoration: underline; }
   <style>
     #p-manual .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
     #p-manual .mgrid>div{padding:6px;}
-    .manual-page-header{display:none;}
+    .manual-page-header,.section-2-header,.section-3-header{display:none;}
     @media print{
       #p-manual .mgrid{grid-template-columns:repeat(3,1fr)!important;gap:8px!important;}
       #p-manual .mgrid>div{padding:4px!important;page-break-inside:avoid;break-inside:avoid;}
       #p-manual .mgrid>div img{max-width:150px!important;height:auto!important;object-fit:contain!important;background:#f5f5f5!important;display:block!important;margin:4px auto!important;}
       #p-manual .msec{page-break-inside:avoid;break-inside:avoid;}
       #p-manual{font-size:10px!important;}
-      .manual-page-header{display:block!important;}
-      .section-break{break-before:page;}
+      .section-2-header,.section-3-header{
+        display:block!important;
+        page-break-before:always;
+        margin:0!important;
+        padding:0!important;
+      }
     }
   </style>
   <div class="page-content">
@@ -627,8 +631,8 @@ a.lb-url:hover { text-decoration: underline; }
       </div>
 
       <!-- Section 2: 案件メモ・進捗 -->
-      <div class="manual-page-header">
-        <div class="page-hbar">
+      <div class="section-2-header">
+        <div class="page-hbar" style="margin-bottom:0;padding-bottom:0">
           <div class="phb-l"><span class="phb-brand">gaiheki+</span></div>
           <div style="text-align:right;line-height:1.6">
             <div style="font-size:12px;font-weight:700">宛先：<strong id="p-company-m2">（会社名・担当者名）</strong> 様</div>
@@ -636,7 +640,7 @@ a.lb-url:hover { text-decoration: underline; }
           </div>
         </div>
       </div>
-      <div class="msec section-break" style="margin-bottom:20px;break-inside:avoid">
+      <div class="msec" style="margin-top:0;padding-top:0;margin-bottom:20px;break-inside:avoid">
         <div style="display:inline-block;background:#e8e6f3;color:#3d3580;padding:6px 16px;border-radius:6px;font-weight:700;margin-bottom:10px">② 案件メモ・進捗・メモ</div>
         <div style="background:#f9f9f9;border-radius:8px;padding:16px">
           <div class="mgrid">
@@ -669,8 +673,8 @@ a.lb-url:hover { text-decoration: underline; }
       </div>
 
       <!-- Section 3: 成約報告 -->
-      <div class="manual-page-header">
-        <div class="page-hbar">
+      <div class="section-3-header">
+        <div class="page-hbar" style="margin-bottom:0;padding-bottom:0">
           <div class="phb-l"><span class="phb-brand">gaiheki+</span></div>
           <div style="text-align:right;line-height:1.6">
             <div style="font-size:12px;font-weight:700">宛先：<strong id="p-company-m3">（会社名・担当者名）</strong> 様</div>
@@ -678,7 +682,7 @@ a.lb-url:hover { text-decoration: underline; }
           </div>
         </div>
       </div>
-      <div class="msec section-break" style="break-inside:avoid">
+      <div class="msec" style="margin-top:0;padding-top:0;break-inside:avoid">
         <div style="display:inline-block;background:#e8e6f3;color:#3d3580;padding:6px 16px;border-radius:6px;font-weight:700;margin-bottom:8px">③ 成約報告</div>
         <p style="font-size:11px;color:#e53935;margin:0 0 10px">※ご成約後、お客様より着金がありましたら報告をお願いします。案件メモの下にあります。</p>
         <div style="background:#f9f9f9;border-radius:8px;padding:16px">
