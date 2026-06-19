@@ -3,856 +3,504 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>gaiheki+ ガイダンスエディタ</title>
+<title>gaiheki+ エディタ</title>
 <style>
-:root {
-  --main:   #3F3277;
-  --bg:     #F3F3F3;
-  --text:   #1a1a1a;
-  --white:  #ffffff;
-  --border: #d0d0d0;
-  --label:  #555555;
-  --muted:  #999999;
-}
-*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;
-  background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6;
-  display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-}
+:root{--main:#3F3277;--accent:#E55A00;--bg:#F3F3F3;--text:#1a1a1a;--white:#ffffff;--border:#d0d0d0;--label:#555555;--muted:#999999;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
 
 /* ── Header ── */
-.header {
-  height: 56px; background: var(--white); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 16px; gap: 8px; flex-shrink: 0;
-  overflow-x: auto;
-}
-.h-logo {
-  font-size: 17px; font-weight: 800; color: var(--main); text-decoration: none;
-  white-space: nowrap; flex-shrink: 0; letter-spacing: -.5px;
-}
-.h-divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
-.h-tabs { display: flex; gap: 4px; flex-shrink: 0; }
-.h-tab {
-  padding: 5px 12px; border-radius: 4px; border: 1px solid var(--border);
-  background: none; font-size: 12px; color: var(--label); cursor: pointer;
-  transition: all .12s; white-space: nowrap; font-family: inherit;
-}
-.h-tab.active { background: var(--main); color: var(--white); border-color: var(--main); font-weight: 600; }
-.h-tab:hover:not(.active):not(.disabled) { border-color: var(--main); color: var(--main); }
-.h-tab.disabled { opacity: 0.45; cursor: default; }
-.btn-add-page {
-  padding: 5px 10px; border: 1px dashed var(--border); border-radius: 4px;
-  background: none; font-size: 12px; color: var(--label); cursor: pointer;
-  white-space: nowrap; font-family: inherit; transition: all .12s; flex-shrink: 0;
-}
-.btn-add-page:hover { border-color: var(--main); color: var(--main); }
-.h-spacer { flex: 1; min-width: 8px; }
-.btn-save {
-  padding: 7px 20px; background: var(--main); color: var(--white); border: none;
-  border-radius: 4px; font-size: 13px; font-weight: 700; cursor: pointer;
-  white-space: nowrap; font-family: inherit; flex-shrink: 0;
-}
-.btn-save:hover { opacity: .85; }
+.header{height:52px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:6px;flex-shrink:0;overflow-x:auto;}
+.h-logo{font-size:16px;font-weight:800;color:var(--main);text-decoration:none;white-space:nowrap;flex-shrink:0;letter-spacing:-.5px;}
+.h-div{width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px;}
+.h-tabs{display:flex;gap:3px;flex-shrink:0;}
+.h-tab{padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:none;font-size:11px;color:var(--label);cursor:pointer;transition:all .12s;white-space:nowrap;font-family:inherit;}
+.h-tab.active{background:var(--main);color:var(--white);border-color:var(--main);font-weight:700;}
+.h-tab:hover:not(.active):not(.disabled){border-color:var(--main);color:var(--main);}
+.h-tab.disabled{opacity:.4;cursor:default;pointer-events:none;}
+.h-tab.custom-tab{display:flex;align-items:center;gap:4px;}
+.tab-x{opacity:.5;cursor:pointer;font-size:12px;line-height:1;}
+.tab-x:hover{opacity:1;}
+.btn-addp{padding:4px 8px;border:1px dashed #bbb;border-radius:4px;background:none;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0;}
+.btn-addp:hover{border-color:var(--main);color:var(--main);}
+.h-space{flex:1;}
+.btn-save{padding:6px 18px;background:var(--main);color:var(--white);border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0;}
+.btn-save:hover{opacity:.85;}
 
-/* ── Main layout ── */
-.main { flex: 1; display: flex; overflow: hidden; }
+/* ── Main ── */
+.main{flex:1;display:flex;overflow:hidden;}
 
-/* ── Preview pane ── */
-.preview-pane {
-  width: 60%; overflow: auto; background: #d0d0d0;
-  padding: 20px; display: flex; align-items: flex-start; justify-content: center;
-  flex-shrink: 0;
-}
-.a4-wrap { width: 794px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,.2); }
-.page-hbar {
-  background: #3F3277; color: #fff; padding: 13px 32px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.page-hbar-brand { font-size: 17px; font-weight: 800; letter-spacing: -.5px; }
-.page-content { padding: 10px 32px 24px; }
-#preview-content { font-size: 11.5px; color: #555; line-height: 1.9; }
-.preview-unavail {
-  display: flex; align-items: center; justify-content: center;
-  height: 200px; color: var(--muted); font-size: 13px;
-}
+/* ── Preview ── */
+.preview-pane{width:60%;overflow:auto;background:#c8c8c8;padding:16px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.a4-outer{width:794px;background:var(--white);box-shadow:0 2px 10px rgba(0,0,0,.2);min-height:300px;}
+/* gaiheki-create.html と同じスタイル */
+.page-hbar{background:var(--main);color:#fff;padding:12px 32px;display:flex;justify-content:space-between;align-items:center;}
+.phb-brand{font-size:17px;font-weight:800;letter-spacing:-.5px;}
+.pc-wrap{padding:10px 32px 24px;}
+.doc-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11.5px;margin-bottom:12px;}
+.doc-table td{border:1px solid #d0d0d0;vertical-align:top;padding:8px 12px;}
+.doc-table .sh td{background:#eeecf8;color:var(--main);font-size:11.5px;font-weight:700;padding:8px 12px;border-top:1px solid #d0d0d0;border-left:1px solid #d0d0d0;letter-spacing:.02em;}
+.doc-table .k{background:#F3F3F3!important;color:var(--main)!important;font-size:11.5px!important;font-weight:600!important;width:220px!important;min-width:220px!important;max-width:220px!important;vertical-align:middle!important;white-space:nowrap!important;padding:8px 20px!important;}
+.doc-table .v{background:var(--white);color:var(--text);font-size:11.5px;vertical-align:middle;}
+.doc-table .note{font-size:11px;color:var(--label);line-height:1.8;}
+.sub-note{font-size:10px;color:var(--muted);margin-left:8px;}
+.url-val{color:var(--main);text-decoration:underline;word-break:break-all;}
+.pv-inner{max-width:760px;margin:0;font-size:11.5px;color:var(--label);line-height:1.9;padding:0 8px;}
+.pv-unavail{padding:48px;text-align:center;color:var(--muted);font-size:13px;}
 
-/* ── Editor pane ── */
-.editor-pane {
-  width: 40%; overflow-y: auto; padding: 16px 20px;
-  background: var(--bg); border-left: 1px solid var(--border);
-}
-.editor-unavail {
-  margin: 40px auto; text-align: center; color: var(--muted);
-  font-size: 13px; background: #ebebeb; padding: 24px 32px; border-radius: 8px;
-}
+/* ── Editor ── */
+.editor-pane{width:40%;overflow-y:auto;padding:12px 14px;background:#efefef;border-left:1px solid var(--border);}
+.non-edit-msg{background:var(--white);border-radius:8px;padding:40px;text-align:center;color:var(--muted);font-size:13px;margin-top:16px;border:2px dashed var(--border);}
 
-/* ── Block cards ── */
-.block-card {
-  background: var(--white); border: 1px solid var(--border);
-  border-radius: 6px; margin-bottom: 8px; overflow: hidden;
-}
-.block-card.dragging { opacity: .4; box-shadow: 0 6px 16px rgba(0,0,0,.15); }
-.block-card.drag-over { border-color: var(--main); box-shadow: 0 0 0 2px rgba(63,50,119,.2); background: #faf9ff; }
-.bc-head {
-  display: flex; align-items: center; gap: 8px; padding: 9px 12px;
-  min-height: 40px;
-}
-.bc-drag {
-  font-size: 16px; color: #ccc; cursor: grab; flex-shrink: 0;
-  padding: 1px 4px; border-radius: 3px; transition: color .1s; line-height: 1;
-}
-.bc-drag:hover { color: var(--main); background: #ede9f6; }
-.bc-badge {
-  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px;
-  white-space: nowrap; flex-shrink: 0;
-}
-.bc-preview {
-  flex: 1; font-size: 11px; color: var(--muted);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
-}
-.bc-btn {
-  padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px;
-  background: none; font-size: 11px; color: var(--label); cursor: pointer;
-  font-family: inherit; flex-shrink: 0; transition: all .1s;
-}
-.bc-btn:hover { border-color: var(--main); color: var(--main); }
-.bc-del { background: #ffeaea !important; color: #e53935 !important; border-color: #ffd0d0 !important; }
-.bc-del:hover { background: #ffcdd2 !important; border-color: #e53935 !important; }
+/* block cards */
+.block-card{background:var(--white);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;user-select:none;}
+.block-card.dragging{opacity:.35;}
+.block-card.drag-over{border-color:var(--main);box-shadow:0 0 0 2px rgba(63,50,119,.15);background:#faf9ff;}
+.bc-head{display:flex;align-items:center;gap:5px;padding:7px 10px;cursor:default;min-height:36px;}
+.bc-drag{font-size:15px;color:#ccc;cursor:grab;flex-shrink:0;line-height:1;}
+.bc-drag:hover{color:var(--main);}
+.bc-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
+.bc-prev{flex:1;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.bc-btn{padding:2px 6px;border-radius:3px;border:1px solid #e0e0e0;background:var(--white);font-size:10px;cursor:pointer;flex-shrink:0;font-family:inherit;color:var(--label);}
+.bc-btn:hover{border-color:var(--main);color:var(--main);}
+.bc-btn.del{border-color:#fca5a5;color:#ef4444;}
+.bc-btn.del:hover{background:#fef2f2;}
+.btn-add-block{width:100%;padding:10px;background:var(--white);border:2px dashed #ccc;border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;transition:all .12s;}
+.btn-add-block:hover{border-color:var(--main);color:var(--main);background:#faf9ff;}
 
-.btn-add-block {
-  width: 100%; padding: 11px; background: none; border: 1px dashed var(--border);
-  border-radius: 6px; color: var(--label); font-size: 13px; cursor: pointer;
-  font-family: inherit; transition: all .12s; margin-top: 4px;
-}
-.btn-add-block:hover { border-color: var(--main); color: var(--main); background: #f7f6fb; }
+/* Modals */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--white);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.22);z-index:201;display:none;width:540px;max-width:96vw;max-height:86vh;overflow-y:auto;}
+.m-head{padding:15px 20px 11px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;}
+.m-body{padding:14px 20px;}
+.m-foot{padding:11px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.m-lbl{font-size:11px;color:var(--muted);display:block;margin-bottom:3px;margin-top:10px;}
+.m-lbl:first-child{margin-top:0;}
+.m-inp{width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit;}
+.m-inp:focus{outline:none;border-color:var(--main);}
+.m-ta{width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit;resize:vertical;min-height:72px;line-height:1.5;}
+.m-ta:focus{outline:none;border-color:var(--main);}
+.m-sel{padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit;background:var(--white);}
+.btn-cancel{padding:6px 14px;background:var(--white);border:1px solid var(--border);border-radius:4px;font-size:12px;cursor:pointer;font-family:inherit;}
+.btn-ok{padding:6px 16px;background:var(--main);color:var(--white);border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.type-btn{padding:10px 6px;border:1px solid var(--border);border-radius:6px;background:var(--white);cursor:pointer;text-align:center;font-family:inherit;transition:all .12s;}
+.type-btn:hover{border-color:var(--main);background:#faf9ff;}
+.type-btn .tbl{font-size:11px;font-weight:700;display:block;margin-bottom:2px;}
+.type-btn .tbd{font-size:10px;color:var(--muted);}
 
-/* ── Toast ── */
-#toast {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
-  background: #1a1a1a; color: var(--white); padding: 11px 28px; border-radius: 6px;
-  font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .25s, transform .25s;
-  pointer-events: none; z-index: 9999;
-}
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── Modals ── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.45);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000; padding: 20px;
-}
-.modal-overlay.hidden { display: none; }
-.modal-box {
-  background: var(--white); border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.22); width: 100%; max-width: 560px;
-  max-height: 90vh; overflow-y: auto;
-}
-.modal-box.wide { max-width: 620px; }
-.modal-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; border-bottom: 1px solid var(--border);
-}
-.modal-head h2 { font-size: 15px; font-weight: 700; }
-.modal-close {
-  border: none; background: none; font-size: 20px; color: var(--muted);
-  cursor: pointer; line-height: 1; padding: 0 4px;
-}
-.modal-close:hover { color: var(--text); }
-.modal-body { padding: 20px; }
-.modal-foot {
-  display: flex; gap: 10px; justify-content: flex-end;
-  padding: 14px 20px; border-top: 1px solid var(--border);
-}
-.btn-cancel {
-  padding: 8px 18px; border: 1px solid var(--border); border-radius: 4px;
-  background: none; color: var(--label); font-size: 13px; cursor: pointer; font-family: inherit;
-}
-.btn-cancel:hover { border-color: var(--main); color: var(--main); }
-.btn-primary {
-  padding: 8px 20px; background: var(--main); color: var(--white);
-  border: none; border-radius: 4px; font-size: 13px; font-weight: 700;
-  cursor: pointer; font-family: inherit;
-}
-.btn-primary:hover { opacity: .85; }
-
-/* Type grid in add modal */
-.type-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-.type-btn {
-  border: 1px solid var(--border); border-radius: 6px; padding: 12px 10px;
-  background: none; cursor: pointer; text-align: left; font-family: inherit;
-  transition: all .12s;
-}
-.type-btn:hover { border-color: var(--main); background: #f7f6fb; }
-.type-btn .tb-label { font-size: 12px; font-weight: 700; color: var(--text); display: block; margin-bottom: 4px; }
-.type-btn .tb-desc { font-size: 10px; color: var(--muted); display: block; line-height: 1.4; }
-
-/* Edit form fields */
-.field-group { margin-bottom: 14px; }
-.field-label { font-size: 11px; font-weight: 600; color: var(--label); display: block; margin-bottom: 5px; }
-.field-input {
-  width: 100%; padding: 7px 10px; border: 1px solid var(--border);
-  border-radius: 4px; font-size: 13px; font-family: inherit; background: var(--white);
-}
-.field-input:focus { outline: none; border-color: var(--main); }
-.field-textarea {
-  width: 100%; padding: 7px 10px; border: 1px solid var(--border);
-  border-radius: 4px; font-size: 13px; font-family: inherit; background: var(--white);
-  resize: vertical; min-height: 72px; line-height: 1.5;
-}
-.field-textarea:focus { outline: none; border-color: var(--main); }
-.field-select {
-  width: 100%; padding: 7px 10px; border: 1px solid var(--border);
-  border-radius: 4px; font-size: 13px; font-family: inherit; background: var(--white);
-  cursor: pointer;
-}
-.field-select:focus { outline: none; border-color: var(--main); }
-
-/* doc-table used in create.html compat */
-.doc-table { width: 100%; border-collapse: collapse; }
-.doc-table td { border: 1px solid var(--border); vertical-align: top; padding: 7px 12px; }
+/* Toast */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:7px 18px;border-radius:6px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:300;}
+.toast.show{opacity:1;}
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="header">
-  <a class="h-logo" href="gaiheki-setting.html">gaiheki+</a>
-  <div class="h-divider"></div>
-  <div class="h-tabs" id="tab-bar">
-    <!-- rendered by JS -->
-  </div>
-  <button class="btn-add-page" onclick="openAddPageModal()">＋ ページ追加</button>
-  <div class="h-spacer"></div>
-  <button class="btn-save" onclick="saveData()">保存</button>
-</div>
+<header class="header">
+  <a class="h-logo" href="gaiheki.html">gaiheki+</a>
+  <div class="h-div"></div>
+  <div class="h-tabs" id="h-tabs"></div>
+  <button class="btn-addp" onclick="openAddPageModal()">＋ ページ追加</button>
+  <div class="h-space"></div>
+  <button class="btn-save" onclick="saveAll()">保存</button>
+</header>
 
-<!-- Main -->
 <div class="main">
-  <!-- Preview -->
   <div class="preview-pane">
-    <div class="a4-wrap">
+    <div class="a4-outer">
       <div class="page-hbar">
-        <span class="page-hbar-brand">gaiheki+</span>
-        <span style="font-size:11px;opacity:.75">プレビュー</span>
+        <span class="phb-brand">gaiheki+</span>
+        <span style="font-size:11px;opacity:.7">プレビュー</span>
       </div>
-      <div class="page-content">
+      <div class="pc-wrap" id="preview-wrap">
         <div id="preview-content"></div>
       </div>
     </div>
   </div>
-
-  <!-- Editor -->
   <div class="editor-pane" id="editor-pane">
-    <div id="editor-body"></div>
+    <div id="non-edit-msg" class="non-edit-msg" style="display:none">このページは編集できません</div>
+    <div id="block-list"></div>
+    <button class="btn-add-block" id="btn-add-block" onclick="openAddModal()" style="display:none">＋ ブロックを追加</button>
   </div>
 </div>
 
-<!-- Toast -->
-<div id="toast"></div>
+<div class="ov" id="ov" onclick="closeModals()"></div>
 
-<!-- Modal: Add block type -->
-<div class="modal-overlay hidden" id="modal-add-type">
-  <div class="modal-box wide">
-    <div class="modal-head">
-      <h2>ブロックを追加</h2>
-      <button class="modal-close" onclick="closeModal('modal-add-type')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="type-grid" id="type-grid"></div>
-    </div>
+<div class="modal" id="add-modal">
+  <div class="m-head">ブロックタイプを選択</div>
+  <div class="m-body"><div class="type-grid" id="type-grid"></div></div>
+  <div class="m-foot"><button class="btn-cancel" onclick="closeModals()">キャンセル</button></div>
+</div>
+
+<div class="modal" id="edit-modal">
+  <div class="m-head" id="edit-modal-title">ブロックを編集</div>
+  <div class="m-body" id="edit-modal-body"></div>
+  <div class="m-foot">
+    <button class="btn-cancel" onclick="closeModals()">キャンセル</button>
+    <button class="btn-ok" onclick="confirmEdit()">保存</button>
   </div>
 </div>
 
-<!-- Modal: Edit block -->
-<div class="modal-overlay hidden" id="modal-edit-block">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h2>ブロックを編集</h2>
-      <button class="modal-close" onclick="closeModal('modal-edit-block')">✕</button>
-    </div>
-    <div class="modal-body" id="edit-form-body"></div>
-    <div class="modal-foot">
-      <button class="btn-cancel" onclick="closeModal('modal-edit-block')">キャンセル</button>
-      <button class="btn-primary" onclick="saveEditModal()">保存</button>
-    </div>
+<div class="modal" id="addp-modal">
+  <div class="m-head">ページを追加</div>
+  <div class="m-body">
+    <label class="m-lbl">ページ名</label>
+    <input class="m-inp" id="new-page-name" placeholder="例）追加資料">
+  </div>
+  <div class="m-foot">
+    <button class="btn-cancel" onclick="closeModals()">キャンセル</button>
+    <button class="btn-ok" onclick="addCustomPage()">追加</button>
   </div>
 </div>
 
-<!-- Modal: Add custom page -->
-<div class="modal-overlay hidden" id="modal-add-page">
-  <div class="modal-box" style="max-width:400px">
-    <div class="modal-head">
-      <h2>ページを追加</h2>
-      <button class="modal-close" onclick="closeModal('modal-add-page')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field-group">
-        <label class="field-label">ページ名</label>
-        <input class="field-input" id="new-page-name" type="text" placeholder="例：追加資料">
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn-cancel" onclick="closeModal('modal-add-page')">キャンセル</button>
-      <button class="btn-primary" onclick="confirmAddPage()">追加</button>
-    </div>
-  </div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ======================================================
-   DATA DEFINITIONS
-====================================================== */
-var FIXED_PAGES = [
-  { id: 'p1',       name: 'ご確認事項',                     editable: true },
-  { id: 'p-manual', name: '管理画面の使い方',                editable: false },
-  { id: 'p2',       name: '写真ご提供のお願い',              editable: true },
-  { id: 'p3',       name: '現調 / 成約に繋げるための施策',   editable: true },
-  { id: 'p4',       name: 'CS担当者',                       editable: false },
+/* ── Pages ── */
+const FIXED = [
+  {id:'p1',      name:'ご確認事項',                  editable:true },
+  {id:'p-manual',name:'管理画面の使い方',              editable:false},
+  {id:'p2',      name:'写真ご提供のお願い',             editable:true },
+  {id:'p3',      name:'現調 / 成約に繋げるための施策', editable:true },
+  {id:'p4',      name:'CS担当者',                    editable:false},
 ];
 
-var BLOCK_TYPES = [
-  { type: 'table-title',  label: 'テーブルタイトル',  badgeBg:'#3F3277', badgeColor:'#fff',
-    desc:'紫背景・白文字のセクション見出し',
-    fields:[{key:'text', label:'テキスト'}] },
-  { type: 'table-key',    label: 'テーブル内訳',      badgeBg:'#607D8B', badgeColor:'#fff',
-    desc:'グレー背景の行（ラベル＋値）',
-    fields:[{key:'label',label:'ラベル'},{key:'value',label:'値',multiline:true}] },
-  { type: 'table-detail', label: 'テーブル詳細',      badgeBg:'#90A4AE', badgeColor:'#fff',
-    desc:'白背景の行（ラベル＋値）',
-    fields:[{key:'label',label:'ラベル'},{key:'value',label:'値',multiline:true}] },
-  { type: 'table-2col',   label: 'テーブル2列',       badgeBg:'#546E7A', badgeColor:'#fff',
-    desc:'横並び2列（ラベル＋値 × 2）',
-    fields:[{key:'label1',label:'ラベル1'},{key:'value1',label:'値1'},{key:'label2',label:'ラベル2'},{key:'value2',label:'値2'}] },
-  { type: 'heading',      label: 'タイトル',          badgeBg:'#1a1a1a', badgeColor:'#fff',
-    desc:'ページ内の大見出し',
-    fields:[{key:'text',label:'テキスト'}] },
-  { type: 'body',         label: '本文',              badgeBg:'#757575', badgeColor:'#fff',
-    desc:'通常テキスト（改行・**太字**対応）',
-    fields:[{key:'text',label:'テキスト',multiline:true}] },
-  { type: 'bold',         label: '太字',              badgeBg:'#424242', badgeColor:'#fff',
-    desc:'太字テキスト',
-    fields:[{key:'text',label:'テキスト',multiline:true}] },
-  { type: 'highlight',    label: '背景ありテキスト',  badgeBg:'#e8e6f3', badgeColor:'#3d3580',
-    desc:'薄紫背景・紫文字のラベル',
-    fields:[{key:'text',label:'テキスト'}] },
-  { type: 'note',         label: '補足テキスト',      badgeBg:'#f5f5f5', badgeColor:'#888',
-    desc:'グレー小文字（※〜）',
-    fields:[{key:'text',label:'テキスト',multiline:true}] },
-  { type: 'spacer',       label: '余白',              badgeBg:'#e0e0e0', badgeColor:'#666',
-    desc:'上下の空白', isSpecial:true },
-  { type: 'url-block',    label: 'URLブロック',       badgeBg:'#1565C0', badgeColor:'#fff',
-    desc:'ラベル＋URL',
-    fields:[{key:'label',label:'ラベルテキスト'},{key:'url',label:'URL',placeholder:'https://...'}] },
+/* ── Block types ── */
+const BT = [
+  {type:'sh',      label:'セクション見出し',   bb:'#3F3277',bg:'#fff', desc:'紫ヘッダー行（テーブル）',
+   fields:[{k:'text',l:'テキスト'}]},
+  {type:'k-v',     label:'テーブル行（1列）',  bb:'#607D8B',bg:'#fff', desc:'ラベル＋値（2カラム）',
+   fields:[{k:'label',l:'ラベル'},{k:'value',l:'値',ml:true}]},
+  {type:'k-v-k-v', label:'テーブル行（2列）',  bb:'#546E7A',bg:'#fff', desc:'ラベル＋値 × 2',
+   fields:[{k:'label1',l:'ラベル1'},{k:'value1',l:'値1'},{k:'label2',l:'ラベル2'},{k:'value2',l:'値2'}]},
+  {type:'note-row',label:'全幅テキスト行',     bb:'#78909C',bg:'#fff', desc:'テーブル内の全幅テキスト',
+   fields:[{k:'text',l:'テキスト',ml:true}]},
+  {type:'heading', label:'タイトル',           bb:'#1a1a1a',bg:'#fff', desc:'ページ大見出し',
+   fields:[{k:'text',l:'テキスト'}]},
+  {type:'body',    label:'本文',               bb:'#757575',bg:'#fff', desc:'通常テキスト（**太字**・改行対応）',
+   fields:[{k:'text',l:'テキスト',ml:true}]},
+  {type:'bold',    label:'太字',               bb:'#424242',bg:'#fff', desc:'強調テキスト',
+   fields:[{k:'text',l:'テキスト',ml:true}]},
+  {type:'highlight',label:'背景ありラベル',   bb:'#e8e6f3',bg:'#3d3580',desc:'薄紫背景・紫文字',
+   fields:[{k:'text',l:'テキスト'}]},
+  {type:'note',    label:'補足テキスト',       bb:'#f0f0f0',bg:'#888', desc:'グレー小文字（※〜）',
+   fields:[{k:'text',l:'テキスト',ml:true}]},
+  {type:'url-block',label:'URLブロック',      bb:'#1565C0',bg:'#fff', desc:'ラベル＋URLリンク',
+   fields:[{k:'label',l:'ラベルテキスト'},{k:'url',l:'URL',ph:'https://...'}]},
+  {type:'spacer',  label:'余白',               bb:'#e0e0e0',bg:'#666', desc:'垂直スペース（小/中/大）',isSpecial:true},
 ];
 
-var STORAGE_KEY = 'gaiheki_editor_pages';
+/* ── Defaults ── */
+function mkb(type, extra){ return Object.assign({id:'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), type}, extra); }
 
-/* ======================================================
-   STATE
-====================================================== */
-var pageData     = {};  // { p1: { blocks:[] }, p2: { blocks:[] }, ... }
-var customPages  = [];  // [{ id:'custom_123', name:'ページ名' }, ...]
-var currentPageId = 'p1';
+const DEF = {
+  p1:[
+    mkb('sh',{text:'① 料金について'}),
+    mkb('k-v',{label:'契約プラン',value:'（フォームから設定）'}),
+    mkb('k-v-k-v',{label1:'月額費用（税抜）',value1:'（フォームから）',label2:'成約手数料',value2:'（フォームから）'}),
+    mkb('k-v',{label:'契約期間',value:'（フォームから設定）'}),
+    mkb('k-v-k-v',{label1:'紹介件数想定（月間）',value1:'（フォームから）',label2:'紹介件数想定（6ヶ月）',value2:'（フォームから）'}),
+    mkb('k-v',{label:'最低保証',value:'（フォームから設定）'}),
+    mkb('sh',{text:'② 対応エリア'}),
+    mkb('note-row',{text:'（フォームから設定）'}),
+    mkb('sh',{text:'③ お支払いについて'}),
+    mkb('k-v',{label:'決済手段',value:'（フォームから設定）'}),
+    mkb('k-v',{label:'備考',value:'（フォームから設定）'}),
+    mkb('sh',{text:'④ 休業日について'}),
+    mkb('note-row',{text:'弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。'}),
+    mkb('sh',{text:'⑤ 除外となり得るお客様情報について'}),
+    mkb('note-row',{text:'・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。'}),
+    mkb('sh',{text:'⑦ 顧客管理システムのログイン情報について'}),
+    mkb('k-v',{label:'ログインURL',value:'（URL設定から反映）'}),
+    mkb('k-v',{label:'ID',value:'（フォームから設定）'}),
+    mkb('sh',{text:'⑧ ご成約報告について'}),
+    mkb('note-row',{text:'①お客様情報→②案件メモ下→③新規登録から報告→④お客様からの入金確認後、成約手数料のお振込をお願い致します。'}),
+  ],
+  p2:[
+    mkb('heading',{text:'現場・会社の写真ご提供のお願い'}),
+    mkb('spacer',{size:'md'}),
+    mkb('highlight',{text:'実際に写真の掲載をお願いしている理由'}),
+    mkb('body',{text:'・実際に成約率やアポ率が高くなるというデータが出ている\n・施工の丁寧さや雰囲気が伝わりやすく満足度が上がる\n・結果として利益が伸びる'}),
+    mkb('spacer',{size:'sm'}),
+    mkb('body',{text:'スマホ撮影の写真でも問題ありませんので、\n下記フォームより2〜5枚ほどご提供をお願いいたします。'}),
+    mkb('url-block',{label:'▼写真アップロードフォーム',url:''}),
+    mkb('spacer',{size:'sm'}),
+    mkb('bold',{text:'【おすすめの写真例】'}),
+    mkb('body',{text:'・施工中の様子（職人さんの手元や後ろ姿など）\n・会社外観や社内の様子\n・スタッフ集合写真、看板、車両など'}),
+    mkb('note',{text:'※お送りいただいた素材は掲載前に確認のうえ、内容に問題のない範囲で使用いたします。'}),
+    mkb('spacer',{size:'sm'}),
+    mkb('body',{text:'お手数おかけしてしまいますが、\nご協力のほど、どうぞよろしくお願いいたします。'}),
+    mkb('url-block',{label:'▼加盟店様の紹介ページ',url:''}),
+    mkb('spacer',{size:'md'}),
+    mkb('bold',{text:'【管理画面へ追加で欲しい機能について】'}),
+    mkb('body',{text:'普段、使っている機能や管理システム等が弊社管理画面にもあれば便利なのに！！\nのようなことがあればお願い致します！'}),
+  ],
+  p3:[
+    mkb('heading',{text:'＜現調 / 成約に繋げるための施策＞'}),
+    mkb('highlight',{text:'【ローンについて】'}),
+    mkb('body',{text:'**エンドユーザー様向けローン**を導入することとなりました。\n外壁・屋根工事は高額になりやすく、\n「金額で迷われる」「今は難しいと言われる」\nといった理由で失注してしまうケースも少なくありません。'}),
+    mkb('body',{text:'ローンが利用可能になることで、\n・月々払いでのご提案が可能\n・予算で迷われているお客様の後押し\n・ワンランク上の工事提案がしやすくなる\n→ 結果として成約率向上が期待できます。'}),
+    mkb('bold',{text:'【加盟店様の費用負担・手数料負担はございません。】'}),
+    mkb('note',{text:'※お客様にも所定の審査がございます。'}),
+    mkb('body',{text:'導入をご希望の加盟店様は、\n下記資料をお目通しいただけますと幸いです。'}),
+    mkb('url-block',{label:'【媒体資料】',url:'https://drive.google.com/file/d/1eYcxVHQ9Bdwpe0sgHwFJ5QHvQeRa-9oX/view?usp=sharing'}),
+    mkb('url-block',{label:'【お申込書】',url:'https://drive.google.com/file/d/1YWvqYl0y2YJdtkg9s-9Umu8nKb_xF_c8/view?usp=sharing'}),
+    mkb('spacer',{size:'md'}),
+    mkb('highlight',{text:'【下記、弊社からお支払いをさせて頂きます！】'}),
+    mkb('bold',{text:'アマギフ1000円　現地調査完了＆お見積書提示'}),
+    mkb('url-block',{label:'申請フォーム（現調完了）',url:'https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog'}),
+    mkb('bold',{text:'作業金額の1%のアマギフ　作業完了後'}),
+    mkb('url-block',{label:'申請フォーム（作業完了）',url:'https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di'}),
+    mkb('spacer',{size:'sm'}),
+    mkb('bold',{text:'＜使い方＞'}),
+    mkb('body',{text:'現地調査完了でAmazonギフト1000円分、作業完了でさらに金額の1％分のAmazonギフトをプレゼントさせていただきます。\nこれを営業トークのフックとして使っていただくことが可能なので、まずは現地見積もりにつなげるために「Amazonギフト券」をフックにして、現地見積もりのアポイントを打診してみてください。\nなお、Amazonギフト自体は弊社から直接お客様にお送りする形となります。'}),
+  ],
+};
 
-var dragSrcIdx = -1;
+/* ── State ── */
+let cur = 'p1';
+let pages = {};      // id → {blocks:[]}
+let customs = [];    // [{id,name}]
+let editIdx = -1;
+let isNewBlock = false;
+let newType = null;
+let dragFrom = -1;
 
-/* edit modal state */
-var _editBlockIdx  = null;  // null = adding new block
-var _editBlockType = null;
-var _editTempBlock = null;  // working copy while modal open
+/* ── Utils ── */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function proc(s){return esc(s).replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');}
+function uid(){return 'b_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 
-/* ======================================================
-   STORAGE HELPERS
-====================================================== */
-function loadData() {
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    var parsed = JSON.parse(raw);
-    if (parsed && parsed.pages) {
-      pageData = parsed.pages;
-      // extract custom pages
-      customPages = [];
-      Object.keys(parsed.pages).forEach(function(id) {
-        var isFixed = FIXED_PAGES.some(function(fp){ return fp.id === id; });
-        if (!isFixed) {
-          var pg = parsed.pages[id];
-          customPages.push({ id: id, name: pg.name || id });
-        }
-      });
-    }
-  } catch(e) {
-    console.warn('[Editor] load error:', e);
-  }
-}
+/* ── Render block → HTML ── */
+const TABLE_T=['sh','k-v','k-v-k-v','note-row'];
 
-function saveData() {
-  // sync url-blocks
-  var allPageIds = getAllPageIds();
-  allPageIds.forEach(function(pid) {
-    var pg = pageData[pid];
-    if (!pg || !pg.blocks) return;
-    pg.blocks.forEach(function(b) {
-      if (b.type === 'url-block') syncUrlBlock(b);
-    });
-  });
-
-  var toSave = { pages: pageData };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  showToast('保存しました');
-}
-
-function syncUrlBlock(block) {
-  if (!block.url) return;
-  try {
-    var settings = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
-    if (!settings.customUrls) settings.customUrls = [];
-    var existing = settings.customUrls.find(function(u){ return u.id === block.id; });
-    if (existing) { existing.label = block.label; existing.url = block.url; }
-    else { settings.customUrls.push({ id: block.id, label: block.label, url: block.url }); }
-    localStorage.setItem('gaiheki_settings', JSON.stringify(settings));
-  } catch(e) {}
-}
-
-function getAllPageIds() {
-  var ids = FIXED_PAGES.map(function(p){ return p.id; });
-  customPages.forEach(function(cp){ ids.push(cp.id); });
-  return ids;
-}
-
-function ensurePage(pid, name) {
-  if (!pageData[pid]) {
-    pageData[pid] = { blocks: [] };
-    if (name) pageData[pid].name = name;
-  }
-}
-
-/* ======================================================
-   RENDERING HELPERS
-====================================================== */
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function proc(s) {
-  return String(s||'')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\n/g,'<br>')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
-}
-
-var TABLE_TYPES = ['table-title','table-key','table-detail','table-2col'];
-
-function blockToPreviewHTML(b) {
-  switch(b.type) {
-    case 'table-title':
-      return '<tr><td colspan="4" style="background:#3F3277;color:#fff;padding:7px 14px;font-weight:700;font-size:12px">'+esc(b.text)+'</td></tr>';
-    case 'table-key':
-      return '<tr><td style="background:#f7f6fb;color:#555;font-size:11px;padding:7px 12px;border:1px solid #e0e0e0;width:180px;vertical-align:middle">'+esc(b.label)+'</td><td colspan="3" style="padding:7px 12px;border:1px solid #e0e0e0;vertical-align:middle">'+proc(b.value)+'</td></tr>';
-    case 'table-detail':
-      return '<tr><td style="padding:7px 12px;border:1px solid #e0e0e0;font-size:11px;width:180px">'+esc(b.label)+'</td><td colspan="3" style="padding:7px 12px;border:1px solid #e0e0e0">'+proc(b.value)+'</td></tr>';
-    case 'table-2col':
-      return '<tr>'
-        +'<td style="background:#f7f6fb;color:#555;font-size:11px;padding:7px 12px;border:1px solid #e0e0e0;width:140px">'+esc(b.label1)+'</td>'
-        +'<td style="padding:7px 12px;border:1px solid #e0e0e0">'+proc(b.value1)+'</td>'
-        +'<td style="background:#f7f6fb;color:#555;font-size:11px;padding:7px 12px;border:1px solid #e0e0e0;width:140px">'+esc(b.label2)+'</td>'
-        +'<td style="padding:7px 12px;border:1px solid #e0e0e0">'+proc(b.value2)+'</td>'
-        +'</tr>';
-    case 'heading':
-      return '<div style="font-size:18px;font-weight:700;color:#1a1a1a;margin:20px 0 10px;border-bottom:2px solid #3F3277;padding-bottom:6px">'+esc(b.text)+'</div>';
-    case 'body':
-      return '<div style="margin-bottom:8px">'+proc(b.text)+'</div>';
-    case 'bold':
-      return '<div style="font-weight:700;margin-bottom:8px">'+proc(b.text)+'</div>';
-    case 'highlight':
-      return '<span style="display:inline-block;background:#e8e6f3;color:#3d3580;padding:3px 10px;border-radius:3px;font-weight:700;margin-bottom:4px">'+esc(b.text)+'</span><br>';
-    case 'note':
-      return '<div style="font-size:11px;color:#888;margin-bottom:6px">'+proc(b.text)+'</div>';
-    case 'spacer':
-      var h = {sm:16,md:32,lg:64}[b.size||'md'];
-      return '<div style="height:'+h+'px;background:repeating-linear-gradient(90deg,#f0f0f0 0,#f0f0f0 4px,transparent 4px,transparent 12px);opacity:.5"></div>';
-    case 'url-block':
-      return '<div style="margin-bottom:10px">'+esc(b.label)+'<br><a style="color:#3F3277;text-decoration:underline;word-break:break-all">'+( esc(b.url) || '（URL未設定）' )+'</a></div>';
+function b2h(b){
+  switch(b.type){
+    case 'sh':       return `<tr class="sh"><td colspan="4">${esc(b.text)}</td></tr>`;
+    case 'k-v':      return `<tr><td class="k">${esc(b.label)}</td><td class="v" colspan="3" style="padding:8px 12px">${proc(b.value)}</td></tr>`;
+    case 'k-v-k-v':  return `<tr><td class="k">${esc(b.label1)}</td><td class="v" style="padding:8px 12px">${proc(b.value1)}</td><td class="k">${esc(b.label2)}</td><td class="v" style="padding:8px 12px">${proc(b.value2)}</td></tr>`;
+    case 'note-row': return `<tr><td colspan="4" class="v note" style="padding:8px 20px">${proc(b.text)}</td></tr>`;
+    case 'heading':  return `<div style="font-size:20px;font-weight:700;color:#1a1a1a;margin-top:32px;margin-bottom:14px">${esc(b.text)}</div>`;
+    case 'body':     return `<div style="margin-bottom:12px;line-height:1.9">${proc(b.text)}</div>`;
+    case 'bold':     return `<div style="margin-bottom:12px"><strong>${proc(b.text)}</strong></div>`;
+    case 'highlight':return `<span style="display:inline-block;background:#e8e6f3;color:#3d3580;font-weight:700;padding:3px 10px;border-radius:3px;margin-bottom:4px">${esc(b.text)}</span><br>`;
+    case 'note':     return `<div style="font-size:11px;color:#888;margin-bottom:6px">${proc(b.text)}</div>`;
+    case 'spacer':{  const h={sm:16,md:32,lg:64}[b.size||'md']; return `<div style="height:${h}px"></div>`;}
+    case 'url-block':return `<div style="margin-bottom:10px">${esc(b.label)}<br><a class="url-val" href="${esc(b.url)}" target="_blank">${esc(b.url)||'（URL未設定）'}</a></div>`;
     default: return '';
   }
 }
 
-function renderBlocksToHTML(blocks) {
-  var parts = [];
-  var tableRows = [];
-  function flushTable() {
-    if (tableRows.length) {
-      parts.push('<table style="width:100%;border-collapse:collapse;margin-bottom:14px">'+tableRows.join('')+'</table>');
-      tableRows = [];
-    }
-  }
-  (blocks||[]).forEach(function(b) {
-    if (TABLE_TYPES.indexOf(b.type) >= 0) {
-      tableRows.push(blockToPreviewHTML(b));
-    } else {
-      flushTable();
-      parts.push(blockToPreviewHTML(b));
-    }
+function blocks2html(arr){
+  const parts=[]; let rows=[];
+  const flush=()=>{if(rows.length){parts.push(`<table class="doc-table"><colgroup><col style="width:220px"><col><col style="width:220px"><col></colgroup>${rows.join('')}</table>`);rows=[];}};
+  (arr||[]).forEach(b=>{if(TABLE_T.includes(b.type))rows.push(b2h(b));else{flush();parts.push(b2h(b));}});
+  flush(); return parts.join('');
+}
+
+/* ── Storage ── */
+function load(){
+  try{
+    const r=localStorage.getItem('gaiheki_editor_pages');
+    if(r){const d=JSON.parse(r);pages=d.pages||{};customs=d.customPages||[];}
+  }catch(e){}
+  ['p1','p2','p3'].forEach(id=>{
+    if(!pages[id]||!pages[id].blocks||!pages[id].blocks.length)
+      pages[id]={blocks:JSON.parse(JSON.stringify(DEF[id]||[]))};
   });
-  flushTable();
-  return parts.join('');
 }
 
-/* ======================================================
-   TABS
-====================================================== */
-function renderTabs() {
-  var bar = document.getElementById('tab-bar');
-  if (!bar) return;
-  var html = '';
-  FIXED_PAGES.forEach(function(fp) {
-    var isActive = currentPageId === fp.id;
-    var cls = 'h-tab' + (isActive ? ' active' : '') + (!fp.editable ? ' disabled' : '');
-    var click = fp.editable ? ' onclick="switchPage(\'' + fp.id + '\')"' : '';
-    html += '<button class="'+cls+'"'+click+'>'+esc(fp.name)+'</button>';
-  });
-  customPages.forEach(function(cp) {
-    var isActive = currentPageId === cp.id;
-    var cls = 'h-tab' + (isActive ? ' active' : '');
-    html += '<button class="'+cls+'" onclick="switchPage(\''+escId(cp.id)+'\')">'+esc(cp.name)
-      +'<span onclick="event.stopPropagation();removeCustomPage(\''+escId(cp.id)+'\')" style="margin-left:6px;opacity:.6;font-size:9px" title="削除">✕</span>'
-      +'</button>';
-  });
-  bar.innerHTML = html;
+function saveAll(){
+  // sync url-blocks
+  Object.values(pages).forEach(pd=>{(pd.blocks||[]).forEach(b=>{if(b.type==='url-block'&&b.url)syncUrl(b);});});
+  localStorage.setItem('gaiheki_editor_pages',JSON.stringify({pages,customPages:customs}));
+  toast('保存しました');
 }
 
-function switchPage(pid) {
-  if (pid === currentPageId) return;
-  currentPageId = pid;
-  renderTabs();
-  renderAll();
+function syncUrl(b){
+  try{
+    const s=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
+    if(!s.customUrls)s.customUrls=[];
+    const ex=s.customUrls.find(u=>u.id===b.id);
+    if(ex){ex.label=b.label;ex.url=b.url;}
+    else s.customUrls.push({id:b.id,label:b.label,url:b.url});
+    localStorage.setItem('gaiheki_settings',JSON.stringify(s));
+  }catch(e){}
 }
 
-/* ======================================================
-   PREVIEW
-====================================================== */
-function renderPreview() {
-  var el = document.getElementById('preview-content');
-  if (!el) return;
-  var fp = FIXED_PAGES.find(function(p){ return p.id === currentPageId; });
-  if (fp && !fp.editable) {
-    el.innerHTML = '<div class="preview-unavail">このページのプレビューは表示できません</div>';
-    return;
-  }
-  var pg = pageData[currentPageId];
-  var blocks = pg ? (pg.blocks || []) : [];
-  el.innerHTML = renderBlocksToHTML(blocks);
-}
+/* ── Tabs ── */
+function allPages(){return[...FIXED,...customs.map(c=>({id:c.id,name:c.name,editable:true,isCustom:true}))];}
 
-/* ======================================================
-   EDITOR
-====================================================== */
-function escId(s) { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
-
-function blockTypeInfo(type) {
-  return BLOCK_TYPES.find(function(t){ return t.type === type; }) || null;
-}
-
-function blockPreviewText(b) {
-  if (b.type === 'spacer') return '余白（' + ({sm:'小',md:'中',lg:'大'}[b.size||'md']||'中') + '）';
-  if (b.type === 'table-2col') return [b.label1, b.label2].filter(Boolean).join(' | ') || '（空）';
-  if (b.type === 'table-key' || b.type === 'table-detail') return esc(b.label || b.value || '（空）');
-  if (b.type === 'url-block') return esc(b.label || b.url || '（未設定）');
-  return esc((b.text || '（空）').replace(/\n/g,' ').replace(/\*\*/g,'').substring(0, 50));
-}
-
-function buildBlockCard(b, idx) {
-  var ti = blockTypeInfo(b.type);
-  var badgeBg    = ti ? ti.badgeBg    : '#e0e0e0';
-  var badgeColor = ti ? ti.badgeColor : '#666';
-  var label      = ti ? ti.label      : b.type;
-  var pre        = blockPreviewText(b);
-
-  var card = '<div class="block-card" draggable="true" data-idx="'+idx+'"'
-    +' ondragstart="onDragStart(event)" ondragend="onDragEnd(event)"'
-    +' ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">'
-    +'<div class="bc-head">'
-    +'<span class="bc-drag" title="ドラッグで並び替え">⠿</span>'
-    +'<span class="bc-badge" style="background:'+badgeBg+';color:'+badgeColor+'">'+esc(label)+'</span>'
-    +'<span class="bc-preview">'+pre+'</span>'
-    +'<button class="bc-btn" onclick="moveBlock('+idx+',-1)">↑</button>'
-    +'<button class="bc-btn" onclick="moveBlock('+idx+',1)">↓</button>'
-    +'<button class="bc-btn" onclick="openEditModal('+idx+')">編集</button>'
-    +'<button class="bc-btn bc-del" onclick="deleteBlock('+idx+')">削除</button>'
-    +'</div>'
-    +'</div>';
-  return card;
-}
-
-function renderEditor() {
-  var body = document.getElementById('editor-body');
-  if (!body) return;
-
-  var fp = FIXED_PAGES.find(function(p){ return p.id === currentPageId; });
-  if (fp && !fp.editable) {
-    body.innerHTML = '<div class="editor-unavail">このページは編集できません</div>';
-    return;
-  }
-
-  ensurePage(currentPageId);
-  var blocks = pageData[currentPageId].blocks || [];
-  var html = '<div id="block-list">';
-  blocks.forEach(function(b, i) { html += buildBlockCard(b, i); });
-  html += '</div>';
-  html += '<button class="btn-add-block" id="btn-add-block" onclick="openAddTypeModal()">＋ ブロックを追加</button>';
-  body.innerHTML = html;
-}
-
-function renderAll() {
-  renderPreview();
-  renderEditor();
-}
-
-/* ======================================================
-   BLOCK OPERATIONS
-====================================================== */
-function currentBlocks() {
-  ensurePage(currentPageId);
-  return pageData[currentPageId].blocks || (pageData[currentPageId].blocks = []);
-}
-
-function moveBlock(idx, dir) {
-  var arr = currentBlocks();
-  var newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= arr.length) return;
-  var tmp = arr[idx]; arr[idx] = arr[newIdx]; arr[newIdx] = tmp;
-  renderAll();
-}
-
-function deleteBlock(idx) {
-  if (!confirm('このブロックを削除しますか？')) return;
-  currentBlocks().splice(idx, 1);
-  renderAll();
-}
-
-/* ======================================================
-   ADD TYPE MODAL
-====================================================== */
-function openAddTypeModal() {
-  var grid = document.getElementById('type-grid');
-  grid.innerHTML = BLOCK_TYPES.map(function(t) {
-    return '<button class="type-btn" onclick="selectBlockType(\''+t.type+'\')">'
-      +'<span class="tb-label">'+esc(t.label)+'</span>'
-      +'<span class="tb-desc">'+esc(t.desc)+'</span>'
-      +'</button>';
+function renderTabs(){
+  document.getElementById('h-tabs').innerHTML=allPages().map(p=>{
+    const ac=p.id===cur?' active':'', di=!p.editable?' disabled':'';
+    const cl=`h-tab${ac}${di}${p.isCustom?' custom-tab':''}`;
+    const xb=p.isCustom?`<span class="tab-x" onclick="removePage('${p.id}',event)">×</span>`:'';
+    const oc=p.editable?`onclick="switchPage('${p.id}')"`:'' ;
+    return `<button class="${cl}" ${oc}>${esc(p.name)}${xb}</button>`;
   }).join('');
-  openModal('modal-add-type');
 }
 
-function selectBlockType(type) {
-  closeModal('modal-add-type');
-  var ti = blockTypeInfo(type);
-  if (!ti) return;
-  // build blank block
-  var blank = { id: 'b_' + Date.now(), type: type };
-  if (ti.fields) {
-    ti.fields.forEach(function(f) { blank[f.key] = ''; });
+function switchPage(id){cur=id;renderTabs();renderEditor();renderPreview();}
+
+/* ── Preview ── */
+function renderPreview(){
+  const pc=document.getElementById('preview-content');
+  const page=allPages().find(p=>p.id===cur);
+  if(!page||!page.editable){
+    pc.innerHTML='<div class="pv-unavail">このページのプレビューは表示できません</div>';
+    return;
   }
-  if (type === 'spacer') blank.size = 'md';
-  _editBlockIdx  = null;  // null = new block
-  _editBlockType = type;
-  _editTempBlock = blank;
-  renderEditForm();
-  openModal('modal-edit-block');
+  const bs=(pages[cur]||{}).blocks||[];
+  if(!bs.length){pc.innerHTML='<div class="pv-unavail" style="color:#bbb">ブロックがありません。右ペインから追加してください。</div>';return;}
+  pc.innerHTML='<div class="pv-inner">'+blocks2html(bs)+'</div>';
 }
 
-/* ======================================================
-   EDIT MODAL
-====================================================== */
-function openEditModal(idx) {
-  var b = currentBlocks()[idx];
-  if (!b) return;
-  _editBlockIdx  = idx;
-  _editBlockType = b.type;
-  _editTempBlock = JSON.parse(JSON.stringify(b));
-  renderEditForm();
-  openModal('modal-edit-block');
-}
+/* ── Editor ── */
+function getBlocks(){return(pages[cur]||{blocks:[]}).blocks;}
+function setBlocks(a){if(!pages[cur])pages[cur]={blocks:[]};pages[cur].blocks=a;}
 
-function renderEditForm() {
-  var container = document.getElementById('edit-form-body');
-  if (!container) return;
-  var b  = _editTempBlock;
-  var ti = blockTypeInfo(b.type);
-  var html = '';
-
-  if (b.type === 'spacer') {
-    html += '<div class="field-group">'
-      +'<label class="field-label">サイズ</label>'
-      +'<select class="field-select" id="ef-spacer-size">'
-      +['sm','md','lg'].map(function(sz) {
-        var lbl = {sm:'小（16px）',md:'中（32px）',lg:'大（64px）'}[sz];
-        return '<option value="'+sz+'"'+((b.size||'md')===sz?' selected':'')+'>'+lbl+'</option>';
-      }).join('')
-      +'</select>'
-      +'</div>';
-  } else if (ti && ti.fields) {
-    ti.fields.forEach(function(f) {
-      var val = esc(b[f.key] || '');
-      html += '<div class="field-group">'
-        +'<label class="field-label">'+esc(f.label)+'</label>';
-      if (f.multiline) {
-        html += '<textarea class="field-textarea" id="ef-'+f.key+'" rows="4">'+val+'</textarea>';
-      } else {
-        var ph = f.placeholder ? ' placeholder="'+esc(f.placeholder)+'"' : '';
-        html += '<input class="field-input" id="ef-'+f.key+'" type="text" value="'+val+'"'+ph+'>';
-      }
-      html += '</div>';
-    });
+function previewText(b){
+  switch(b.type){
+    case 'sh':case 'heading':case 'highlight':return b.text||'';
+    case 'k-v':return (b.label||'')+(b.value?'　'+b.value:'');
+    case 'k-v-k-v':return (b.label1||'')+(b.label2?' / '+b.label2:'');
+    case 'note-row':case 'body':case 'bold':case 'note':return (b.text||'').replace(/\n/g,' ');
+    case 'url-block':return (b.label||'')+(b.url?' → '+b.url:'');
+    case 'spacer':return '余白（'+(b.size||'md')+')';
+    default:return '';
   }
-
-  container.innerHTML = html;
 }
 
-function saveEditModal() {
-  var b  = _editTempBlock;
-  var ti = blockTypeInfo(b.type);
-
-  if (b.type === 'spacer') {
-    var sel = document.getElementById('ef-spacer-size');
-    if (sel) b.size = sel.value;
-  } else if (ti && ti.fields) {
-    ti.fields.forEach(function(f) {
-      var el = document.getElementById('ef-' + f.key);
-      if (el) b[f.key] = el.value;
-    });
-  }
-
-  var arr = currentBlocks();
-  if (_editBlockIdx === null) {
-    // new block
-    arr.push(b);
-  } else {
-    arr[_editBlockIdx] = b;
-  }
-
-  // sync url-block immediately
-  if (b.type === 'url-block') syncUrlBlock(b);
-
-  closeModal('modal-edit-block');
-  renderAll();
-}
-
-/* ======================================================
-   DRAG AND DROP
-====================================================== */
-function onDragStart(e) {
-  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', String(dragSrcIdx));
-  setTimeout(function() { e.currentTarget.classList.add('dragging'); }, 0);
-}
-
-function onDragEnd(e) {
-  dragSrcIdx = -1;
-  document.querySelectorAll('.block-card').forEach(function(c) {
-    c.classList.remove('dragging', 'drag-over');
+function renderEditor(){
+  const page=allPages().find(p=>p.id===cur);
+  const nm=document.getElementById('non-edit-msg');
+  const bl=document.getElementById('block-list');
+  const ab=document.getElementById('btn-add-block');
+  if(!page||!page.editable){nm.style.display='';bl.style.display='none';ab.style.display='none';return;}
+  nm.style.display='none';bl.style.display='';ab.style.display='';
+  const bs=getBlocks();
+  bl.innerHTML=bs.map((b,i)=>renderCard(b,i,bs.length)).join('');
+  bl.querySelectorAll('.block-card').forEach(card=>{
+    card.addEventListener('dragstart',()=>{dragFrom=+card.dataset.i;card.classList.add('dragging');});
+    card.addEventListener('dragend',()=>{card.classList.remove('dragging');bl.querySelectorAll('.block-card').forEach(c=>c.classList.remove('drag-over'));});
+    card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag-over');});
+    card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+    card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');dropBlock(+card.dataset.i);});
   });
 }
 
-function onDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  var ti = parseInt(e.currentTarget.dataset.idx);
-  document.querySelectorAll('.block-card').forEach(function(c) {
-    c.classList.toggle('drag-over', parseInt(c.dataset.idx) === ti && ti !== dragSrcIdx);
-  });
+function renderCard(b,i,total){
+  const def=BT.find(t=>t.type===b.type)||{label:b.type,bb:'#888',bg:'#fff'};
+  const badge=`<span class="bc-badge" style="background:${def.bb};color:${def.bg}">${def.label}</span>`;
+  const prev=esc(previewText(b));
+  const upd=i===0?' disabled':'', dnd=i===total-1?' disabled':'';
+  return `<div class="block-card" draggable="true" data-i="${i}">
+    <div class="bc-head">
+      <span class="bc-drag">⠿</span>${badge}
+      <span class="bc-prev">${prev}</span>
+      <button class="bc-btn" onclick="moveBlock(${i},-1)"${upd}>↑</button>
+      <button class="bc-btn" onclick="moveBlock(${i},1)"${dnd}>↓</button>
+      <button class="bc-btn" onclick="openEdit(${i})">編集</button>
+      <button class="bc-btn del" onclick="delBlock(${i})">削除</button>
+    </div>
+  </div>`;
 }
 
-function onDragLeave(e) {
-  if (!e.currentTarget.contains(e.relatedTarget)) {
-    e.currentTarget.classList.remove('drag-over');
+/* ── Block ops ── */
+function moveBlock(i,d){
+  const a=[...getBlocks()],ni=i+d;
+  if(ni<0||ni>=a.length)return;
+  [a[i],a[ni]]=[a[ni],a[i]]; setBlocks(a); renderEditor();renderPreview();
+}
+function delBlock(i){
+  const a=[...getBlocks()]; a.splice(i,1); setBlocks(a); renderEditor();renderPreview();
+}
+function dropBlock(to){
+  if(dragFrom<0||dragFrom===to)return;
+  const a=[...getBlocks()],[item]=a.splice(dragFrom,1);
+  a.splice(to,0,item); setBlocks(a); dragFrom=-1; renderEditor();renderPreview();
+}
+
+/* ── Add modal ── */
+function openAddModal(){
+  document.getElementById('type-grid').innerHTML=BT.map(t=>
+    `<button class="type-btn" onclick="selectType('${t.type}')">
+      <span class="tbl" style="color:${t.bb==='#e0e0e0'?'#666':t.bb}">${t.label}</span>
+      <span class="tbd">${t.desc}</span>
+    </button>`
+  ).join('');
+  showModal('add-modal');
+}
+
+function selectType(type){
+  newType=type; editIdx=-1; isNewBlock=true;
+  closeModals(); openEdit(-1,type);
+}
+
+/* ── Edit modal ── */
+function openEdit(idx,forcedType){
+  editIdx=idx; isNewBlock=idx<0;
+  const b=isNewBlock?{type:forcedType||'body'}:getBlocks()[idx];
+  const def=BT.find(t=>t.type===b.type)||{label:'ブロック',fields:[]};
+  document.getElementById('edit-modal-title').textContent=isNewBlock?'ブロックを追加':'ブロックを編集';
+  document.getElementById('edit-modal-body').innerHTML=buildForm(b,def);
+  showModal('edit-modal');
+}
+
+function buildForm(b,def){
+  if(b.type==='spacer'){
+    const c=b.size||'md';
+    return `<label class="m-lbl">サイズ</label>
+    <select class="m-sel" id="ef-size">
+      <option value="sm"${c==='sm'?' selected':''}>小（16px）</option>
+      <option value="md"${c==='md'?' selected':''}>中（32px）</option>
+      <option value="lg"${c==='lg'?' selected':''}>大（64px）</option>
+    </select>`;
   }
+  return (def.fields||[]).map(f=>{
+    const v=esc(b[f.k]||'');
+    const inp=f.ml
+      ?`<textarea class="m-ta" id="ef-${f.k}">${v}</textarea>`
+      :`<input class="m-inp" id="ef-${f.k}" type="text" value="${v}"${f.ph?` placeholder="${esc(f.ph)}"`:''}>`;
+    return `<label class="m-lbl">${f.l}</label>${inp}`;
+  }).join('');
 }
 
-function onDrop(e) {
-  e.preventDefault();
-  var ti = parseInt(e.currentTarget.dataset.idx);
-  if (dragSrcIdx < 0 || dragSrcIdx === ti) { dragSrcIdx = -1; return; }
-  var arr   = currentBlocks();
-  var moved = arr.splice(dragSrcIdx, 1)[0];
-  arr.splice(ti > dragSrcIdx ? ti - 1 : ti, 0, moved);
-  dragSrcIdx = -1;
-  renderAll();
+function confirmEdit(){
+  const type=isNewBlock?newType:getBlocks()[editIdx].type;
+  const def=BT.find(t=>t.type===type)||{fields:[]};
+  const block={id:isNewBlock?uid():(getBlocks()[editIdx]?.id||uid()),type};
+  if(type==='spacer'){block.size=document.getElementById('ef-size').value;}
+  else{(def.fields||[]).forEach(f=>{const el=document.getElementById('ef-'+f.k);if(el)block[f.k]=el.value;});}
+  const a=[...getBlocks()];
+  if(isNewBlock)a.push(block); else a[editIdx]=block;
+  setBlocks(a); closeModals(); renderEditor();renderPreview();
 }
 
-/* ======================================================
-   CUSTOM PAGE MANAGEMENT
-====================================================== */
-function openAddPageModal() {
-  var inp = document.getElementById('new-page-name');
-  if (inp) inp.value = '';
-  openModal('modal-add-page');
-  setTimeout(function() { if (inp) inp.focus(); }, 80);
+/* ── Custom pages ── */
+function openAddPageModal(){showModal('addp-modal');document.getElementById('new-page-name').value='';}
+function addCustomPage(){
+  const name=document.getElementById('new-page-name').value.trim();
+  if(!name)return;
+  const id='custom_'+Date.now();
+  customs.push({id,name}); pages[id]={blocks:[]};
+  closeModals(); switchPage(id);
+}
+function removePage(id,e){
+  e.stopPropagation();
+  if(!confirm('このページを削除しますか？'))return;
+  customs=customs.filter(c=>c.id!==id); delete pages[id];
+  if(cur===id)switchPage('p1'); else renderTabs();
 }
 
-function confirmAddPage() {
-  var inp = document.getElementById('new-page-name');
-  var name = inp ? inp.value.trim() : '';
-  if (!name) { alert('ページ名を入力してください'); return; }
-  var id = 'custom_' + Date.now();
-  customPages.push({ id: id, name: name });
-  ensurePage(id, name);
-  closeModal('modal-add-page');
-  switchPage(id);
-}
+/* ── Modals ── */
+function showModal(id){document.getElementById('ov').style.display='block';document.getElementById(id).style.display='block';}
+function closeModals(){document.getElementById('ov').style.display='none';['add-modal','edit-modal','addp-modal'].forEach(id=>document.getElementById(id).style.display='none');}
 
-function removeCustomPage(id) {
-  var cp = customPages.find(function(p){ return p.id === id; });
-  if (!cp) return;
-  if (!confirm('「'+cp.name+'」を削除しますか？')) return;
-  customPages = customPages.filter(function(p){ return p.id !== id; });
-  delete pageData[id];
-  if (currentPageId === id) currentPageId = 'p1';
-  renderTabs();
-  renderAll();
-}
-
-/* ======================================================
-   MODAL HELPERS
-====================================================== */
-function openModal(id) {
-  var el = document.getElementById(id);
-  if (el) el.classList.remove('hidden');
-}
-function closeModal(id) {
-  var el = document.getElementById(id);
-  if (el) el.classList.add('hidden');
-}
-
-// Close on overlay click
-document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) overlay.classList.add('hidden');
-  });
-});
-
-/* ======================================================
-   TOAST
-====================================================== */
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 2000);
-}
-
-/* ======================================================
-   INIT
-====================================================== */
-document.addEventListener('DOMContentLoaded', function() {
-  loadData();
-  // ensure default pages exist
-  ['p1','p2','p3'].forEach(function(id) { ensurePage(id); });
-  currentPageId = 'p1';
-  renderTabs();
-  renderAll();
-});
+/* ── Init ── */
+load(); renderTabs(); renderEditor(); renderPreview();
 </script>
 </body>
 </html>
