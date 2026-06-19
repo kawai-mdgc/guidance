@@ -82,6 +82,8 @@ body {
 
 /* キーセル */
 .k { background: var(--bg) !important; color: var(--main) !important; font-size: 11.5px !important; font-weight: 600 !important; width: 220px !important; min-width: 220px !important; max-width: 220px !important; vertical-align: middle !important; white-space: nowrap !important; padding: 8px 20px !important; }
+/* 2列並びキーセル（幅25%均等） */
+.k2 { background: #f0f0f0; color: var(--main); font-size: 11.5px; font-weight: 600; width: 25%; vertical-align: middle; white-space: nowrap; padding: 8px 20px; border: 1px solid var(--border); }
 
 /* バリューセル */
 .v { background: var(--white); color: var(--text); font-size: 11.5px; }
@@ -479,20 +481,20 @@ a.lb-url:hover { text-decoration: underline; }
       <tr class="sh"><td colspan="4">① 料金について</td></tr>
       <tr><td class="k">契約プラン</td><td class="v" colspan="3" id="p-plan">—</td></tr>
       <tr id="p1-fee-row">
-        <td id="p-lbl-fee" class="k" style="vertical-align:middle;white-space:nowrap">月額費用（税抜）</td>
-        <td class="v" style="vertical-align:middle"><span id="p-fee">—</span><div id="p-note-fee" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
-        <td id="p-lbl-commission" class="k" style="vertical-align:middle;white-space:nowrap">成約手数料</td>
-        <td class="v" style="vertical-align:middle"><span id="p-commission">—</span><div id="p-note-commission" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
+        <td id="p-lbl-fee" class="k2">月額費用（税抜）</td>
+        <td class="v" style="width:25%;vertical-align:middle"><span id="p-fee">—</span><div id="p-note-fee" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
+        <td id="p-lbl-commission" class="k2">成約手数料</td>
+        <td class="v" style="width:25%;vertical-align:middle"><span id="p-commission">—</span><div id="p-note-commission" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
       </tr>
       <tr id="p1-period-row">
         <td id="p-lbl-period" class="k" style="vertical-align:middle">契約期間</td>
         <td class="v" colspan="3" style="vertical-align:middle"><span id="p-period">—</span><div style="font-size:10px;color:var(--muted);margin-top:2px">※ご契約は自動更新　※退会希望の場合、14日前に管理画面から申請が必要</div></td>
       </tr>
       <tr id="p1-monthly-row">
-        <td id="p-lbl-monthly" class="k" style="white-space:nowrap">紹介件数想定（月間）</td>
-        <td class="v"><span id="p-monthly">—</span><div id="p-note-monthly" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
-        <td id="p-lbl-half" class="k" style="white-space:nowrap">紹介件数想定（6ヶ月）</td>
-        <td class="v"><span id="p-half">—</span><div id="p-note-half" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
+        <td id="p-lbl-monthly" class="k2">紹介件数想定（月間）</td>
+        <td class="v" style="width:25%;vertical-align:middle"><span id="p-monthly">—</span><div id="p-note-monthly" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
+        <td id="p-lbl-half" class="k2">紹介件数想定（6ヶ月）</td>
+        <td class="v" style="width:25%;vertical-align:middle"><span id="p-half">—</span><div id="p-note-half" style="font-size:10px;color:#666;margin-top:2px;display:none"></div></td>
       </tr>
       <tr id="p1-guarantee-row">
         <td id="p-lbl-guarantee" class="k">最低保証</td>
