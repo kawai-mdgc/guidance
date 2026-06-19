@@ -452,6 +452,7 @@ a.lb-url:hover { text-decoration: underline; }
   </div>
   <div class="nav-list">
     <button class="nav-item active" onclick="scrollToPage('p1')" id="nav-p1">ご確認事項</button>
+    <button class="nav-item" onclick="scrollToPage('p-manual')" id="nav-p-manual">管理画面の使い方</button>
     <button class="nav-item" onclick="scrollToPage('p2')" id="nav-p2">写真ご提供のお願い</button>
     <button class="nav-item" onclick="scrollToPage('p3')" id="nav-p3">現調 / 成約に繋げるための施策</button>
     <button class="nav-item" onclick="scrollToPage('p4')" id="nav-p4">CS担当者</button>
@@ -560,7 +561,7 @@ a.lb-url:hover { text-decoration: underline; }
     @media print{
       #p-manual .mgrid{grid-template-columns:repeat(3,1fr)!important;gap:8px!important;}
       #p-manual .mgrid>div{padding:4px!important;page-break-inside:avoid;break-inside:avoid;}
-      #p-manual .mgrid>div img{height:auto!important;object-fit:contain!important;background:#f5f5f5!important;}
+      #p-manual .mgrid>div img{max-width:140px!important;height:auto!important;object-fit:contain!important;background:#f5f5f5!important;display:block!important;margin:4px auto!important;}
       #p-manual .msec{page-break-inside:avoid;break-inside:avoid;}
       #p-manual{font-size:10px!important;}
     }
@@ -582,42 +583,42 @@ a.lb-url:hover { text-decoration: underline; }
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">①</span>
               <span style="font-size:12px">左上 <strong>☰</strong>（3本線）をタップ</span>
             </div>
-            <img src="images/gaiheki/Frame%201.png" alt="IMG_5406.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%201.png" alt="IMG_5406.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">②</span>
               <span style="font-size:12px"><strong>その他 → LINE連携</strong></span>
             </div>
-            <img src="images/gaiheki/Frame%202.png" alt="IMG_5408.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%202.png" alt="IMG_5408.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">③</span>
               <span style="font-size:12px">「<strong>アカウント連携をする</strong>」を押す</span>
             </div>
-            <img src="images/gaiheki/Frame%203.png" alt="IMG_5409.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%203.png" alt="IMG_5409.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">④</span>
               <span style="font-size:12px">「<strong>LINEアプリでログイン</strong>」を押す</span>
             </div>
-            <img src="images/gaiheki/Frame%204.png" alt="IMG_5410.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%204.png" alt="IMG_5410.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">⑤</span>
               <span style="font-size:12px">「<strong>許可する</strong>」を押す</span>
             </div>
-            <img src="images/gaiheki/Frame%205.png" alt="IMG_5411.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%205.png" alt="IMG_5411.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">⑥</span>
               <span style="font-size:12px">「<strong>友だち追加</strong>」で完了 ✅</span>
             </div>
-            <img src="images/gaiheki/Frame%206.png" alt="IMG_5412.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%206.png" alt="IMG_5412.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
         </div>
       </div>
@@ -634,21 +635,21 @@ a.lb-url:hover { text-decoration: underline; }
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">①</span>
               <span style="font-size:12px"><strong>左上 ☰ → 案件一覧</strong></span>
             </div>
-            <img src="images/gaiheki/Frame%207.png" alt="IMG_5413.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%207.png" alt="IMG_5413.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">②</span>
               <span style="font-size:12px">進捗をシチュエーションに合わせて選択</span>
             </div>
-            <img src="images/gaiheki/Frame%208.png" alt="IMG_5415.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%208.png" alt="IMG_5415.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">③</span>
               <span style="font-size:12px">メモに通話履歴・番地・ヒアリング内容を記録<br><span style="font-size:11px;color:#888">例）6/10 16:00 不通 ／ 6/11 通電 現調</span></span>
             </div>
-            <img src="images/gaiheki/Frame%209.png" alt="IMG_5417.jpeg" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%209.png" alt="IMG_5417.jpeg" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div style="grid-column:1/-1;border-left:3px solid #7F77DD;background:#f5f4ff;padding:8px 12px;border-radius:0 6px 6px 0;font-size:13px">
             💡 進捗を更新すると他のスタッフとリアルタイムで共有できます
@@ -669,14 +670,14 @@ a.lb-url:hover { text-decoration: underline; }
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">①</span>
               <span style="font-size:12px">案件メモ下の「<strong>新規登録</strong>」をタップ</span>
             </div>
-            <img src="images/gaiheki/Frame%2010.png" alt="Frame 10" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%2010.png" alt="Frame 10" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#EDE7F6;color:#4527A0;font-size:9px;font-weight:700;flex-shrink:0">②</span>
               <span style="font-size:12px">作業日・契約金額・支払い期日・入金日を入力</span>
             </div>
-            <img src="images/gaiheki/Frame%2011.png" alt="Frame 11" style="width:100%;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin-top:8px">
+            <img src="images/gaiheki/Frame%2011.png" alt="Frame 11" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:8px;border:1px solid #eee;display:block;margin:6px auto">
           </div>
           <div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
@@ -3016,7 +3017,7 @@ function saveCase() {
   var preview = document.getElementById('preview-scroll');
   if (!preview || !window.IntersectionObserver) return;
 
-  var PAGE_IDS = ['p1', 'p2', 'p3', 'p4'];
+  var PAGE_IDS = ['p1', 'p-manual', 'p2', 'p3', 'p4'];
   var visibleSet = new Set();
 
   function syncNav() {
