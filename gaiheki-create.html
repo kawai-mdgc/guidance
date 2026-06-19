@@ -2195,8 +2195,6 @@ function renderP4() {
 }
 
 function scrollToPage(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
   document.getElementById('nav-' + id)?.classList.add('active');
 }
