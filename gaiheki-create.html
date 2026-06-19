@@ -556,8 +556,14 @@ a.lb-url:hover { text-decoration: underline; }
   </div>
   <style>
     #p-manual .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-    @media print{#p-manual .mgrid{grid-template-columns:repeat(2,1fr);}}
     #p-manual .mgrid>div{padding:6px;}
+    @media print{
+      #p-manual .mgrid{grid-template-columns:repeat(3,1fr)!important;gap:8px!important;}
+      #p-manual .mgrid>div{padding:4px!important;page-break-inside:avoid;break-inside:avoid;}
+      #p-manual .mgrid>div img{height:110px!important;object-fit:cover!important;object-position:top!important;}
+      #p-manual .msec{page-break-inside:avoid;break-inside:avoid;}
+      #p-manual{font-size:10px!important;}
+    }
   </style>
   <div class="page-content">
     <div style="max-width:760px;margin:0;font-size:12px;color:var(--label);line-height:1.8;padding:0 8px 32px">
@@ -565,7 +571,7 @@ a.lb-url:hover { text-decoration: underline; }
       <div style="font-size:18px;font-weight:800;color:var(--text);margin-top:28px;margin-bottom:22px;border-bottom:2px solid var(--main);padding-bottom:8px">📱 管理画面の使い方</div>
 
       <!-- Section 1: LINE連携 -->
-      <div style="margin-bottom:28px">
+      <div class="msec" style="margin-bottom:28px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#4527A0;color:#fff;font-size:10px;font-weight:700;flex-shrink:0">1</span>
           <span style="font-size:14px;font-weight:700;color:var(--text)">LINE連携</span>
@@ -617,7 +623,7 @@ a.lb-url:hover { text-decoration: underline; }
       </div>
 
       <!-- Section 2: 案件メモ・進捗 -->
-      <div style="margin-bottom:28px">
+      <div class="msec" style="margin-bottom:28px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#4527A0;color:#fff;font-size:10px;font-weight:700;flex-shrink:0">2</span>
           <span style="font-size:14px;font-weight:700;color:var(--text)">案件メモ・進捗・メモ</span>
@@ -651,7 +657,7 @@ a.lb-url:hover { text-decoration: underline; }
       </div>
 
       <!-- Section 3: 成約報告 -->
-      <div>
+      <div class="msec">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#4527A0;color:#fff;font-size:10px;font-weight:700;flex-shrink:0">3</span>
           <span style="font-size:14px;font-weight:700;color:var(--text)">成約報告</span>
