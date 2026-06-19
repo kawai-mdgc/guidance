@@ -2218,12 +2218,35 @@ function syncP1Rows() {
     const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
     if (tmpl) {
       fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
-      let html = '';
-      tmpl.items.forEach(function(item) {
+      const DFLT_LBL = ['月額費用（税抜）','成約手数料','最低保証','紹介件数想定（月間）','契約期間','紹介件数想定（6ヶ月）'];
+      const items = tmpl.items;
+      const getRow = function(idx) {
+        const item = items[idx];
+        if (!item) return null;
         const el = document.getElementById('plan-item-' + item.id);
-        const val = el ? (el.value || '—') : '—';
-        html += '<tr><td class="k" style="white-space:nowrap">' + esc(item.label) + '</td><td class="v" colspan="3">' + esc(val) + '</td></tr>';
-      });
+        return { label: esc(item.label || DFLT_LBL[idx] || ''), value: esc(el ? (el.value || '—') : '—') };
+      };
+      const row1 = function(r) {
+        return '<tr><td class="k" style="white-space:nowrap">' + r.label + '</td><td class="v" colspan="3">' + r.value + '</td></tr>';
+      };
+      const row2 = function(a, b) {
+        return '<tr>' +
+          '<td class="k2">' + a.label + '</td><td class="v" style="width:25%;vertical-align:middle">' + a.value + '</td>' +
+          '<td class="k2">' + b.label + '</td><td class="v" style="width:25%;vertical-align:middle">' + b.value + '</td>' +
+          '</tr>';
+      };
+      let html = '';
+      const i0=getRow(0), i1=getRow(1), i2=getRow(2), i3=getRow(3), i4=getRow(4), i5=getRow(5);
+      // 月額費用 + 成約手数料 → 2ブロック行
+      if (i0 && i1) html += row2(i0, i1); else if (i0) html += row1(i0);
+      // 契約期間 → 単独行
+      if (i4) html += row1(i4);
+      // 紹介件数月間 + 紹介件数6ヶ月 → 2ブロック行
+      if (i3 && i5) html += row2(i3, i5); else if (i3) html += row1(i3);
+      // 最低保証 → 単独行
+      if (i2) html += row1(i2);
+      // 追加項目（7つ目以降）
+      for (let j = 6; j < items.length; j++) { const r = getRow(j); if (r) html += row1(r); }
       if (customBody) customBody.innerHTML = html;
       return;
     }
