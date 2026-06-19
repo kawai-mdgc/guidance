@@ -3101,6 +3101,82 @@ function saveCase() {
 </script>
 
 <script>
+/* ── localStorage エディタブロック適用 ── */
+(function() {
+  function proc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); }
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var TABLE_TYPES = ['table-title','table-key','table-detail','table-2col'];
+
+  function blockToHTML(b) {
+    switch(b.type) {
+      case 'table-title':
+        return '<tr><td colspan="4" style="background:#3F3277;color:#fff;padding:7px 14px;font-weight:700">'+esc(b.text)+'</td></tr>';
+      case 'table-key':
+        return '<tr><td class="k">'+esc(b.label)+'</td><td class="v" colspan="3">'+proc(b.value)+'</td></tr>';
+      case 'table-detail':
+        return '<tr><td>'+esc(b.label)+'</td><td colspan="3">'+proc(b.value)+'</td></tr>';
+      case 'table-2col':
+        return '<tr><td class="k">'+esc(b.label1)+'</td><td class="v">'+proc(b.value1)+'</td><td class="k">'+esc(b.label2)+'</td><td class="v">'+proc(b.value2)+'</td></tr>';
+      case 'heading':
+        return '<div style="font-size:20px;font-weight:700;color:#1a1a1a;margin-top:32px;margin-bottom:14px">'+esc(b.text)+'</div>';
+      case 'body':
+        return '<div style="margin-bottom:8px">'+proc(b.text)+'</div>';
+      case 'bold':
+        return '<div style="font-weight:700;margin-bottom:8px">'+proc(b.text)+'</div>';
+      case 'highlight':
+        return '<span style="display:inline-block;background:#e8e6f3;color:#3d3580;padding:3px 10px;border-radius:3px;font-weight:700;margin-bottom:4px">'+esc(b.text)+'</span><br>';
+      case 'note':
+        return '<div style="font-size:11px;color:#888;margin-bottom:6px">'+proc(b.text)+'</div>';
+      case 'spacer':
+        var h={sm:16,md:32,lg:64}[b.size||'md'];
+        return '<div style="height:'+h+'px"></div>';
+      case 'url-block':
+        return '<div style="margin-bottom:10px">'+esc(b.label)+'<br><a class="url-val" href="'+esc(b.url)+'" target="_blank">'+( esc(b.url)||'（URL未設定）' )+'</a></div>';
+      default: return '';
+    }
+  }
+
+  function renderBlocks(blocks) {
+    var parts = [];
+    var tRows = [];
+    function flush() {
+      if (tRows.length) {
+        parts.push('<table class="doc-table">'+tRows.join('')+'</table>');
+        tRows = [];
+      }
+    }
+    (blocks||[]).forEach(function(b) {
+      if (TABLE_TYPES.indexOf(b.type) >= 0) { tRows.push(blockToHTML(b)); }
+      else { flush(); parts.push(blockToHTML(b)); }
+    });
+    flush();
+    return parts.join('');
+  }
+
+  try {
+    var raw = localStorage.getItem('gaiheki_editor_pages');
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    var pages = data && data.pages;
+    if (!pages) return;
+
+    if (pages.p2 && pages.p2.blocks && pages.p2.blocks.length > 0) {
+      var el2 = document.getElementById('p2-content');
+      if (el2) el2.innerHTML = renderBlocks(pages.p2.blocks);
+    }
+    if (pages.p3 && pages.p3.blocks && pages.p3.blocks.length > 0) {
+      var el3 = document.getElementById('p3-content');
+      if (el3) el3.innerHTML = renderBlocks(pages.p3.blocks);
+    }
+    console.log('[Editor] localStorage blocks applied');
+  } catch(e) {
+    console.warn('[Editor] localStorage load error:', e);
+  }
+})();
+</script>
+
+<script>
 /* ── サイドバー ナビ ハイライト（IntersectionObserver） ── */
 (function () {
   var preview = document.getElementById('preview-scroll');
