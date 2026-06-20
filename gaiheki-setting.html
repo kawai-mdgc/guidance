@@ -348,19 +348,6 @@ a.header-logo:hover { opacity: 0.8; }
       <button class="btn-cs-add" onclick="ptAddCopy()">＋ 既存形態から追加する</button>
       <div class="f-sec" style="margin-top:20px">プラン詳細設定</div>
       <div id="plan-detail-list"></div>
-      <div class="f-sec" style="margin-top:20px">従量プランのデフォルト値</div>
-      <div class="section-desc" style="font-size:11px;color:var(--muted);margin-bottom:10px">gaiheki-create で「従量」を選択したときに自動入力される値です。</div>
-      <div id="volume-plan-defaults">
-        <div class="field-row">
-          <div class="field"><label>成約手数料</label><input type="text" id="vp-achievementFee" placeholder="例：15%" oninput="checkDirty('plan')"></div>
-          <div class="field"><label>紹介手数料</label><input type="text" id="vp-referralFee" placeholder="例：1,000円" oninput="checkDirty('plan')"></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>日上限件数</label><input type="text" id="vp-dailyLimit" placeholder="例：5件" oninput="checkDirty('plan')"></div>
-          <div class="field"><label>月上限件数</label><input type="text" id="vp-monthlyLimit" placeholder="例：50件" oninput="checkDirty('plan')"></div>
-        </div>
-        <div class="field"><label>月上限予算</label><input type="text" id="vp-monthlyBudget" placeholder="例：50,000円" oninput="checkDirty('plan')"></div>
-      </div>
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-plan">未保存の変更があります</span>
         <button id="btn-save-plan" class="btn-save" onclick="savePlanSection()">保存</button>
@@ -1214,16 +1201,11 @@ function savePlanSection() {
     const existing = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
     existing.planTemplates = JSON.parse(JSON.stringify(planTemplates));
     existing.planDetails   = JSON.parse(JSON.stringify(planDetails));
-    // 従量プランのデフォルト値を収集
-    const VP_FIELDS = ['achievementFee','referralFee','dailyLimit','monthlyLimit','monthlyBudget'];
-    const vpDefaults = {};
-    VP_FIELDS.forEach(f => { const el = document.getElementById('vp-'+f); if (el) vpDefaults[f] = el.value.trim(); });
-    existing.plans = Object.assign(existing.plans || {}, { volume: vpDefaults });
     localStorage.setItem('gaiheki_settings', JSON.stringify(existing));
     snapshotSection('plan');
     try {
       firebase.firestore().collection('settings').doc('gaiheki').set(
-        { planTemplates: JSON.parse(JSON.stringify(planTemplates)), planDetails: JSON.parse(JSON.stringify(planDetails)), plans: { volume: vpDefaults } }, { merge: true }
+        { planTemplates: JSON.parse(JSON.stringify(planTemplates)), planDetails: JSON.parse(JSON.stringify(planDetails)) }, { merge: true }
       );
     } catch(fe) { console.warn('Firestore plan save:', fe); }
     const t = document.getElementById('toast');
@@ -1638,12 +1620,6 @@ function escHtml(s) {
   }
   ptRenderAll(); pdRenderAll();
 
-  // 従量プランのデフォルト値を読み込み
-  const vpDef = rawPlan.plans?.volume || {};
-  ['achievementFee','referralFee','dailyLimit','monthlyLimit','monthlyBudget'].forEach(f => {
-    const el = document.getElementById('vp-'+f); if (el) el.value = vpDef[f] || '';
-  });
-
   staffList = [...s.staffList];
   renderStaffList();
 
@@ -1735,19 +1711,6 @@ function escHtml(s) {
               localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
               planTemplates=d.planTemplates; planDetails=d.planDetails||[];
               ptRenderAll(); pdRenderAll();
-            }catch(e){}
-          }
-          /* 従量プランデフォルト値 Firestore同期 */
-          if (d.plans && d.plans.volume) {
-            try{
-              var cpPV=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
-              if(!cpPV.plans) cpPV.plans={};
-              cpPV.plans.volume=d.plans.volume;
-              localStorage.setItem('gaiheki_settings',JSON.stringify(cpPV));
-              var vpd=d.plans.volume;
-              ['achievementFee','referralFee','dailyLimit','monthlyLimit','monthlyBudget'].forEach(function(f){
-                var el=document.getElementById('vp-'+f); if(el) el.value=vpd[f]||'';
-              });
             }catch(e){}
           }
           /* ローンURL（Firestoreから読み込んでURL設定欄に反映） */
