@@ -879,9 +879,6 @@ a.lb-url:hover { text-decoration: underline; }
         <label>プラン</label>
         <select id="plan" onchange="updatePlanDefaults();render()">
           <option value="">選択してください</option>
-          <option value="light">ライト</option>
-          <option value="basic">ベーシック</option>
-          <option value="pro">プロ</option>
         </select>
       </div>
       <div id="plan-detail-fields" style="display:none">
@@ -2275,6 +2272,23 @@ function syncP1Rows() {
     return;
   }
 
+  // planTemplates の tmpl.id プラン（新形式）
+  if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
+    const planTmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    if (planTmpl) {
+      fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+      let html = '';
+      (planTmpl.items||[]).forEach(item => {
+        const el = document.getElementById('plan-item-'+item.id);
+        const val = el ? el.value.trim() : '';
+        if (!val) return;
+        html += '<tr><td class="k" style="white-space:nowrap">'+esc(item.label||'')+'</td><td class="v" colspan="3">'+esc(val)+'</td></tr>';
+      });
+      if (customBody) customBody.innerHTML = html;
+      return;
+    }
+  }
+
   if (customBody) customBody.innerHTML = '';
   fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display = plan ? '' : 'none'; });
 }
@@ -2318,6 +2332,19 @@ function buildPlanCustomFields(det, tmpl, type) {
 }
 function getPlanItemValues() {
   const plan = v('plan');
+  const s = getSettings();
+  // tmpl.id 形式（新形式）
+  if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
+    const tmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    if (tmpl) {
+      const res = {};
+      (tmpl.items||[]).forEach(item => {
+        const el = document.getElementById('plan-item-'+item.id);
+        if (el) res[item.id] = el.value;
+      });
+      return res;
+    }
+  }
   if (!plan.includes(':')) return {};
   const [detId, type] = plan.split(':');
   const s = getSettings();
@@ -2350,14 +2377,31 @@ function onPlanItemChange() {
 }
 function initPlanCustomFields(planItems) {
   const plan = v('plan');
-  if (!plan || !plan.includes(':')) return;
-  const [detId, type] = plan.split(':');
+  if (!plan) return;
   const s = getSettings();
+  const _cf = document.getElementById('plan-custom-fields');
+  const _pf = document.getElementById('plan-detail-fields');
+  // tmpl.id 形式（新形式）
+  if (!plan.includes(':') && !plan.startsWith('vp_')) {
+    const tmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    if (tmpl) {
+      if (_cf) { _cf.innerHTML = buildTemplatePlanFields(tmpl); _cf.style.display = ''; }
+      if (_pf) _pf.style.display = 'none';
+      if (planItems && typeof planItems === 'object') {
+        Object.keys(planItems).forEach(function(itemId) {
+          const txt = document.getElementById('plan-item-' + itemId);
+          if (txt) txt.value = planItems[itemId] || '';
+        });
+      }
+    }
+    return;
+  }
+  // 旧形式（det_id:type）
+  if (!plan.includes(':')) return;
+  const [detId, type] = plan.split(':');
   const det = s.planDetails && s.planDetails.find(d => d.id === detId);
   const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
   if (!tmpl || !det) return;
-  const _cf = document.getElementById('plan-custom-fields');
-  const _pf = document.getElementById('plan-detail-fields');
   if (_cf) { _cf.innerHTML = buildPlanCustomFields(det, tmpl, type); _cf.style.display = ''; }
   if (_pf) _pf.style.display = 'none';
   updatePreviewLabels(tmpl);
@@ -2424,6 +2468,13 @@ function updatePlanDefaults() {
     applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
     return;
   }
+  // planTemplates の tmpl.id に一致する場合（新形式）
+  const tmplMatch = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+  if (tmplMatch) {
+    if (_cf) { _cf.innerHTML = buildTemplatePlanFields(tmplMatch); _cf.style.display = ''; }
+    if (_pf) _pf.style.display = 'none';
+    return;
+  }
   applyStatic(plan);
 }
 
@@ -2446,6 +2497,42 @@ function populateVolumePlans() {
     sel.appendChild(grp);
   }
 }
+/* ── プランセレクトを planTemplates から動的生成 ── */
+function populatePlanSelect() {
+  const sel = document.getElementById('plan');
+  if (!sel) return;
+  const s = getSettings();
+  const tmpls = s.planTemplates || [];
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">選択してください</option>';
+  tmpls.forEach(function(tmpl) {
+    const o = document.createElement('option');
+    o.value = tmpl.id;
+    o.textContent = tmpl.name || tmpl.id;
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+}
+
+/* ── テンプレートアイテムからフォームフィールド生成 ── */
+function buildTemplatePlanFields(tmpl) {
+  if (!tmpl || !tmpl.items) return '';
+  var html = '';
+  var items = tmpl.items;
+  for (var i = 0; i < items.length; i += 2) {
+    if (i + 1 < items.length) {
+      html += '<div class="field-row">' + _buildTmplItemInput(items[i]) + _buildTmplItemInput(items[i+1]) + '</div>';
+    } else {
+      html += _buildTmplItemInput(items[i]);
+    }
+  }
+  return html;
+}
+function _buildTmplItemInput(item) {
+  var lbl = esc(item.label || '');
+  return '<div class="field"><label>' + lbl + '</label><input type="text" id="plan-item-' + item.id + '" placeholder="' + lbl + '" oninput="render()"></div>';
+}
+
 function populatePlanDetails() {
   const sel = document.getElementById('plan');
   if (!sel) return;
@@ -2643,8 +2730,17 @@ function render() {
   set('p-date3', '発行日：' + dateLabel);
   set('p-date4', '発行日：' + dateLabel);
   renderP4();
-  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:({light:'ライト',basic:'ベーシック',pro:'プロ'}[_pv]||planLabel[_pv]||_pv);
-  setVal('p-plan',       _pname);
+  const _pv=v('plan');
+  let _pname;
+  if (_pv.includes(':')) {
+    _pname = _pv.split(':')[1];
+  } else if (_pv.startsWith('vp_')) {
+    _pname = _pv; // vp plan name is set later in the vp block
+  } else {
+    const _ptmpl=(s.planTemplates||[]).find(t=>t.id===_pv);
+    _pname=_ptmpl?_ptmpl.name:({light:'ライト',basic:'ベーシック',pro:'プロ'}[_pv]||planLabel[_pv]||_pv);
+  }
+  setVal('p-plan', _pname);
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
   ['fee','commission','guarantee','monthly','half'].forEach(k => {
@@ -2833,8 +2929,7 @@ function saveCase() {
 
 (function init() {
   populateAssigneeSelect();
-  populateVolumePlans();
-  populatePlanDetails();
+  populatePlanSelect();
 
   const editId = new URLSearchParams(location.search).get('id');
   if (!editId) {
@@ -3221,7 +3316,7 @@ function saveCase() {
             curVp.volumePlans = data.volumePlans;
             localStorage.setItem('gaiheki_settings', JSON.stringify(curVp));
           } catch(e) {}
-          if (typeof populateVolumePlans === 'function') populateVolumePlans();
+          if (typeof populatePlanSelect === 'function') populatePlanSelect();
         }
         if (data.staffList && data.staffList.length) {
           try {
@@ -3243,7 +3338,7 @@ function saveCase() {
             cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
             localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
           }catch(e){}
-          if (typeof populatePlanDetails==='function') populatePlanDetails();
+          if (typeof populatePlanSelect==='function') populatePlanSelect();
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {
