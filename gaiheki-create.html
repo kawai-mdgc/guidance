@@ -2367,7 +2367,6 @@ function getPlanItemValues() {
   }
   if (!plan.includes(':')) return {};
   const [detId, type] = plan.split(':');
-  const s = getSettings();
   const det = s.planDetails && s.planDetails.find(d => d.id === detId);
   const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
   if (!tmpl || !det) return {};
