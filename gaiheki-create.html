@@ -2296,6 +2296,23 @@ function syncP1Rows() {
     return;
   }
 
+  // planTemplate ID に一致するプラン（例: "volume"）
+  if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
+    const planTmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    if (planTmpl) {
+      fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+      let html = '';
+      (planTmpl.items||[]).forEach(item => {
+        const el = document.getElementById('plan-item-'+item.id);
+        const val = el ? el.value.trim() : '';
+        if (!val) return;
+        html += '<tr><td class="k" style="white-space:nowrap">'+esc(item.label||'')+'</td><td class="v" colspan="3">'+esc(val)+'</td></tr>';
+      });
+      if (customBody) customBody.innerHTML = html;
+      return;
+    }
+  }
+
   if (customBody) customBody.innerHTML = '';
   fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display = plan ? '' : 'none'; });
 }
@@ -2339,9 +2356,21 @@ function buildPlanCustomFields(det, tmpl, type) {
 }
 function getPlanItemValues() {
   const plan = v('plan');
+  const s = getSettings();
+  // planTemplate ID プラン（例: "volume"）
+  if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
+    const tmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    if (tmpl) {
+      const res = {};
+      (tmpl.items||[]).forEach(item => {
+        const el = document.getElementById('plan-item-'+item.id);
+        if (el) res[item.id] = el.value;
+      });
+      return res;
+    }
+  }
   if (!plan.includes(':')) return {};
   const [detId, type] = plan.split(':');
-  const s = getSettings();
   const det = s.planDetails && s.planDetails.find(d => d.id === detId);
   const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
   if (!tmpl || !det) return {};
@@ -2371,9 +2400,21 @@ function onPlanItemChange() {
 }
 function initPlanCustomFields(planItems) {
   const plan = v('plan');
-  if (!plan || !plan.includes(':')) return;
-  const [detId, type] = plan.split(':');
+  if (!plan) return;
   const s = getSettings();
+  // planTemplate ID プラン（例: "volume"）— updatePlanDefaults でフィールド生成済み、値のみセット
+  if (!plan.includes(':') && !plan.startsWith('vp_')) {
+    const tmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    if (tmpl && planItems && typeof planItems === 'object') {
+      Object.keys(planItems).forEach(function(itemId) {
+        const txt = document.getElementById('plan-item-' + itemId);
+        if (txt) txt.value = planItems[itemId] || '';
+      });
+    }
+    return;
+  }
+  if (!plan.includes(':')) return;
+  const [detId, type] = plan.split(':');
   const det = s.planDetails && s.planDetails.find(d => d.id === detId);
   const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
   if (!tmpl || !det) return;
@@ -2441,6 +2482,13 @@ function updatePlanDefaults() {
     }
     if (_pf) _pf.style.display = '';
     applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
+    return;
+  }
+  // planTemplate ID に一致するプラン（例: "volume"）→ テンプレートフィールドを生成
+  const tmplMatch = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+  if (tmplMatch) {
+    if (_cf) { _cf.innerHTML = buildTemplatePlanFields(tmplMatch); _cf.style.display = ''; }
+    if (_pf) _pf.style.display = 'none';
     return;
   }
   applyStatic(plan);
