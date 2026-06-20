@@ -1965,9 +1965,10 @@ function getAreaData() {
 /* ── 設定デフォルト値 ── */
 const DEFAULT_SETTINGS = {
   plans: {
-    light: { fee: '8万円',  commission: '10%', guarantee: 'なし', monthly: '25〜35件', half: '—', contractPeriod: '6ヶ月契約' },
-    basic: { fee: '10万円', commission: '5%',  guarantee: '25件',  monthly: '40〜55件', half: '40〜55件', contractPeriod: '6ヶ月契約' },
-    pro:   { fee: '15万円', commission: '3%',  guarantee: '40件',  monthly: '65〜80件', half: '65〜80件', contractPeriod: '6ヶ月契約' },
+    light:  { fee: '8万円',  commission: '10%', guarantee: 'なし', monthly: '25〜35件', half: '—', contractPeriod: '6ヶ月契約' },
+    basic:  { fee: '10万円', commission: '5%',  guarantee: '25件',  monthly: '40〜55件', half: '40〜55件', contractPeriod: '6ヶ月契約' },
+    pro:    { fee: '15万円', commission: '3%',  guarantee: '40件',  monthly: '65〜80件', half: '65〜80件', contractPeriod: '6ヶ月契約' },
+    volume: { achievementFee: '', referralFee: '', dailyLimit: '', monthlyLimit: '', monthlyBudget: '' },
   },
   holidayText: '弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。',
   excludeText: '・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。',
@@ -2026,6 +2027,12 @@ function getSettings() {
       paymentConfig: s.paymentConfig?.length  ? s.paymentConfig  : DEFAULT_SETTINGS.paymentConfig,
       planTemplates: s.planTemplates?.length  ? s.planTemplates  : DEFAULT_SETTINGS.planTemplates,
       planDetails:   s.planDetails?.length    ? s.planDetails    : DEFAULT_SETTINGS.planDetails,
+      plans: {
+        light:  { ...DEFAULT_SETTINGS.plans.light,  ...(s.plans?.light  || {}) },
+        basic:  { ...DEFAULT_SETTINGS.plans.basic,  ...(s.plans?.basic  || {}) },
+        pro:    { ...DEFAULT_SETTINGS.plans.pro,    ...(s.plans?.pro    || {}) },
+        volume: { ...DEFAULT_SETTINGS.plans.volume, ...(s.plans?.volume || {}) },
+      },
     };
   } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_SETTINGS)); }
 }
@@ -2484,11 +2491,17 @@ function updatePlanDefaults() {
     applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
     return;
   }
-  // planTemplate ID に一致するプラン（例: "volume"）→ テンプレートフィールドを生成
+  // planTemplate ID に一致するプラン（例: "volume"）→ テンプレートフィールドを生成してデフォルト値を入力
   const tmplMatch = s.planTemplates && s.planTemplates.find(t => t.id === plan);
   if (tmplMatch) {
     if (_cf) { _cf.innerHTML = buildTemplatePlanFields(tmplMatch); _cf.style.display = ''; }
     if (_pf) _pf.style.display = 'none';
+    // s.plans[plan] にデフォルト値があれば各フィールドに入力
+    const planDefaults = s.plans?.[plan] || {};
+    tmplMatch.items.forEach(item => {
+      const el = document.getElementById('plan-item-' + item.id);
+      if (el && planDefaults[item.id]) el.value = planDefaults[item.id];
+    });
     return;
   }
   applyStatic(plan);
@@ -3343,6 +3356,15 @@ function saveCase() {
             localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
           }catch(e){}
           // プラン選択肢は固定optionのため populatePlanDetails() は呼ばない
+        }
+        // 従量プランデフォルト値を localStorage に同期
+        if (data.plans && data.plans.volume) {
+          try{
+            var cpPV=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
+            if(!cpPV.plans) cpPV.plans={};
+            cpPV.plans.volume=data.plans.volume;
+            localStorage.setItem('gaiheki_settings',JSON.stringify(cpPV));
+          }catch(e){}
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {
