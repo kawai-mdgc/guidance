@@ -2015,24 +2015,25 @@ function getSettings() {
   try {
     const s = JSON.parse(localStorage.getItem('gaiheki_settings') || 'null');
     if (!s) return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    // planTemplates: s.planTemplates を使いつつ volume テンプレートが欠けていれば DEFAULT から補完
+    const _storedTmpls = s.planTemplates?.length ? s.planTemplates : DEFAULT_SETTINGS.planTemplates;
+    const _volTmpl = DEFAULT_SETTINGS.planTemplates.find(t => t.id === 'volume');
+    const _planTemplates = (_volTmpl && !_storedTmpls.find(t => t.id === 'volume'))
+      ? [..._storedTmpls, _volTmpl]
+      : _storedTmpls;
     return {
       ...DEFAULT_SETTINGS, ...s,
-      plans: {
-        light: { ...DEFAULT_SETTINGS.plans.light, ...(s.plans?.light || {}) },
-        basic: { ...DEFAULT_SETTINGS.plans.basic, ...(s.plans?.basic || {}) },
-        pro:   { ...DEFAULT_SETTINGS.plans.pro,   ...(s.plans?.pro   || {}) },
-      },
-      staffList:     s.staffList?.length     ? s.staffList     : DEFAULT_SETTINGS.staffList,
-      csStaff:       s.csStaff?.length       ? s.csStaff       : DEFAULT_SETTINGS.csStaff,
-      paymentConfig: s.paymentConfig?.length  ? s.paymentConfig  : DEFAULT_SETTINGS.paymentConfig,
-      planTemplates: s.planTemplates?.length  ? s.planTemplates  : DEFAULT_SETTINGS.planTemplates,
-      planDetails:   s.planDetails?.length    ? s.planDetails    : DEFAULT_SETTINGS.planDetails,
       plans: {
         light:  { ...DEFAULT_SETTINGS.plans.light,  ...(s.plans?.light  || {}) },
         basic:  { ...DEFAULT_SETTINGS.plans.basic,  ...(s.plans?.basic  || {}) },
         pro:    { ...DEFAULT_SETTINGS.plans.pro,    ...(s.plans?.pro    || {}) },
         volume: { ...DEFAULT_SETTINGS.plans.volume, ...(s.plans?.volume || {}) },
       },
+      staffList:     s.staffList?.length     ? s.staffList     : DEFAULT_SETTINGS.staffList,
+      csStaff:       s.csStaff?.length       ? s.csStaff       : DEFAULT_SETTINGS.csStaff,
+      paymentConfig: s.paymentConfig?.length  ? s.paymentConfig  : DEFAULT_SETTINGS.paymentConfig,
+      planTemplates: _planTemplates,
+      planDetails:   s.planDetails?.length    ? s.planDetails    : DEFAULT_SETTINGS.planDetails,
     };
   } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_SETTINGS)); }
 }
@@ -2451,12 +2452,13 @@ function updatePlanDefaults() {
   const TYPE_STATIC = {ライト:'light',ベーシック:'basic',プロ:'pro'};
   const applyStatic = (key) => {
     const d = s.plans?.[key] || DEFAULT_SETTINGS.plans?.[key];
-    if (!d) return false;
-    document.getElementById('monthly_fee').value = d.fee;
-    document.getElementById('commission').value  = d.commission;
-    document.getElementById('guarantee').value   = d.guarantee;
-    document.getElementById('monthly_est').value = d.monthly;
-    document.getElementById('half_est').value    = d.half;
+    // fee が未定義のプラン（例: volume）には適用しない → undefined がフォームに入るのを防ぐ
+    if (!d || d.fee === undefined) return false;
+    document.getElementById('monthly_fee').value = d.fee        ?? '';
+    document.getElementById('commission').value  = d.commission ?? '';
+    document.getElementById('guarantee').value   = d.guarantee  ?? '';
+    document.getElementById('monthly_est').value = d.monthly    ?? '';
+    document.getElementById('half_est').value    = d.half       ?? '';
     return true;
   };
   if (plan.startsWith('vp_')) {
