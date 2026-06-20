@@ -2943,8 +2943,7 @@ function saveCase() {
   updatePaymentNoteOptions();
   const pnEl = document.getElementById('payment_note');
   if (pnEl && d.payment_note) pnEl.value = d.payment_note;
-  const _pf = document.getElementById('plan-detail-fields');
-  if (_pf) _pf.style.display = document.getElementById('plan')?.value ? '' : 'none';
+  updatePlanDefaults();
   initPlanCustomFields(d.planItems);
   render();
   populateCsAssigneeUI(d.cs_assignee || '');
@@ -3063,8 +3062,7 @@ function saveCase() {
         if (typeof updatePaymentNoteOptions === 'function') updatePaymentNoteOptions();
         var pnEl = document.getElementById('payment_note');
         if (pnEl && d.payment_note) pnEl.value = d.payment_note;
-        var _pf = document.getElementById('plan-detail-fields');
-        if (_pf) _pf.style.display = document.getElementById('plan')?.value ? '' : 'none';
+        if (typeof updatePlanDefaults === 'function') updatePlanDefaults();
         if (typeof initPlanCustomFields === 'function') initPlanCustomFields(d.planItems);
         if (typeof render === 'function') render();
         if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI(d.cs_assignee || ''); else if (typeof renderP4 === 'function') renderP4();
@@ -3296,7 +3294,7 @@ function saveCase() {
             cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
             localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
           }catch(e){}
-          if (typeof populatePlanDetails==='function') populatePlanDetails();
+          // プラン選択肢は固定optionのため populatePlanDetails() は呼ばない
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {
