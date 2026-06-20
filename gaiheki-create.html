@@ -1982,6 +1982,24 @@ const DEFAULT_SETTINGS = {
     { id:'cs2', name:'留木涼花',  bio:'迅速・丁寧な対応をモットーにしています。', phone:'' },
     { id:'cs3', name:'手光菜津美', bio:'何でもお気軽にご相談ください。', phone:'' },
   ],
+  planTemplates: [
+    { id:'monthly', name:'月額プラン', items:[
+      {id:'fee',    label:'月額費用（税抜）',       valueType:'single', choices:[]},
+      {id:'comm',   label:'成約手数料',              valueType:'single', choices:[]},
+      {id:'guar',   label:'最低保証',                valueType:'single', choices:[]},
+      {id:'monthly',label:'月間紹介件数（想定）',     valueType:'single', choices:[]},
+      {id:'period', label:'契約期間',                valueType:'single', choices:[]},
+      {id:'half',   label:'6ヶ月紹介件数（想定）',    valueType:'single', choices:[]},
+    ]},
+    { id:'volume', name:'従量プラン', items:[
+      {id:'achievementFee',label:'成約手数料',  valueType:'single', choices:[]},
+      {id:'referralFee',   label:'紹介手数料',  valueType:'single', choices:[]},
+      {id:'dailyLimit',    label:'日上限件数',  valueType:'single', choices:[]},
+      {id:'monthlyLimit',  label:'月上限件数',  valueType:'single', choices:[]},
+      {id:'monthlyBudget', label:'月上限予算',  valueType:'single', choices:[]},
+    ]},
+  ],
+  planDetails: [],
 };
 
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
@@ -1999,9 +2017,11 @@ function getSettings() {
         basic: { ...DEFAULT_SETTINGS.plans.basic, ...(s.plans?.basic || {}) },
         pro:   { ...DEFAULT_SETTINGS.plans.pro,   ...(s.plans?.pro   || {}) },
       },
-      staffList:     s.staffList?.length ? s.staffList : DEFAULT_SETTINGS.staffList,
-      csStaff:       s.csStaff?.length   ? s.csStaff   : DEFAULT_SETTINGS.csStaff,
-      paymentConfig: s.paymentConfig?.length ? s.paymentConfig : DEFAULT_SETTINGS.paymentConfig,
+      staffList:     s.staffList?.length     ? s.staffList     : DEFAULT_SETTINGS.staffList,
+      csStaff:       s.csStaff?.length       ? s.csStaff       : DEFAULT_SETTINGS.csStaff,
+      paymentConfig: s.paymentConfig?.length  ? s.paymentConfig  : DEFAULT_SETTINGS.paymentConfig,
+      planTemplates: s.planTemplates?.length  ? s.planTemplates  : DEFAULT_SETTINGS.planTemplates,
+      planDetails:   s.planDetails?.length    ? s.planDetails    : DEFAULT_SETTINGS.planDetails,
     };
   } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_SETTINGS)); }
 }
