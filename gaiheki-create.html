@@ -2304,7 +2304,7 @@ function syncP1Rows() {
 
   // planTemplate ID に一致するプラン（例: "volume"）— planDetails の値を優先表示
   if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
-    const planTmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    const planTmpl = findTmplForPlan(plan, s);
     if (planTmpl) {
       fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
       // planDetails からテンプレートに対応する値を取得
@@ -2378,7 +2378,7 @@ function getPlanItemValues() {
   const s = getSettings();
   // planTemplate ID プラン（例: "volume"）
   if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
-    const tmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    const tmpl = findTmplForPlan(plan, s);
     if (tmpl) {
       const res = {};
       (tmpl.items||[]).forEach(item => {
@@ -2423,7 +2423,7 @@ function initPlanCustomFields(planItems) {
   const s = getSettings();
   // planTemplate ID プラン（例: "volume"）— updatePlanDefaults でフィールド生成済み、値のみセット
   if (!plan.includes(':') && !plan.startsWith('vp_')) {
-    const tmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+    const tmpl = findTmplForPlan(plan, s);
     if (tmpl && planItems && typeof planItems === 'object') {
       Object.keys(planItems).forEach(function(itemId) {
         const txt = document.getElementById('plan-item-' + itemId);
@@ -2504,8 +2504,8 @@ function updatePlanDefaults() {
     applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
     return;
   }
-  // planTemplate ID に一致するプラン（例: "volume"）→ テンプレートフィールドを生成してデフォルト値を入力
-  const tmplMatch = s.planTemplates && s.planTemplates.find(t => t.id === plan);
+  // planTemplate ID に一致するプラン（例: "volume"）→ テンプレートフィールドを生成
+  const tmplMatch = findTmplForPlan(plan, s);
   if (tmplMatch) {
     // planDetails があれば buildPlanCustomFields（複数値 select 対応）を使用
     const det = s.planDetails && s.planDetails.find(d => d.templateId === tmplMatch.id);
@@ -2523,6 +2523,18 @@ function updatePlanDefaults() {
     return;
   }
   applyStatic(plan);
+}
+
+/* ── planTemplate 検索ヘルパー ──
+   plan="volume" のとき、id='volume' で見つからなければ
+   name に '従量' を含むテンプレートにフォールバックする */
+function findTmplForPlan(plan, s) {
+  const tmpls = s && s.planTemplates;
+  if (!tmpls || !plan) return null;
+  const direct = tmpls.find(t => t.id === plan);
+  if (direct) return direct;
+  if (plan === 'volume') return tmpls.find(t => t.name && t.name.includes('従量')) || null;
+  return null;
 }
 
 function populateVolumePlans() {
@@ -3351,7 +3363,7 @@ function saveCase() {
             curVp.volumePlans = data.volumePlans;
             localStorage.setItem('gaiheki_settings', JSON.stringify(curVp));
           } catch(e) {}
-          if (typeof populateVolumePlans === 'function') populateVolumePlans();
+          // populateVolumePlans() は呼ばない（旧 vp_ 形式のオプションを追加しない）
         }
         if (data.staffList && data.staffList.length) {
           try {
