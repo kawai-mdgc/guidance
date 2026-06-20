@@ -2252,6 +2252,13 @@ function syncP1Rows() {
     }
   }
 
+  // 従量プラン：月額プランの固定行をすべて非表示
+  if (plan && plan.startsWith('vp_')) {
+    fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+    if (customBody) customBody.innerHTML = '';
+    return;
+  }
+
   if (customBody) customBody.innerHTML = '';
   fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display = plan ? '' : 'none'; });
 }

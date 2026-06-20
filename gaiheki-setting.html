@@ -348,6 +348,9 @@ a.header-logo:hover { opacity: 0.8; }
       <button class="btn-cs-add" onclick="ptAddCopy()">＋ 既存形態から追加する</button>
       <div class="f-sec" style="margin-top:20px">プラン詳細設定</div>
       <div id="plan-detail-list"></div>
+      <div class="f-sec" style="margin-top:20px">従量プラン設定</div>
+      <div id="vp-list"></div>
+      <button class="btn-cs-add" onclick="vpAdd()">＋ 従量プランを追加</button>
       <div class="save-btn-wrap">
         <span class="dirty-badge" id="dirty-plan">未保存の変更があります</span>
         <button id="btn-save-plan" class="btn-save" onclick="savePlanSection()">保存</button>
@@ -996,7 +999,7 @@ function saveSectionData(key, data) {
 }
 
 /* ── プランテンプレート・詳細管理 ── */
-let planTemplates = [], planDetails = [];
+let planTemplates = [], planDetails = [], volumePlans = [];
 let _ptCnt = 0, _piCnt = 0, _pdCnt = 0;
 const _ptId = () => 'pt_' + (++_ptCnt) + '_' + Date.now();
 const _piId = () => 'pi_' + (++_piCnt) + '_' + Date.now();
@@ -1190,6 +1193,36 @@ function pdConfirmAdd(){
   document.getElementById('pdgroup-'+det.id)?.scrollIntoView({behavior:'smooth'});
 }
 function pdDelete(id){if(!confirm('このプラン詳細グループを削除しますか？'))return;planDetails=planDetails.filter(d=>d.id!==id);checkDirty('plan');pdRenderAll();}
+
+/* ── 従量プラン管理 ── */
+function vpRenderAll(){
+  const el=document.getElementById('vp-list');if(!el)return;
+  if(!volumePlans.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:6px 0">まだありません</div>';return;}
+  el.innerHTML=volumePlans.map((vp,i)=>vpCard(vp,i)).join('');
+}
+function vpCard(vp,i){
+  const f=(key,lbl,ph)=>`<div class="field"><label>${lbl}</label><input type="text" value="${escHtml(vp[key]||'')}" placeholder="${ph}" oninput="vpUpdate(${i},'${key}',this.value)"></div>`;
+  return `<div style="background:var(--white);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <input type="text" value="${escHtml(vp.planName||'')}" placeholder="従量プラン名（例：従量プランA）"
+        style="flex:1;padding:5px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-weight:700;color:var(--main);font-family:inherit"
+        oninput="vpUpdate(${i},'planName',this.value)">
+      <button class="btn-del" style="font-size:11px;padding:3px 9px" onclick="vpDelete(${i})">削除</button>
+    </div>
+    <div class="field-row">
+      ${f('achievementFee','成約手数料（%）','例：15')}
+      ${f('referralFee','紹介手数料（円）','例：500')}
+    </div>
+    <div class="field-row">
+      ${f('dailyLimit','日上限件数','例：5件')}
+      ${f('monthlyLimit','月上限件数','例：50件')}
+    </div>
+    ${f('monthlyBudget','月上限予算','例：25,000円')}
+  </div>`;
+}
+function vpAdd(){volumePlans.push({id:'vp_'+Date.now(),planName:'',achievementFee:'',referralFee:'',dailyLimit:'',monthlyLimit:'',monthlyBudget:''});checkDirty('plan');vpRenderAll();}
+function vpDelete(i){if(!confirm('この従量プランを削除しますか？'))return;volumePlans.splice(i,1);checkDirty('plan');vpRenderAll();}
+function vpUpdate(i,key,val){if(volumePlans[i])volumePlans[i][key]=val;checkDirty('plan');}
 function pdSetValue(id,type,itemId,val){
   const d=_pdGet(id);if(!d)return;
   d.values=d.values||{};d.values[type]=d.values[type]||{};d.values[type][itemId]=val;checkDirty('plan');
@@ -1200,11 +1233,12 @@ function savePlanSection() {
     const existing = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
     existing.planTemplates = JSON.parse(JSON.stringify(planTemplates));
     existing.planDetails   = JSON.parse(JSON.stringify(planDetails));
+    existing.volumePlans   = JSON.parse(JSON.stringify(volumePlans));
     localStorage.setItem('gaiheki_settings', JSON.stringify(existing));
     snapshotSection('plan');
     try {
       firebase.firestore().collection('settings').doc('gaiheki').set(
-        { planTemplates: JSON.parse(JSON.stringify(planTemplates)), planDetails: JSON.parse(JSON.stringify(planDetails)) }, { merge: true }
+        { planTemplates: JSON.parse(JSON.stringify(planTemplates)), planDetails: JSON.parse(JSON.stringify(planDetails)), volumePlans: JSON.parse(JSON.stringify(volumePlans)) }, { merge: true }
       );
     } catch(fe) { console.warn('Firestore plan save:', fe); }
     const t = document.getElementById('toast');
@@ -1617,7 +1651,8 @@ function escHtml(s) {
     planTemplates = JSON.parse(JSON.stringify(DEFAULT_PLAN_TEMPLATES));
     planDetails   = JSON.parse(JSON.stringify(DEFAULT_PLAN_DETAILS));
   }
-  ptRenderAll(); pdRenderAll();
+  volumePlans = rawPlan.volumePlans || [];
+  ptRenderAll(); pdRenderAll(); vpRenderAll();
 
   staffList = [...s.staffList];
   renderStaffList();
@@ -1706,10 +1741,10 @@ function escHtml(s) {
           if (d.planTemplates && d.planTemplates.length) {
             try{
               var cpP=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
-              cpP.planTemplates=d.planTemplates; cpP.planDetails=d.planDetails||[];
+              cpP.planTemplates=d.planTemplates; cpP.planDetails=d.planDetails||[]; cpP.volumePlans=d.volumePlans||[];
               localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
-              planTemplates=d.planTemplates; planDetails=d.planDetails||[];
-              ptRenderAll(); pdRenderAll();
+              planTemplates=d.planTemplates; planDetails=d.planDetails||[]; volumePlans=d.volumePlans||[];
+              ptRenderAll(); pdRenderAll(); vpRenderAll();
             }catch(e){}
           }
           /* ローンURL（Firestoreから読み込んでURL設定欄に反映） */
