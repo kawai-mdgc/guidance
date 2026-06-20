@@ -2304,17 +2304,30 @@ function syncP1Rows() {
     return;
   }
 
-  // planTemplate ID に一致するプラン（例: "volume"）
+  // planTemplate ID に一致するプラン（例: "volume"）— planDetails の値を優先表示
   if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
     const planTmpl = s.planTemplates && s.planTemplates.find(t => t.id === plan);
     if (planTmpl) {
       fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+      // planDetails からテンプレートに対応する値を取得
+      const det = s.planDetails && s.planDetails.find(d => d.templateId === planTmpl.id);
+      const firstType = det ? Object.keys(det.values || {})[0] : null;
+      const tv = (det && firstType) ? (det.values[firstType] || {}) : {};
       let html = '';
       (planTmpl.items||[]).forEach(item => {
-        const el = document.getElementById('plan-item-'+item.id);
-        const val = el ? el.value.trim() : '';
-        if (!val) return;
-        html += '<tr><td class="k" style="white-space:nowrap">'+esc(item.label||'')+'</td><td class="v" colspan="3">'+esc(val)+'</td></tr>';
+        const raw = tv[item.id];
+        let displayVal;
+        if (Array.isArray(raw) && raw.length) {
+          displayVal = raw.filter(v => v).join(' / ');  // 複数値: "/" 区切り
+        } else if (raw) {
+          displayVal = String(raw);
+        } else {
+          // planDetails に値がなければフォーム入力値を参照
+          const el = document.getElementById('plan-item-'+item.id);
+          displayVal = el ? el.value.trim() : '';
+        }
+        if (!displayVal) return;
+        html += '<tr><td class="k" style="white-space:nowrap">'+esc(item.label||'')+'</td><td class="v" colspan="3">'+esc(displayVal)+'</td></tr>';
       });
       if (customBody) customBody.innerHTML = html;
       return;
@@ -2496,14 +2509,19 @@ function updatePlanDefaults() {
   // planTemplate ID に一致するプラン（例: "volume"）→ テンプレートフィールドを生成してデフォルト値を入力
   const tmplMatch = s.planTemplates && s.planTemplates.find(t => t.id === plan);
   if (tmplMatch) {
+    // planDetails があれば buildPlanCustomFields（複数値 select 対応）を使用
+    const det = s.planDetails && s.planDetails.find(d => d.templateId === tmplMatch.id);
+    if (det) {
+      const firstType = Object.keys(det.values || {})[0];
+      if (firstType) {
+        if (_cf) { _cf.innerHTML = buildPlanCustomFields(det, tmplMatch, firstType); _cf.style.display = ''; }
+        if (_pf) _pf.style.display = 'none';
+        return;
+      }
+    }
+    // planDetails なし: 空フィールドにフォールバック
     if (_cf) { _cf.innerHTML = buildTemplatePlanFields(tmplMatch); _cf.style.display = ''; }
     if (_pf) _pf.style.display = 'none';
-    // s.plans[plan] にデフォルト値があれば各フィールドに入力
-    const planDefaults = s.plans?.[plan] || {};
-    tmplMatch.items.forEach(item => {
-      const el = document.getElementById('plan-item-' + item.id);
-      if (el && planDefaults[item.id]) el.value = planDefaults[item.id];
-    });
     return;
   }
   applyStatic(plan);
