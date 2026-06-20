@@ -2252,10 +2252,26 @@ function syncP1Rows() {
     }
   }
 
-  // 従量プラン：月額プランの固定行をすべて非表示
+  // 従量プラン：設定データから動的生成
   if (plan && plan.startsWith('vp_')) {
-    fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
-    if (customBody) customBody.innerHTML = '';
+    [...fixedIds,'p1-vp-referral-row','p1-vp-limits-row','p1-vp-budget-row'].forEach(id=>{
+      const r=document.getElementById(id); if(r) r.style.display='none';
+    });
+    const vpData=(s.volumePlans||[]).find(p=>p.id===plan)||{};
+    const VP_FIELDS=[
+      {key:'achievementFee',label:'成約手数料',fmt:val=>val?val+'%':null},
+      {key:'referralFee',   label:'紹介手数料',fmt:val=>val?Number(val).toLocaleString()+'円':null},
+      {key:'dailyLimit',    label:'日上限件数'},
+      {key:'monthlyLimit',  label:'月上限件数'},
+      {key:'monthlyBudget', label:'月上限予算'},
+    ];
+    let html='';
+    VP_FIELDS.forEach(f=>{
+      const val=vpData[f.key]; if(!val) return;
+      const disp=f.fmt?f.fmt(val):esc(val); if(!disp) return;
+      html+='<tr><td class="k" style="white-space:nowrap">'+esc(f.label)+'</td><td class="v" colspan="3">'+disp+'</td></tr>';
+    });
+    if(customBody) customBody.innerHTML=html;
     return;
   }
 
@@ -2653,25 +2669,14 @@ function render() {
   setVal('p-half',       v('half_est'));
   const isVpPlan = v('plan').startsWith('vp_');
   const vpData = isVpPlan ? (s.volumePlans || []).find(p => p.id === v('plan')) || {} : null;
-  // guarantee row
-  const guarRow = document.getElementById('p1-guarantee-row');
-  if (guarRow) guarRow.style.display = isVpPlan ? 'none' : '';
-  // volume plan rows
-  ['p1-vp-referral-row','p1-vp-limits-row','p1-vp-budget-row'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.style.display = isVpPlan ? '' : 'none';
-  });
   if (!isVpPlan) {
+    // 月額プラン：最低保証行を表示して値をセット
+    const guarRow = document.getElementById('p1-guarantee-row');
+    if (guarRow) guarRow.style.display = v('plan') ? '' : 'none';
     setVal('p-guarantee', v('guarantee'));
   } else if (vpData) {
-    const planLabel2 = { light:'LIGHT（ライト）', basic:'BASIC（ベーシック）', pro:'PRO（プロ）' };
+    // 従量プラン：プラン名のみ（行は syncP1Rows が動的生成）
     setVal('p-plan', vpData.planName || '従量プラン');
-    setVal('p-fee', '0円');
-    setVal('p-commission', (vpData.achievementFee || '') + '%');
-    setVal('p-period', 'フリー（最低6ヶ月）');
-    setVal('p-referral-fee', vpData.referralFee ? Number(vpData.referralFee).toLocaleString() + '円' : '—');
-    setVal('p-daily-limit', vpData.dailyLimit || '—');
-    setVal('p-monthly-limit', vpData.monthlyLimit || '—');
-    setVal('p-monthly-budget', vpData.monthlyBudget || '—');
   }
 
   const ap = document.getElementById('p-areas');
