@@ -3351,7 +3351,7 @@ function render() {
     }
     function _setWrap(id, html) { var el=document.getElementById(id); if(el) el.innerHTML=html; }
     var u1 = s.loanMaterialUrl    || '';
-    var u2 = (s.loanApplicationUrl === 'https://drive.google.com/file/d/1YWvqYl0y2YJdtkg9s-9Umu8nKb_xF_c8/view?usp=sharing') ? '' : (s.loanApplicationUrl || '');
+    var u2 = s.loanApplicationUrl || '';
     var u3 = s.inspectionGiftUrl  || '';
     var u4 = s.completionGiftUrl  || '';
     _setWrap('p3b-loan-material-wrap',    _chipHtml(u1, '📄 【madoguchi様】業務協定契約のご提案_Ver2.0_20251201 (1) (1).pdf'));
