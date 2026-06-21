@@ -1060,7 +1060,18 @@ function _ptCard(t){
 </div>`;
 }
 function _piCard(tmplId,item){
-  return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div></div>`;
+  const hasSubBlocks = item.subBlocks && item.subBlocks.length > 0;
+  const sbChecked = hasSubBlocks ? 'checked' : '';
+  const sbContainerDisplay = hasSubBlocks ? '' : 'none';
+  const sbListHtml = (item.subBlocks || []).map(function(name, i) {
+    return '<div style="display:flex;gap:4px;margin-bottom:4px">'
+      + '<input type="text" value="' + escHtml(name) + '" placeholder="ブロック名" '
+      + 'style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit" '
+      + 'oninput="ptItemUpdateSubBlock(\'' + tmplId + '\',\'' + item.id + '\',' + i + ',this.value)">'
+      + '<button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptItemDeleteSubBlock(\'' + tmplId + '\',\'' + item.id + '\',' + i + ')">削除</button>'
+      + '</div>';
+  }).join('');
+  return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div><div style="margin-top:6px;font-size:11px"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${sbChecked} onchange="ptItemToggleSubBlocks('${tmplId}','${item.id}',this.checked)"> 内訳内にブロックを追加する</label><div id="sb-container-${tmplId}-${item.id}" style="display:${sbContainerDisplay};margin-top:6px;padding-left:12px"><div id="sb-list-${tmplId}-${item.id}">${sbListHtml}</div><button class="btn-pm-add" onclick="ptItemAddSubBlock('${tmplId}','${item.id}')">＋ ブロックを追加</button></div></div></div>`;
 }
 function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');}
 
@@ -1087,7 +1098,7 @@ function ptConfirmCopy(){
     id:newId,
     name:src.name+' (コピー)',
     types:[...src.types],
-    items:src.items.map(item=>({id:_piId(),label:item.label,valueType:item.valueType,choices:[...(item.choices||[])]}))
+    items:src.items.map(item=>({id:_piId(),label:item.label,valueType:item.valueType,choices:[...(item.choices||[])],subBlocks:[...(item.subBlocks||[])]}))
   };
   planTemplates.push(newTmpl);checkDirty('plan');
   document.getElementById('pt-copy-sel')?.remove();
@@ -1107,6 +1118,59 @@ function ptItemAdd(tmplId){const t=_ptGet(tmplId);if(!t)return;t.items.push({id:
 function ptItemDelete(tmplId,itemId){const t=_ptGet(tmplId);if(!t)return;t.items=t.items.filter(i=>i.id!==itemId);checkDirty('plan');_ptReRenderItems(tmplId);_pdSyncTemplate(tmplId);}
 function ptItemUpdateLabel(tmplId,itemId,v){const i=_piGet(tmplId,itemId);if(i){i.label=v;checkDirty('plan');_pdSyncTemplate(tmplId);}}
 function ptItemSetType(tmplId,itemId,type){const i=_piGet(tmplId,itemId);if(!i)return;i.valueType=type;checkDirty('plan');const el=document.getElementById('pirow-'+tmplId+'-'+itemId);if(el)el.outerHTML=_piCard(tmplId,i);}
+
+function ptItemToggleSubBlocks(tmplId, itemId, checked) {
+  const item = _piGet(tmplId, itemId);
+  if (!item) return;
+  if (!checked) {
+    item.subBlocks = [];
+  } else {
+    if (!item.subBlocks) item.subBlocks = [];
+  }
+  checkDirty('plan');
+  const container = document.getElementById('sb-container-' + tmplId + '-' + itemId);
+  if (container) container.style.display = checked ? '' : 'none';
+  _ptRerenderSubBlocks(tmplId, itemId);
+}
+
+function ptItemAddSubBlock(tmplId, itemId) {
+  const item = _piGet(tmplId, itemId);
+  if (!item) return;
+  if (!item.subBlocks) item.subBlocks = [];
+  item.subBlocks.push('');
+  checkDirty('plan');
+  _ptRerenderSubBlocks(tmplId, itemId);
+}
+
+function ptItemUpdateSubBlock(tmplId, itemId, idx, val) {
+  const item = _piGet(tmplId, itemId);
+  if (!item || !item.subBlocks) return;
+  item.subBlocks[idx] = val;
+  checkDirty('plan');
+}
+
+function ptItemDeleteSubBlock(tmplId, itemId, idx) {
+  const item = _piGet(tmplId, itemId);
+  if (!item || !item.subBlocks) return;
+  item.subBlocks.splice(idx, 1);
+  checkDirty('plan');
+  _ptRerenderSubBlocks(tmplId, itemId);
+}
+
+function _ptRerenderSubBlocks(tmplId, itemId) {
+  const item = _piGet(tmplId, itemId);
+  const listEl = document.getElementById('sb-list-' + tmplId + '-' + itemId);
+  if (!listEl) return;
+  const blocks = (item && item.subBlocks) || [];
+  listEl.innerHTML = blocks.map(function(name, i) {
+    return '<div style="display:flex;gap:4px;margin-bottom:4px">'
+      + '<input type="text" value="' + escHtml(name) + '" placeholder="ブロック名" '
+      + 'style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit" '
+      + 'oninput="ptItemUpdateSubBlock(\'' + tmplId + '\',\'' + itemId + '\',' + i + ',this.value)">'
+      + '<button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptItemDeleteSubBlock(\'' + tmplId + '\',\'' + itemId + '\',' + i + ')">削除</button>'
+      + '</div>';
+  }).join('');
+}
 
 /* ── Detail render (group-based) ── */
 function pdRenderAll(){
@@ -1138,7 +1202,17 @@ function _pdTypeCard(det,tmpl,type){
       return `<div class="field"><label>${escHtml(item.label)}</label>${inputs}<button class="btn-pm-add" onclick="pdAddMultiValue('${det.id}','${escHtml(type)}','${item.id}')">＋ 項目を追加する</button></div>`;
     }
     const val=typeof raw==='string'?raw:(Array.isArray(raw)?(raw[0]||''):'');
-    return `<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" oninput="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)" placeholder="値を入力"></div>`;
+    let fieldHtml=`<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" oninput="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)" placeholder="値を入力"></div>`;
+    if(item.subBlocks && item.subBlocks.length>0){
+      const sbInputs=item.subBlocks.map(sbName=>{
+        const sbKey=item.id+'.'+sbName;
+        const sbRaw=tv[sbKey];
+        const sbVal=typeof sbRaw==='string'?sbRaw:(Array.isArray(sbRaw)?(sbRaw[0]||''):'');
+        return `<div class="field" style="margin-left:12px;margin-top:4px"><label style="font-size:10px;color:var(--muted)">${escHtml(sbName)}</label><input type="text" value="${escHtml(sbVal)}" oninput="pdSetValue('${det.id}','${escHtml(type)}','${escHtml(sbKey)}',this.value)" placeholder="${escHtml(sbName)}"></div>`;
+      }).join('');
+      fieldHtml+=sbInputs;
+    }
+    return fieldHtml;
   }).join('');
   return `<div class="plan-card" id="pdcard-${det.id}-${escHtml(type)}"><div class="plan-card-head">${escHtml(type)}</div>${itemsHtml}</div>`;
 }

@@ -2236,9 +2236,28 @@ function syncP1Rows() {
         const item = items[idx];
         if (!item) return null;
         const el = document.getElementById('plan-item-' + item.id);
-        return { label: esc(item.label || DFLT_LBL[idx] || ''), value: esc(el ? (el.value || '—') : '—') };
+        return { label: esc(item.label || DFLT_LBL[idx] || ''), value: esc(el ? (el.value || '—') : '—'), item: item };
       };
       const row1 = function(r) {
+        if (r.item && r.item.subBlocks && r.item.subBlocks.length > 0) {
+          const slStyle = 'background:#f5f5f5;font-size:11px;font-weight:600;padding:6px 14px;border:1px solid var(--border);vertical-align:middle';
+          const svStyle = 'background:var(--white);padding:7px 12px;border:1px solid var(--border)';
+          const N = r.item.subBlocks.length;
+          let rows = '';
+          r.item.subBlocks.forEach(function(sbName, si) {
+            const sbEl = document.getElementById('plan-item-' + r.item.id + '__' + sbName);
+            const sbVal = esc(sbEl ? (sbEl.value.trim() || '—') : '—');
+            if (si === 0) {
+              rows += '<tr><td class="k" rowspan="' + N + '" style="vertical-align:middle">' + r.label + '</td>'
+                + '<td style="' + slStyle + '">' + esc(sbName) + '</td>'
+                + '<td colspan="2" style="' + svStyle + '">' + sbVal + '</td></tr>';
+            } else {
+              rows += '<tr><td style="' + slStyle + '">' + esc(sbName) + '</td>'
+                + '<td colspan="2" style="' + svStyle + '">' + sbVal + '</td></tr>';
+            }
+          });
+          return rows;
+        }
         return '<tr><td class="k" style="white-space:nowrap">' + r.label + '</td><td class="v" colspan="3">' + r.value + '</td></tr>';
       };
       const row2 = function(a, b) {
@@ -2249,12 +2268,20 @@ function syncP1Rows() {
       };
       let html = '';
       const i0=getRow(0), i1=getRow(1), i2=getRow(2), i3=getRow(3), i4=getRow(4), i5=getRow(5);
-      // 月額費用 + 成約手数料 → 2ブロック行
-      if (i0 && i1) html += row2(i0, i1); else if (i0) html += row1(i0);
+      // Items with subBlocks always render as full-width; others use the original pairing logic
+      const hasSubBlocks0 = i0 && i0.item && i0.item.subBlocks && i0.item.subBlocks.length > 0;
+      const hasSubBlocks1 = i1 && i1.item && i1.item.subBlocks && i1.item.subBlocks.length > 0;
+      const hasSubBlocks2 = i2 && i2.item && i2.item.subBlocks && i2.item.subBlocks.length > 0;
+      const hasSubBlocks3 = i3 && i3.item && i3.item.subBlocks && i3.item.subBlocks.length > 0;
+      const hasSubBlocks5 = i5 && i5.item && i5.item.subBlocks && i5.item.subBlocks.length > 0;
+      // 月額費用 + 成約手数料 → 2ブロック行（subBlocks があれば個別行）
+      if (i0 && i1 && !hasSubBlocks0 && !hasSubBlocks1) html += row2(i0, i1);
+      else { if (i0) html += row1(i0); if (i1) html += row1(i1); }
       // 契約期間 → 単独行
       if (i4) html += row1(i4);
-      // 紹介件数月間 + 紹介件数6ヶ月 → 2ブロック行
-      if (i3 && i5) html += row2(i3, i5); else if (i3) html += row1(i3);
+      // 紹介件数月間 + 紹介件数6ヶ月 → 2ブロック行（subBlocks があれば個別行）
+      if (i3 && i5 && !hasSubBlocks3 && !hasSubBlocks5) html += row2(i3, i5);
+      else { if (i3) html += row1(i3); if (i5) html += row1(i5); }
       // 最低保証 → 単独行
       if (i2) html += row1(i2);
       // 追加項目（7つ目以降）
@@ -2360,6 +2387,21 @@ function buildPlanCustomFields(det, tmpl, type) {
   const tv = (det.values || {})[type] || {};
   const items = tmpl.items;
   const buildField = function(item) {
+    // Items with subBlocks: show parent label as header, then sub-block inputs
+    if (item.subBlocks && item.subBlocks.length > 0) {
+      let f = '<div class="field"><label>' + esc(item.label || '') + '</label>';
+      item.subBlocks.forEach(function(sbName) {
+        const sbKey = item.id + '.' + sbName;
+        const sbRaw = tv[sbKey];
+        const sbVal = Array.isArray(sbRaw) ? (sbRaw[0] || '') : (typeof sbRaw === 'string' ? sbRaw : '');
+        f += '<div style="margin-top:4px"><label style="font-size:10px;color:var(--muted)">' + esc(sbName) + '</label>'
+          + '<input type="text" id="plan-item-' + esc(item.id) + '__' + esc(sbName)
+          + '" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit"'
+          + ' value="' + esc(sbVal) + '" oninput="onPlanItemChange()" placeholder="' + esc(sbName) + '">'
+          + '</div>';
+      });
+      return f + '</div>';
+    }
     const val = tv[item.id];
     const lbl = esc(item.label || '');
     let f = '<div class="field"><label>' + lbl + '</label>';
@@ -2379,11 +2421,16 @@ function buildPlanCustomFields(det, tmpl, type) {
     return f + '</div>';
   };
   let html = '';
-  for (let i = 0; i < items.length; i += 2) {
-    if (i + 1 < items.length) {
-      html += '<div class="field-row">' + buildField(items[i]) + buildField(items[i + 1]) + '</div>';
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    // Items with subBlocks span full width (no pairing)
+    if (item.subBlocks && item.subBlocks.length > 0) {
+      html += buildField(item);
+    } else if (i + 1 < items.length && !(items[i + 1].subBlocks && items[i + 1].subBlocks.length > 0)) {
+      html += '<div class="field-row">' + buildField(item) + buildField(items[i + 1]) + '</div>';
+      i++; // skip next since it was paired
     } else {
-      html += buildField(items[i]);
+      html += buildField(item);
     }
   }
   return html;
@@ -2420,9 +2467,18 @@ function getPlanItemValues() {
   const res = {};
   tmpl.items.forEach(item => {
     const radio = document.querySelector('input[name="plan-item-' + item.id + '"]:checked');
-    if (radio) { res[item.id] = radio.value; return; }
-    const txt = document.getElementById('plan-item-' + item.id);
-    if (txt) res[item.id] = txt.value;
+    if (radio) { res[item.id] = radio.value; }
+    else {
+      const txt = document.getElementById('plan-item-' + item.id);
+      if (txt) res[item.id] = txt.value;
+    }
+    // collect sub-block values
+    if (item.subBlocks && item.subBlocks.length > 0) {
+      item.subBlocks.forEach(function(sbName) {
+        const sbEl = document.getElementById('plan-item-' + item.id + '__' + sbName);
+        if (sbEl) res[item.id + '__' + sbName] = sbEl.value;
+      });
+    }
   });
   return res;
 }
@@ -2486,7 +2542,10 @@ function initPlanCustomFields(planItems) {
   if (planItems && typeof planItems === 'object') {
     Object.keys(planItems).forEach(itemId => {
       const val = planItems[itemId];
-      const radio = document.querySelector('input[name="plan-item-' + itemId + '"][value="' + val.replace(/"/g,'\\"') + '"]');
+      // sub-block values use double-underscore separator in HTML IDs
+      const sbEl = document.getElementById('plan-item-' + itemId);
+      if (sbEl) { sbEl.value = val; return; }
+      const radio = document.querySelector('input[name="plan-item-' + itemId + '"][value="' + String(val).replace(/"/g,'\\"') + '"]');
       if (radio) { radio.checked = true; return; }
       const txt = document.getElementById('plan-item-' + itemId);
       if (txt) txt.value = val;
