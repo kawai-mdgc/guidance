@@ -3426,12 +3426,22 @@ function collectFormData() {
   fields.forEach(f => { const el = document.getElementById(f); if(el) data[f] = el.value; });
   data.areas = [...areas];
   data.planItems = getPlanItemValues();
-  // プランのスナップショット（保存時点のプラン設定を丸ごと保存）
+  // プランのスナップショット
   const _planKey = v('plan');
   data.planSnapshot = {
     planKey: _planKey,
     data: JSON.parse(JSON.stringify(getSettings().plans?.[_planKey] || {}))
   };
+  // URLスナップショット
+  const _s = getSettings();
+  data.urlSnapshot = {
+    loanMaterialUrl:    _s.loanMaterialUrl    || '',
+    loanApplicationUrl: _s.loanApplicationUrl || '',
+    inspectionGiftUrl:  _s.inspectionGiftUrl  || '',
+    completionGiftUrl:  _s.completionGiftUrl  || '',
+  };
+  // CS担当者スナップショット
+  data.csSnapshot = JSON.parse(JSON.stringify(_s.csStaff || []));
   return data;
 }
 
@@ -3441,6 +3451,7 @@ function collectSettingsSnapshot() {
   return {
     plans:         JSON.parse(JSON.stringify(s.plans)),
     paymentConfig: JSON.parse(JSON.stringify(s.paymentConfig)),
+    csStaff:       JSON.parse(JSON.stringify(s.csStaff || [])),
     holidayText:   s.holidayText   || '',
     excludeText:   s.excludeText   || '',
     loginUrl:      s.loginUrl      || '',
@@ -3452,8 +3463,11 @@ function collectSettingsSnapshot() {
     loanApplicationUrl: s.loanApplicationUrl || '',
     formUrl1:           s.formUrl1           || '',
     formUrl2:           s.formUrl2           || '',
-    giftSurveyUrl: s.giftSurveyUrl || '',
-    giftWorkUrl:   s.giftWorkUrl   || '',
+    giftSurveyUrl:      s.giftSurveyUrl      || '',
+    giftWorkUrl:        s.giftWorkUrl        || '',
+    loanMaterialUrl:    s.loanMaterialUrl    || '',
+    inspectionGiftUrl:  s.inspectionGiftUrl  || '',
+    completionGiftUrl:  s.completionGiftUrl  || '',
   };
 }
 
@@ -3517,12 +3531,20 @@ function saveCase() {
   if (!c) { updatePlanDefaults(); render(); return; }
   // スナップショットがあれば設定値として優先使用（新規はlocalStorageを使用）
   if (c.settingsSnapshot) {
-    const base = JSON.parse(JSON.stringify(getSettings())); // staffList/csStaff は現在値
+    const base = JSON.parse(JSON.stringify(getSettings()));
     _settingsOverride = Object.assign(base, c.settingsSnapshot);
-    // planSnapshot がある場合、対象プランのデータをさらに上書き
+    // planSnapshot で対象プランをさらに上書き
     if (c.formData && c.formData.planSnapshot && c.formData.planSnapshot.planKey && c.formData.planSnapshot.data) {
       if (!_settingsOverride.plans) _settingsOverride.plans = {};
       _settingsOverride.plans[c.formData.planSnapshot.planKey] = c.formData.planSnapshot.data;
+    }
+    // urlSnapshot で新URLキーを上書き（settingsSnapshotに含まれていない旧案件向け）
+    if (c.formData && c.formData.urlSnapshot) {
+      Object.assign(_settingsOverride, c.formData.urlSnapshot);
+    }
+    // csSnapshot で CS担当者を上書き
+    if (c.formData && c.formData.csSnapshot) {
+      _settingsOverride.csStaff = JSON.parse(JSON.stringify(c.formData.csSnapshot));
     }
   }
   // 既存案件はスナップショットモード（Firestoreのプラン設定を再取得しない）
@@ -3636,11 +3658,19 @@ function saveCase() {
         if (c.settingsSnapshot && typeof getSettings === 'function') {
           var base = JSON.parse(JSON.stringify(getSettings()));
           window._settingsOverride = Object.assign(base, c.settingsSnapshot);
-          // planSnapshot がある場合、対象プランのデータをさらに上書き
+          // planSnapshot で対象プランをさらに上書き
           var _fps = c.formData && c.formData.planSnapshot;
           if (_fps && _fps.planKey && _fps.data) {
             if (!window._settingsOverride.plans) window._settingsOverride.plans = {};
             window._settingsOverride.plans[_fps.planKey] = _fps.data;
+          }
+          // urlSnapshot で新URLキーを上書き（旧案件向けフォールバック）
+          if (c.formData && c.formData.urlSnapshot) {
+            Object.assign(window._settingsOverride, c.formData.urlSnapshot);
+          }
+          // csSnapshot で CS担当者を上書き
+          if (c.formData && c.formData.csSnapshot) {
+            window._settingsOverride.csStaff = JSON.parse(JSON.stringify(c.formData.csSnapshot));
           }
         }
         // 既存案件はスナップショットモード
