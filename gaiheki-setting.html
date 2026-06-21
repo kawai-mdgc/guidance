@@ -457,10 +457,10 @@ a.header-logo:hover { opacity: 0.8; }
       <div class="section-desc">資料作成時にフォームへ自動入力されるデフォルトURLです。</div>
       <div class="url-grid">
         <div class="field"><label>ログイン管理画面URL</label><input type="text" id="login-url" placeholder="https://business.gaihekiplus.com/sign_in"></div>
-        <div class="field"><label>ローン媒体資料URL</label><input type="text" id="loan-doc-url" placeholder="Googleドライブ等のURL"></div>
-        <div class="field"><label>ローン申込書URL</label><input type="text" id="loan-apply-url" placeholder="Googleドライブ等のURL"></div>
-        <div class="field"><label>現調完了ギフト申請フォームURL</label><input type="text" id="gift-survey-url" placeholder="申請フォームURL"></div>
-        <div class="field"><label>作業完了ギフト申請フォームURL</label><input type="text" id="gift-work-url" placeholder="申請フォームURL"></div>
+        <div class="field"><label>ローン媒体資料URL</label><input type="text" id="loan-doc-url" placeholder="https://drive.google.com/..."></div>
+        <div class="field"><label>ローンお申込書URL</label><input type="text" id="loan-apply-url" placeholder="https://drive.google.com/..."></div>
+        <div class="field"><label>現調完了ギフト申請フォームURL</label><input type="text" id="gift-survey-url" placeholder="https://docs.google.com/forms/..."></div>
+        <div class="field"><label>作業完了ギフト申請フォームURL</label><input type="text" id="gift-work-url" placeholder="https://docs.google.com/forms/..."></div>
         <div class="field"><label>写真アップロードフォームURL</label><input type="text" id="photo-url" placeholder="GoogleフォームのURL等"></div>
         <div class="field"><label>加盟店紹介ページURL</label><input type="text" id="store-page-url" placeholder="https://gaihekiplus.com/store/..."></div>
       </div>
@@ -486,7 +486,12 @@ const DEFAULT_SETTINGS = {
   holidayText: '弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。',
   excludeText: '・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。',
   staffList: ['清水駿佑', '恩田雅史', '鈴木宏午', '皆川進太', '中村元彌', '松本そよ', '穴澤萌花', '亀井翼', '染葉健介', '杉本山東'],
-  loanDocUrl: '', loanApplyUrl: '', giftSurveyUrl: '', giftWorkUrl: '', photoUrl: '', storePageUrl: '', loginUrl: 'https://business.gaihekiplus.com/sign_in',
+  loanDocUrl: '', loanApplyUrl: '', giftSurveyUrl: '', giftWorkUrl: '',
+  loanMaterialUrl: 'https://drive.google.com/file/d/1eYcxVHQ9Bdwpe0sgHwFJ5QHvQeRa-9oX/view?usp=sharing',
+  loanApplicationUrl: 'https://drive.google.com/file/d/1YWvqYl0y2YJdtkg9s-9Umu8nKb_xF_c8/view?usp=sharing',
+  inspectionGiftUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog',
+  completionGiftUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di',
+  photoUrl: '', storePageUrl: '', loginUrl: 'https://business.gaihekiplus.com/sign_in',
   paymentConfig: [
     { id:'pm1', name:'クレジットカード', useGroups:true, groups:[
       { id:'pg1', label:'先払い', notes:['1日決済（前日が振込期限）','11日決済（前日が振込期限）','16日決済（前日が振込期限）','21日決済（前日が振込期限）'] },
@@ -877,10 +882,10 @@ function restoreSection(sec) {
         pmRender();
         break;
       case 'url':
-        document.getElementById('loan-doc-url').value    = d.loanDocUrl || '';
-        document.getElementById('loan-apply-url').value  = d.loanApplyUrl || '';
-        document.getElementById('gift-survey-url').value = d.giftSurveyUrl || '';
-        document.getElementById('gift-work-url').value   = d.giftWorkUrl || '';
+        document.getElementById('loan-doc-url').value    = d.loanMaterialUrl || d.loanDocUrl || DEFAULT_SETTINGS.loanMaterialUrl;
+        document.getElementById('loan-apply-url').value  = d.loanApplicationUrl || d.loanApplyUrl || DEFAULT_SETTINGS.loanApplicationUrl;
+        document.getElementById('gift-survey-url').value = d.inspectionGiftUrl || d.giftSurveyUrl || DEFAULT_SETTINGS.inspectionGiftUrl;
+        document.getElementById('gift-work-url').value   = d.completionGiftUrl || d.giftWorkUrl || DEFAULT_SETTINGS.completionGiftUrl;
         document.getElementById('photo-url').value       = d.photoUrl || '';
         document.getElementById('store-page-url').value  = d.storePageUrl || '';
         document.getElementById('login-url').value       = d.loginUrl || '';
@@ -1517,13 +1522,18 @@ function saveUrlSection() {
     clearDirty('url');
     saveSectionData('urls', data);
     snapshotSection('url');
-    /* Firestoreにも loanMediaUrl / loanApplicationUrl として保存 */
+    /* Firestoreにも新旧両方のキーで保存 */
     try {
+      const _gsu = document.getElementById('gift-survey-url').value.trim();
+      const _gwu = document.getElementById('gift-work-url').value.trim();
       firebase.firestore().collection('settings').doc('gaiheki').set({
         loanMediaUrl:       data.loanDocUrl,
         loanApplicationUrl: data.loanApplyUrl,
-        formUrl1:           document.getElementById('gift-survey-url').value.trim(),
-        formUrl2:           document.getElementById('gift-work-url').value.trim()
+        formUrl1:           _gsu,
+        formUrl2:           _gwu,
+        loanMaterialUrl:    data.loanDocUrl,
+        inspectionGiftUrl:  _gsu,
+        completionGiftUrl:  _gwu,
       }, { merge: true });
     } catch(fe) { console.warn('Firestore URL save:', fe); }
   } catch(e) { console.error('saveUrlSection エラー:', e); }
@@ -1918,8 +1928,10 @@ function escHtml(s) {
             }catch(e){}
           }
           /* ローンURL（Firestoreから読み込んでURL設定欄に反映） */
-          if (d.loanMediaUrl)       document.getElementById('loan-doc-url').value   = d.loanMediaUrl;
+          if (d.loanMaterialUrl || d.loanMediaUrl)       document.getElementById('loan-doc-url').value   = d.loanMaterialUrl || d.loanMediaUrl;
           if (d.loanApplicationUrl) document.getElementById('loan-apply-url').value = d.loanApplicationUrl;
+          if (d.inspectionGiftUrl || d.formUrl1) document.getElementById('gift-survey-url').value = d.inspectionGiftUrl || d.formUrl1;
+          if (d.completionGiftUrl || d.formUrl2) document.getElementById('gift-work-url').value   = d.completionGiftUrl || d.formUrl2;
         }).catch(function() {});
     });
   }
