@@ -2733,9 +2733,18 @@ function _addJuryouSubBlockInputs(cfEl, savedValues) {
   if (!cfEl) return;
   var volTmpl = findTmplForPlan('juryou', getSettings());
   if (!volTmpl || !volTmpl.items) return;
+  // label → JURYOU_ITEMS の固定 ID マップ（planTemplates の動的 ID とのミスマッチを吸収）
+  var LABEL_TO_JURYOU_ID = {};
+  JURYOU_ITEMS.forEach(function(it) { LABEL_TO_JURYOU_ID[it.label] = it.id; });
+
   volTmpl.items.forEach(function(item) {
     if (!item.subBlocks || !item.subBlocks.length) return;
+    // 動的 ID で検索し、見つからなければラベルで JURYOU_ITEMS ID にフォールバック
     var parentInput = document.getElementById('plan-item-' + item.id);
+    if (!parentInput) {
+      var juryouId = LABEL_TO_JURYOU_ID[item.label];
+      if (juryouId) parentInput = document.getElementById('plan-item-' + juryouId);
+    }
     if (!parentInput) return;
     var parentField = parentInput.closest ? parentInput.closest('.field') : parentInput.parentElement;
     if (!parentField) return;
