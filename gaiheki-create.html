@@ -1971,7 +1971,7 @@ let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
 let _lastLoadedPlanItems = null; // 保存案件ロード時の planItems（非同期フォーム再描画後に再適用）
 let _planDisplayNames = {light:'ライト', basic:'ベーシック', pro:'プロ', juryou:'従量'}; // Firestoreのplaname取得後に上書き
 let _planSnapshotMode = false; // true=既存案件のスナップショット使用中（Firestoreプラン再取得しない）
-let _p1SnapshotHtml = null; // 保存時点の「① 料金について」テーブルHTML（nullなら通常生成）
+var _p1SnapshotHtml = null; // 保存時点の「① 料金について」テーブルHTML（nullなら通常生成）
 
 /* 従量プランの固定フィールド定義 */
 const JURYOU_ITEMS = [
@@ -2216,9 +2216,15 @@ function syncP1Rows() {
   // 保存済みスナップショットHTMLがある場合はそのまま注入してスキップ
   if (_p1SnapshotHtml !== null) {
     const tbody = document.getElementById('p1-plan-tbody');
-    if (tbody) tbody.innerHTML = _p1SnapshotHtml;
+    if (tbody) {
+      tbody.innerHTML = _p1SnapshotHtml;
+      console.log('[planSnapshot] ✅ 復元 (' + _p1SnapshotHtml.length + ' chars)');
+    } else {
+      console.warn('[planSnapshot] ❌ p1-plan-tbody not found');
+    }
     return;
   }
+  console.log('[planSnapshot] ❌ なし（通常生成）');
   const plan = v('plan');
   const s = getSettings();
   const customBody = document.getElementById('p1-custom-rows');
@@ -3606,6 +3612,11 @@ function saveCase() {
   updatePlanDefaults();
   initPlanCustomFields(d.planItems);
   render();
+  // planSnapshotHtml が存在する場合は render() 後に確実に適用（二重保護）
+  if (_p1SnapshotHtml) {
+    const _tb = document.getElementById('p1-plan-tbody');
+    if (_tb) _tb.innerHTML = _p1SnapshotHtml;
+  }
   populateCsAssigneeUI(d.cs_assignee || '');
   scalePreview();
 })();
@@ -3738,6 +3749,12 @@ function saveCase() {
         if (typeof updatePlanDefaults === 'function') updatePlanDefaults();
         if (typeof initPlanCustomFields === 'function') initPlanCustomFields(d.planItems);
         if (typeof render === 'function') render();
+        // planSnapshotHtml が存在する場合は render() 後に確実に適用（二重保護）
+        if (window._p1SnapshotHtml) {
+          var _tb = document.getElementById('p1-plan-tbody');
+          if (_tb) _tb.innerHTML = window._p1SnapshotHtml;
+          console.log('[planSnapshot] ✅ Firestore path 復元完了');
+        }
         if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI(d.cs_assignee || ''); else if (typeof renderP4 === 'function') renderP4();
         console.log('[FS] 編集データ読み込み完了:', editId);
       })
