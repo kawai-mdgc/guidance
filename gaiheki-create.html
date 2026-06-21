@@ -2340,7 +2340,7 @@ function syncP1Rows() {
         const juryouId = LABEL_TO_JURYOU_ID[item.label];
         return juryouId ? gi(juryouId) : '';
       };
-      const DT_STYLE = 'font-size:11px;color:#888';
+      const DT_STYLE = 'font-size:9px;color:#888';
       // dummyTexts インライン/2行目サフィックス（2ブロック行など同一セル内用）
       const dtSuffix = function(item) {
         const dts = (item && item.dummyTexts) || [];
@@ -2917,7 +2917,7 @@ function _addJuryouDummyTexts(cfEl) {
     dtSection.className = 'juryou-dummy-texts';
     item.dummyTexts.forEach(function(text) {
       var span = document.createElement('div');
-      span.style.cssText = 'font-size:11px;color:#888;margin-top:2px;line-height:1.4';
+      span.style.cssText = 'font-size:9px;color:#888;margin-top:2px;line-height:1.4';
       span.textContent = text;
       dtSection.appendChild(span);
     });
@@ -3296,7 +3296,7 @@ function render() {
       const el = document.getElementById(elId);
       if (!el) return;
       if (!texts || !texts.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
-      const DTS = 'font-size:11px;color:#888';
+      const DTS = 'font-size:9px;color:#888';
       if (texts.length === 1) {
         // 1件: 値と同じ行にインライン表示
         el.style.display = 'inline';
