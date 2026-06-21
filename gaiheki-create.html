@@ -854,7 +854,7 @@ a.lb-url:hover { text-decoration: underline; }
       <div class="f-sec">契約プラン</div>
       <div class="field">
         <label>プラン</label>
-        <select id="plan" onchange="_planSnapshotMode=false;updatePlanDefaults();render()">
+        <select id="plan" onchange="_onPlanChange()">
           <option value="">選択してください</option>
           <optgroup label="月額プラン">
             <option value="light">ライト</option>
@@ -2665,6 +2665,16 @@ function initPlanCustomFields(planItems) {
   }
 }
 
+function _onPlanChange() {
+  // 新規作成時のみスナップショットモードを解除してFirestoreから再取得する
+  // 既存案件編集時（editId あり）は _planSnapshotMode を維持する
+  if (!new URLSearchParams(location.search).get('id')) {
+    _planSnapshotMode = false;
+  }
+  updatePlanDefaults();
+  render();
+}
+
 function updatePlanDefaults() {
   const plan = document.getElementById('plan').value;
   const _pf = document.getElementById('plan-detail-fields');
@@ -2765,11 +2775,13 @@ function updatePlanDefaults() {
     };
     // まずキャッシュで描画
     _applyDetPlan(s);
-    // Firestoreから最新 planTemplates/planDetails を取得して再描画
-    _refreshPlanFromFirestore('__noop__', function() {
-      var sF = getSettings();
-      if (_applyDetPlan(sF)) render();
-    });
+    // Firestoreから最新 planTemplates/planDetails を取得して再描画（スナップショットモード時はスキップ）
+    if (!_planSnapshotMode) {
+      _refreshPlanFromFirestore('__noop__', function() {
+        var sF = getSettings();
+        if (_applyDetPlan(sF)) render();
+      });
+    }
     if (_pf) _pf.style.display = '';
     applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
     return;
