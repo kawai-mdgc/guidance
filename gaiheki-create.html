@@ -2119,8 +2119,10 @@ function renderP4() {
     content.innerHTML = `<div style="text-align:center;color:var(--muted);padding:60px 0;font-size:13px">${esc(name)} の情報が設定されていません</div>`;
     return;
   }
-  const photoMap = { '飯塚来己':'images/iizuka.jpg', '留木涼花':'images/tomeki.jpg', '手光菜津美':'images/tebika.jpg' };
-  const photoSrc = photoMap[staff.name] || '';
+  const photoMap   = { '飯塚来己':'images/iizuka.jpg', '留木涼花':'images/tomeki.jpg', '手光菜津美':'images/tebika.jpg' };
+  const lineQrMap  = { '飯塚来己':'images/line_iizuka.jpg', '留木涼花':'images/line_tomeki.jpg', '手光菜津美':'images/line_tebika.jpg' };
+  const photoSrc   = photoMap[staff.name] || '';
+  const lineQrSrc  = lineQrMap[staff.name] || '';
   const photoHtml = photoSrc
     ? `<img class="p4-photo" src="${esc(photoSrc)}" alt="${esc(staff.name)}" onerror="this.textContent='👤'">`
     : `<div class="p4-photo" style="display:flex;align-items:center;justify-content:center;font-size:48px;background:rgba(255,255,255,.15)">👤</div>`;
@@ -2147,6 +2149,7 @@ function renderP4() {
           <div class="p4-mission-label">MISSION</div><div class="p4-mission-text">${staff.mission ? esc(staff.mission) : '<span style="color:#bbb">未設定</span>'}</div>
           <div class="p4-grid">${gridItems}</div>
           <div class="p4-bubble">${staff.oneWord ? esc(staff.oneWord) : '<span style="color:#bbb">未設定</span>'}</div>
+          <div class="p4-line-wrap" style="margin-top:10px">${lineQrSrc ? `<img class="p4-lineqr" src="${esc(lineQrSrc)}" alt="LINE QR" onerror="this.style.display='none'">` : `<div style="width:55px;height:55px;flex-shrink:0;border-radius:4px;background:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;box-sizing:border-box">未設定</div>`}<span style="color:#fff;font-weight:700;line-height:1.5;white-space:nowrap;flex:1;text-align:center;display:flex;align-items:center;justify-content:center">LINEでお気軽に<br>ご相談ください</span></div>
         </div>
       </div>
     </div>
