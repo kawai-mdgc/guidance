@@ -2322,9 +2322,12 @@ function syncP1Rows() {
     html += r1('月額費用', gi('fee'));
     html += r2('紹介手数料', gi('referralFee')||'—', '成約手数料', gi('commission')||'—');
     html += r1('紹介件数想定（月間）', gi('monthly')||'—');
-    html += '<tr class="sh"><td colspan="4">最低保証</td></tr>';
-    html += r2('日上限件数', gi('dailyLimit')||'—', '月上限件数', gi('monthlyLimit')||'—');
-    html += r1('月上限予算', gi('monthlyBudget')||'—');
+    // 最低保証: ラベル行 + 3列ヘッダー + 3列値
+    const kStyle = 'background:var(--bg);color:var(--main);font-size:11.5px;font-weight:600;padding:8px 20px;border:1px solid var(--border);text-align:center;';
+    const vStyle = 'background:var(--white);color:var(--text);font-size:11.5px;padding:8px 12px;border:1px solid var(--border);text-align:center;';
+    html += '<tr><td colspan="4" class="k" style="white-space:nowrap">最低保証</td></tr>';
+    html += '<tr><td style="'+kStyle+'">日上限件数</td><td style="'+kStyle+'">月上限件数</td><td colspan="2" style="'+kStyle+'">月上限予算</td></tr>';
+    html += '<tr><td style="'+vStyle+'">'+(gi('dailyLimit')||'—')+'</td><td style="'+vStyle+'">'+(gi('monthlyLimit')||'—')+'</td><td colspan="2" style="'+vStyle+'">'+(gi('monthlyBudget')||'—')+'</td></tr>';
     if (customBody) customBody.innerHTML = html;
     return;
   }
