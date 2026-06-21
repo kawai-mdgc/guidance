@@ -3357,8 +3357,8 @@ function render() {
   // P3 ページのリンク（Firestoreから動的取得）
   setCardLink('p3-loan-doc',   s.loanMediaUrl  || s.loanDocUrl  || '', '📄 【madoguchi様】業務協定契約のご提案');
   setCardLink('p3-loan-apply', s.loanApplicationUrl || s.loanApplyUrl || '', '📄 【アプラス】加盟店契約希望申出書');
-  setLink('p3-form1', s.formUrl1 || s.giftSurveyUrl || '');
-  setLink('p3-form2', s.formUrl2 || s.giftWorkUrl   || '');
+  setLink('p3-form1', s.giftSurveyUrl || '');
+  setLink('p3-form2', s.giftWorkUrl   || '');
   // テンプレートブロックが優先。なければ設定値にフォールバック
   const _proc = function(v){ return String(v||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); };
   const _applyP1Text = function(elId, tplVal, settingVal) {
