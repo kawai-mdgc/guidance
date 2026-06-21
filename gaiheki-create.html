@@ -478,6 +478,7 @@ a.lb-url:hover { text-decoration: underline; }
     <table class="doc-table">
       <colgroup><col style="width:220px"><col><col style="width:220px"><col></colgroup>
 
+      <tbody id="p1-plan-tbody">
       <tr class="sh"><td colspan="4">① 料金について</td></tr>
       <tr><td class="k">契約プラン</td><td class="v" colspan="3" id="p-plan">—</td></tr>
       <tr id="p1-fee-row">
@@ -517,6 +518,7 @@ a.lb-url:hover { text-decoration: underline; }
         <td class="k">月上限予算</td>
         <td class="v" colspan="3" id="p-monthly-budget">—</td>
       </tr>
+      </tbody>
       <tr class="sh"><td colspan="4">② 対応エリア</td></tr>
       <tr><td colspan="4" class="v" id="p-areas" style="padding:8px 20px"><span style="font-size:11px;color:var(--muted)">エリアが未設定です</span></td></tr>
 
@@ -1969,6 +1971,7 @@ let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
 let _lastLoadedPlanItems = null; // 保存案件ロード時の planItems（非同期フォーム再描画後に再適用）
 let _planDisplayNames = {light:'ライト', basic:'ベーシック', pro:'プロ', juryou:'従量'}; // Firestoreのplaname取得後に上書き
 let _planSnapshotMode = false; // true=既存案件のスナップショット使用中（Firestoreプラン再取得しない）
+let _p1SnapshotHtml = null; // 保存時点の「① 料金について」テーブルHTML（nullなら通常生成）
 
 /* 従量プランの固定フィールド定義 */
 const JURYOU_ITEMS = [
@@ -2211,6 +2214,12 @@ function populatePaymentMethodSelect() {
 }
 
 function syncP1Rows() {
+  // 保存済みスナップショットHTMLがある場合はそのまま注入してスキップ
+  if (_p1SnapshotHtml !== null) {
+    const tbody = document.getElementById('p1-plan-tbody');
+    if (tbody) tbody.innerHTML = _p1SnapshotHtml;
+    return;
+  }
   const plan = v('plan');
   const s = getSettings();
   const customBody = document.getElementById('p1-custom-rows');
@@ -3444,6 +3453,9 @@ function collectFormData() {
     planKey: _planKey,
     data: JSON.parse(JSON.stringify(getSettings().plans?.[_planKey] || {}))
   };
+  // 「① 料金について」テーブルのHTMLスナップショット
+  const _p1Tbody = document.getElementById('p1-plan-tbody');
+  if (_p1Tbody) data.planSnapshotHtml = _p1Tbody.innerHTML;
   // URLスナップショット
   const _s = getSettings();
   data.urlSnapshot = {
@@ -3559,6 +3571,8 @@ function saveCase() {
       _settingsOverride.csStaff = JSON.parse(JSON.stringify(c.formData.csSnapshot));
     }
   }
+  // planSnapshotHtml がある場合は P1 テーブルをそのまま復元
+  _p1SnapshotHtml = (c.formData && c.formData.planSnapshotHtml) || null;
   // 既存案件はスナップショットモード（Firestoreのプラン設定を再取得しない）
   _planSnapshotMode = true;
   const d = c.formData;
@@ -3685,6 +3699,8 @@ function saveCase() {
             window._settingsOverride.csStaff = JSON.parse(JSON.stringify(c.formData.csSnapshot));
           }
         }
+        // planSnapshotHtml がある場合は P1 テーブルをそのまま復元
+        window._p1SnapshotHtml = (c.formData && c.formData.planSnapshotHtml) || null;
         // 既存案件はスナップショットモード
         window._planSnapshotMode = true;
 
