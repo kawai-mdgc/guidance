@@ -2652,8 +2652,8 @@ function updatePlanDefaults() {
           var el = document.getElementById('plan-item-' + id);
           if (el && el.tagName === 'SELECT') el.value = '';
         });
-        // subBlocks がある項目のサブ入力欄を追加
-        _addJuryouSubBlockInputs(cfEl, null);
+        // subBlocks 入力欄を追加し、freshData からサブブロック値をセット
+        _addJuryouSubBlockInputs(cfEl, freshData || {});
       }
       if (pfEl) pfEl.style.display = 'none';
     };
@@ -2759,7 +2759,11 @@ function _addJuryouSubBlockInputs(cfEl, savedValues) {
       inp.placeholder = sbName;
       inp.setAttribute('oninput', 'render()');
       inp.style.cssText = 'width:100%;padding:5px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit';
-      if (savedValues && savedValues[sbKey] !== undefined) inp.value = savedValues[sbKey] || '';
+      // __ 形式（保存案件の planItems）または . 形式（Firestore plans.juryou）で値を検索
+      var sbDotKey = item.id + '.' + sbName;
+      var sbVal = savedValues && (savedValues[sbKey] !== undefined ? savedValues[sbKey]
+                                : savedValues[sbDotKey] !== undefined ? savedValues[sbDotKey] : undefined);
+      if (sbVal !== undefined) inp.value = sbVal || '';
       sbDiv.appendChild(lbl);
       sbDiv.appendChild(inp);
       sbSection.appendChild(sbDiv);
