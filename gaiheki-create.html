@@ -3965,28 +3965,31 @@ function saveCase() {
           } catch(e) {}
           if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI();
         }
-        // URL設定を localStorage に反映してリンクを更新（全URL対象）
-        var _urlUpdated = false;
-        try {
-          var cur2 = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
-          var _urlFields = {
-            loanMediaUrl: data.loanMediaUrl, loanApplicationUrl: data.loanApplicationUrl,
-            giftSurveyUrl: data.giftSurveyUrl || data.formUrl1,
-            giftWorkUrl:   data.giftWorkUrl   || data.formUrl2,
-            formUrl1: data.formUrl1, formUrl2: data.formUrl2,
-            loanDocUrl: data.loanDocUrl, loanApplyUrl: data.loanApplyUrl,
-            loanMaterialUrl:   data.loanMaterialUrl,
-            inspectionGiftUrl: data.inspectionGiftUrl,
-            completionGiftUrl: data.completionGiftUrl,
-            photoUrl: data.photoUrl, storePageUrl: data.storePageUrl
-          };
-          Object.keys(_urlFields).forEach(function(k) {
-            if (_urlFields[k]) { cur2[k] = _urlFields[k]; _urlUpdated = true; }
-          });
-          if (_urlUpdated) localStorage.setItem('gaiheki_settings', JSON.stringify(cur2));
-        } catch(e) {}
-        // URL有無にかかわらず render() を呼んでリンクを最新化
-        if (typeof render === 'function') render();
+        // 既存案件編集時はスナップショットを使うため、FirestoreのURL設定でlocalStorageを上書きしない
+        var _isEditMode = !!new URLSearchParams(location.search).get('id');
+        if (!_isEditMode) {
+          // 新規作成時のみFirestoreのURL設定でlocalStorageを更新してrender()
+          var _urlUpdated = false;
+          try {
+            var cur2 = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
+            var _urlFields = {
+              loanMediaUrl: data.loanMediaUrl, loanApplicationUrl: data.loanApplicationUrl,
+              giftSurveyUrl: data.giftSurveyUrl || data.formUrl1,
+              giftWorkUrl:   data.giftWorkUrl   || data.formUrl2,
+              formUrl1: data.formUrl1, formUrl2: data.formUrl2,
+              loanDocUrl: data.loanDocUrl, loanApplyUrl: data.loanApplyUrl,
+              loanMaterialUrl:   data.loanMaterialUrl,
+              inspectionGiftUrl: data.inspectionGiftUrl,
+              completionGiftUrl: data.completionGiftUrl,
+              photoUrl: data.photoUrl, storePageUrl: data.storePageUrl
+            };
+            Object.keys(_urlFields).forEach(function(k) {
+              if (_urlFields[k]) { cur2[k] = _urlFields[k]; _urlUpdated = true; }
+            });
+            if (_urlUpdated) localStorage.setItem('gaiheki_settings', JSON.stringify(cur2));
+          } catch(e) {}
+          if (typeof render === 'function') render();
+        }
       })
       .catch(function(e) { /* Firestore 読み込み失敗は無視 */ });
   });
