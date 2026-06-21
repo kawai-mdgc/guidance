@@ -799,6 +799,18 @@ a.lb-url:hover { text-decoration: underline; }
   </div>
 </div><!-- /p3 -->
 
+<!-- ━━━ PAGE 3b ━━━ -->
+<div class="a4-page" id="p3b">
+  <div class="page-hbar">
+    <div class="phb-l"><span class="phb-brand">gaiheki+</span></div>
+    <div style="text-align:right;line-height:1.6">
+      <div style="font-size:12px;font-weight:700">宛先：<strong id="p-company3b">（会社名・担当者名）</strong> 様</div>
+      <div style="font-size:10px;opacity:.85" id="p-date3b"></div>
+    </div>
+  </div>
+  <div class="page-content" id="p3b-content"></div>
+</div><!-- /p3b -->
+
 <!-- ━━━ PAGE 4 ━━━ -->
 <div class="a4-page" id="p4">
   <div class="page-hbar">
@@ -3245,7 +3257,7 @@ function render() {
   const co = v('company'), cn = v('contact_name');
   const isDefault = !co && !cn;
   const recipient = co && cn ? co + '　' + cn : (co || cn || '（会社名・担当者名）');
-  ['p-company','p-company-m','p-company-m2','p-company2','p-company3','p-company4'].forEach(id => {
+  ['p-company','p-company-m','p-company-m2','p-company2','p-company3','p-company3b','p-company4'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.textContent = recipient; el.style.color = isDefault ? 'var(--muted)' : ''; }
   });
@@ -3263,8 +3275,9 @@ function render() {
   set('p-date-m',  '発行日：' + dateLabel);
   set('p-date-m2', '発行日：' + dateLabel);
   set('p-date2', '発行日：' + dateLabel);
-  set('p-date3', '発行日：' + dateLabel);
-  set('p-date4', '発行日：' + dateLabel);
+  set('p-date3',  '発行日：' + dateLabel);
+  set('p-date3b', '発行日：' + dateLabel);
+  set('p-date4',  '発行日：' + dateLabel);
   renderP4();
   const _PLAN_LABELS={light:'ライト',basic:'ベーシック',pro:'プロ',volume:'従量',juryou:'従量'};
   // Firestoreのplaname → ハードコードラベル → planLabel の順で表示名を決定
