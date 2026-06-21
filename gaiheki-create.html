@@ -2370,8 +2370,13 @@ function syncP1Rows() {
           const rowspan = item.subBlocks.length;
           html += '<tr><td rowspan="' + rowspan + '" class="k" style="vertical-align:middle">' + esc(item.label) + '</td>';
           item.subBlocks.forEach(function(sbName, i) {
-            // subBlocks 入力は volTmpl.item.id ベースの ID で生成される
-            const sbVal = gi(item.id + '__' + sbName) || '—';
+            // volTmpl.item.id ベースの ID で検索し、なければ JURYOU_ITEMS ラベルでフォールバック
+            let sbVal = gi(item.id + '__' + sbName);
+            if (!sbVal) {
+              const jEntry = JURYOU_ITEMS.find(function(it) { return it.label === sbName; });
+              if (jEntry) sbVal = gi(jEntry.id);
+            }
+            sbVal = sbVal || '—';
             if (i === 0) {
               html += '<td style="' + slStyle + '">' + esc(sbName) + '</td><td colspan="2" style="' + svStyle + '">' + esc(sbVal) + '</td></tr>';
             } else {
@@ -2791,7 +2796,28 @@ function _addJuryouSubBlockInputs(cfEl, savedValues) {
       var juryouId = LABEL_TO_JURYOU_ID[item.label];
       if (juryouId) parentInput = document.getElementById('plan-item-' + juryouId);
     }
-    if (!parentInput) return;
+
+    // 親inputが見つからない場合（例: 最低保証 は JURYOU_ITEMS に存在しない）:
+    // subBlock の各ラベルに対応する JURYOU_ITEMS の入力欄に savedValues をセットする
+    if (!parentInput) {
+      if (savedValues) {
+        item.subBlocks.forEach(function(sbName) {
+          var sbKey    = item.id + '__' + sbName;
+          var sbDotKey = item.id + '.' + sbName;
+          var sbVal = savedValues[sbKey] !== undefined ? savedValues[sbKey]
+                    : savedValues[sbDotKey] !== undefined ? savedValues[sbDotKey] : undefined;
+          if (sbVal === undefined) return;
+          // JURYOU_ITEMS でラベルが一致する入力欄を探してセット
+          var juryouEntry = JURYOU_ITEMS.find(function(it) { return it.label === sbName; });
+          if (juryouEntry) {
+            var el = document.getElementById('plan-item-' + juryouEntry.id);
+            if (el) el.value = sbVal || '';
+          }
+        });
+      }
+      return;
+    }
+
     var parentField = parentInput.closest ? parentInput.closest('.field') : parentInput.parentElement;
     if (!parentField) return;
     // 既存セクションを除去してから追加
