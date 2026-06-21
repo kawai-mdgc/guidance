@@ -1970,7 +1970,8 @@ const DEFAULT_SETTINGS = {
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
 let _lastLoadedPlanItems = null; // 保存案件ロード時の planItems（非同期フォーム再描画後に再適用）
 let _planDisplayNames = {light:'ライト', basic:'ベーシック', pro:'プロ', juryou:'従量'}; // Firestoreのplaname取得後に上書き
-let _planSnapshotMode = false; // true=既存案件のスナップショット使用中（Firestoreプラン再取得しない）
+// 既存案件編集時（editId あり）は初期化時点でスナップショットモードを有効化
+let _planSnapshotMode = !!new URLSearchParams(location.search).get('id');
 var _p1SnapshotHtml = null; // 保存時点の「① 料金について」テーブルHTML（nullなら通常生成）
 
 /* 従量プランの固定フィールド定義 */
@@ -2760,6 +2761,7 @@ function updatePlanDefaults() {
     // スナップショットモード（既存案件初期ロード）はFirestore再取得しない
     if (!_planSnapshotMode) {
       _refreshPlanFromFirestore('juryou', function(freshData) {
+        if (_planSnapshotMode) return; // 非同期完了時に snapshot mode になっていたらスキップ
         if (!freshData) return;
         _applyJuryou(freshData);
         render();
@@ -2790,6 +2792,7 @@ function updatePlanDefaults() {
     // Firestoreから最新 planTemplates/planDetails を取得して再描画（スナップショットモード時はスキップ）
     if (!_planSnapshotMode) {
       _refreshPlanFromFirestore('__noop__', function() {
+        if (_planSnapshotMode) return;
         var sF = getSettings();
         if (_applyDetPlan(sF)) render();
       });
@@ -2820,6 +2823,7 @@ function updatePlanDefaults() {
   // スナップショットモード（既存案件初期ロード）はFirestore再取得しない
   if (!_planSnapshotMode) {
     _refreshPlanFromFirestore(plan, function(freshData) {
+      if (_planSnapshotMode) return; // 非同期完了時に snapshot mode になっていたらスキップ
       if (!freshData) return;
       var _pfr = document.getElementById('plan-detail-fields');
       if (_pfr) _pfr.style.display = '';
