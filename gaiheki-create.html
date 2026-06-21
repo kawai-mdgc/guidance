@@ -2624,18 +2624,34 @@ function populatePlanSelect() {
 /* ── 従量プラン専用フォーム生成（複数値はselect、単値はinput） ── */
 function buildJuryouFields(jd) {
   const MULTI_IDS = ['referralFee', 'commission'];
+  const SEL_STYLE = 'width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit';
   function buildField(item) {
-    const raw = (jd[item.id] !== undefined && jd[item.id] !== null) ? String(jd[item.id]) : '';
+    const rawVal = (jd[item.id] !== undefined && jd[item.id] !== null) ? jd[item.id] : '';
     const lbl = esc(item.label || '');
-    if (MULTI_IDS.includes(item.id) && raw.indexOf(',') !== -1) {
-      // カンマ区切り → select
-      const opts = raw.split(',').map(function(v){ return v.trim(); }).filter(function(v){ return v; });
-      let s = '<select id="plan-item-' + item.id + '" onchange="render()" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit">';
+    // 複数値の検出: 配列(Firestore) OR「/」区切り文字列
+    var opts = null;
+    if (MULTI_IDS.includes(item.id)) {
+      if (Array.isArray(rawVal) && rawVal.length > 1) {
+        opts = rawVal.map(String).filter(function(v){ return v; });
+      } else {
+        var str = String(rawVal || '');
+        if (str.indexOf('/') !== -1) {
+          var parts = str.split('/').map(function(v){ return v.trim(); }).filter(function(v){ return v; });
+          if (parts.length > 1) opts = parts;
+        }
+      }
+    }
+    if (opts) {
+      // 複数値 → select（最初に「選択してください」）
+      var s = '<select id="plan-item-' + item.id + '" onchange="render()" style="' + SEL_STYLE + '">';
+      s += '<option value="">選択してください</option>';
       opts.forEach(function(opt){ s += '<option value="' + esc(opt) + '">' + esc(opt) + '</option>'; });
       s += '</select>';
       return '<div class="field"><label>' + lbl + '</label>' + s + '</div>';
     }
-    return '<div class="field"><label>' + lbl + '</label><input type="text" id="plan-item-' + item.id + '" value="' + esc(raw) + '" placeholder="' + lbl + '" oninput="render()"></div>';
+    // 単値 → input（配列なら最初の要素を使用）
+    var inputVal = Array.isArray(rawVal) ? String(rawVal[0] || '') : String(rawVal || '');
+    return '<div class="field"><label>' + lbl + '</label><input type="text" id="plan-item-' + item.id + '" value="' + esc(inputVal) + '" placeholder="' + lbl + '" oninput="render()"></div>';
   }
   var html = '';
   for (var i = 0; i < JURYOU_ITEMS.length; i += 2) {
