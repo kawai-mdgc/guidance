@@ -2337,6 +2337,26 @@ function syncP1Rows() {
         const juryouId = LABEL_TO_JURYOU_ID[item.label];
         return juryouId ? gi(juryouId) : '';
       };
+      // dummyTexts を value セルに付加するサフィックス生成
+      const dtSuffix = function(item) {
+        if (!item.dummyTexts || !item.dummyTexts.length) return '';
+        return item.dummyTexts.map(function(t) {
+          return '<div style="font-size:11px;color:#888;margin-top:2px;line-height:1.4">' + esc(t) + '</div>';
+        }).join('');
+      };
+      // dummyTexts 付きの r1/r2 ラッパー
+      const r1dt = function(lbl, val, item) {
+        if (!val) return '';
+        return '<tr><td class="k" style="white-space:nowrap">' + esc(lbl) + '</td>'
+          + '<td class="v" colspan="3">' + esc(val) + dtSuffix(item) + '</td></tr>';
+      };
+      const r2dt = function(l1, v1, item1, l2, v2, item2) {
+        return '<tr><td class="k2">' + esc(l1) + '</td>'
+          + '<td class="v" style="width:25%;vertical-align:top">' + esc(v1||'—') + dtSuffix(item1) + '</td>'
+          + '<td class="k2">' + esc(l2) + '</td>'
+          + '<td class="v" style="width:25%;vertical-align:top">' + esc(v2||'—') + dtSuffix(item2) + '</td>'
+          + '</tr>';
+      };
       // 明示ペア: ラベルで照合（primary→secondary）
       const PAIR_LABELS = { '契約期間':'月額費用', '紹介手数料':'成約手数料' };
       // ペアの副要素: primary が存在するときは単独行を生成しない
@@ -2363,22 +2383,22 @@ function syncP1Rows() {
           const pairedLabel = PAIR_LABELS[item.label];
           const pairedItem = volTmpl.items.find(function(it){ return it.label === pairedLabel; });
           if (pairedItem) {
-            html += r2(item.label, giByItem(item), pairedItem.label, giByItem(pairedItem));
+            html += r2dt(item.label, giByItem(item), item, pairedItem.label, giByItem(pairedItem), pairedItem);
             rendered.add(item.id); rendered.add(pairedItem.id);
             return;
           }
-          html += r1(item.label, giByItem(item) || '—');
+          html += r1dt(item.label, giByItem(item) || '—', item);
           rendered.add(item.id);
         } else if (SECONDARY_PAIR_OF[item.label]) {
           // ペアの副要素: primary が template に存在する場合は単独行を生成しない
           const primaryLabel = SECONDARY_PAIR_OF[item.label];
           const primaryExists = volTmpl.items.some(function(it) { return it.label === primaryLabel; });
           if (!primaryExists) {
-            html += r1(item.label, giByItem(item) || '—');
+            html += r1dt(item.label, giByItem(item) || '—', item);
           }
           rendered.add(item.id);
         } else {
-          html += r1(item.label, giByItem(item) || '—');
+          html += r1dt(item.label, giByItem(item) || '—', item);
           rendered.add(item.id);
         }
       });
@@ -2664,6 +2684,8 @@ function updatePlanDefaults() {
         });
         // subBlocks 入力欄を追加し、freshData からサブブロック値をセット
         _addJuryouSubBlockInputs(cfEl, freshData || {});
+        // dummyTexts グレーテキストを追加（表示のみ）
+        _addJuryouDummyTexts(cfEl);
       }
       if (pfEl) pfEl.style.display = 'none';
     };
@@ -2788,6 +2810,37 @@ function _addJuryouSubBlockInputs(cfEl, savedValues) {
       sbSection.appendChild(sbDiv);
     });
     parentField.appendChild(sbSection);
+  });
+}
+
+/* ── juryou フォームに dummyTexts グレーテキストを追加（表示のみ） ── */
+function _addJuryouDummyTexts(cfEl) {
+  if (!cfEl) return;
+  var volTmpl = findTmplForPlan('juryou', getSettings());
+  if (!volTmpl || !volTmpl.items) return;
+  var LABEL_TO_JURYOU_ID = {};
+  JURYOU_ITEMS.forEach(function(it) { LABEL_TO_JURYOU_ID[it.label] = it.id; });
+  volTmpl.items.forEach(function(item) {
+    if (!item.dummyTexts || !item.dummyTexts.length) return;
+    var parentInput = document.getElementById('plan-item-' + item.id);
+    if (!parentInput) {
+      var juryouId = LABEL_TO_JURYOU_ID[item.label];
+      if (juryouId) parentInput = document.getElementById('plan-item-' + juryouId);
+    }
+    if (!parentInput) return;
+    var parentField = parentInput.closest ? parentInput.closest('.field') : parentInput.parentElement;
+    if (!parentField) return;
+    var existing = parentField.querySelector('.juryou-dummy-texts');
+    if (existing) existing.remove();
+    var dtSection = document.createElement('div');
+    dtSection.className = 'juryou-dummy-texts';
+    item.dummyTexts.forEach(function(text) {
+      var span = document.createElement('div');
+      span.style.cssText = 'font-size:11px;color:#888;margin-top:2px;line-height:1.4';
+      span.textContent = text;
+      dtSection.appendChild(span);
+    });
+    parentField.appendChild(dtSection);
   });
 }
 

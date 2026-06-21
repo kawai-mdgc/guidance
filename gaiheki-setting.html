@@ -1071,7 +1071,18 @@ function _piCard(tmplId,item){
       + '<button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptItemDeleteSubBlock(\'' + tmplId + '\',\'' + item.id + '\',' + i + ')">削除</button>'
       + '</div>';
   }).join('');
-  return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div><div style="margin-top:6px;font-size:11px"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${sbChecked} onchange="ptItemToggleSubBlocks('${tmplId}','${item.id}',this.checked)"> 内訳内にブロックを追加する</label><div id="sb-container-${tmplId}-${item.id}" style="display:${sbContainerDisplay};margin-top:6px;padding-left:12px"><div id="sb-list-${tmplId}-${item.id}">${sbListHtml}</div><button class="btn-pm-add" onclick="ptItemAddSubBlock('${tmplId}','${item.id}')">＋ ブロックを追加</button></div></div></div>`;
+  const hasDummyTexts = item.dummyTexts && item.dummyTexts.length > 0;
+  const dtChecked = hasDummyTexts ? 'checked' : '';
+  const dtContainerDisplay = hasDummyTexts ? '' : 'none';
+  const dtListHtml = (item.dummyTexts || []).map(function(text, i) {
+    return '<div style="display:flex;gap:4px;margin-bottom:4px">'
+      + '<input type="text" value="' + escHtml(text) + '" placeholder="ダミーテキスト（例：※ご契約は自動更新）" '
+      + 'style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit" '
+      + 'oninput="ptItemUpdateDummyText(\'' + tmplId + '\',\'' + item.id + '\',' + i + ',this.value)">'
+      + '<button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptItemDeleteDummyText(\'' + tmplId + '\',\'' + item.id + '\',' + i + ')">削除</button>'
+      + '</div>';
+  }).join('');
+  return `<div class="plan-item-row" id="pirow-${tmplId}-${item.id}"><div style="display:flex;gap:5px;align-items:center;margin-bottom:4px"><input type="text" class="plan-item-label" value="${escHtml(item.label)}" oninput="ptItemUpdateLabel('${tmplId}','${item.id}',this.value)" placeholder="項目名"><button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="ptItemDelete('${tmplId}','${item.id}')">削除</button></div><div style="font-size:11px;display:flex;gap:12px"><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="single" ${item.valueType!=='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','single')"> 単一</label><label><input type="radio" name="pvt-${tmplId}-${item.id}" value="multiple" ${item.valueType==='multiple'?'checked':''} onchange="ptItemSetType('${tmplId}','${item.id}','multiple')"> 複数選択</label></div><div style="margin-top:6px;font-size:11px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:16px"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${sbChecked} onchange="ptItemToggleSubBlocks('${tmplId}','${item.id}',this.checked)"> 内訳内にブロックを追加する</label><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${dtChecked} onchange="ptItemToggleDummyTexts('${tmplId}','${item.id}',this.checked)"> ダミーテキストを追加する</label></div><div id="sb-container-${tmplId}-${item.id}" style="display:${sbContainerDisplay};padding-left:12px"><div id="sb-list-${tmplId}-${item.id}">${sbListHtml}</div><button class="btn-pm-add" onclick="ptItemAddSubBlock('${tmplId}','${item.id}')">＋ ブロックを追加</button></div><div id="dt-container-${tmplId}-${item.id}" style="display:${dtContainerDisplay};padding-left:12px"><div id="dt-list-${tmplId}-${item.id}">${dtListHtml}</div><button class="btn-pm-add" onclick="ptItemAddDummyText('${tmplId}','${item.id}')">＋ テキストを追加</button></div></div></div>`;
 }
 function _ptReRenderItems(tmplId){const t=_ptGet(tmplId);if(!t)return;const el=document.getElementById('pt-items-'+tmplId);if(el)el.innerHTML=t.items.map(i=>_piCard(tmplId,i)).join('');}
 
@@ -1174,6 +1185,53 @@ function _ptRerenderSubBlocks(tmplId, itemId) {
   }).join('');
 }
 
+/* ── ダミーテキスト管理 ── */
+function ptItemToggleDummyTexts(tmplId, itemId, checked) {
+  const item = _piGet(tmplId, itemId);
+  if (!item) return;
+  item.dummyTexts = checked ? (item.dummyTexts || []) : [];
+  checkDirty('plan');
+  const container = document.getElementById('dt-container-' + tmplId + '-' + itemId);
+  if (container) container.style.display = checked ? '' : 'none';
+  _ptRerenderDummyTexts(tmplId, itemId);
+  _pdSyncTemplate(tmplId);
+}
+function ptItemAddDummyText(tmplId, itemId) {
+  const item = _piGet(tmplId, itemId);
+  if (!item) return;
+  if (!item.dummyTexts) item.dummyTexts = [];
+  item.dummyTexts.push('');
+  checkDirty('plan');
+  _ptRerenderDummyTexts(tmplId, itemId);
+}
+function ptItemUpdateDummyText(tmplId, itemId, idx, val) {
+  const item = _piGet(tmplId, itemId);
+  if (!item || !item.dummyTexts) return;
+  item.dummyTexts[idx] = val;
+  checkDirty('plan');
+}
+function ptItemDeleteDummyText(tmplId, itemId, idx) {
+  const item = _piGet(tmplId, itemId);
+  if (!item || !item.dummyTexts) return;
+  item.dummyTexts.splice(idx, 1);
+  checkDirty('plan');
+  _ptRerenderDummyTexts(tmplId, itemId);
+}
+function _ptRerenderDummyTexts(tmplId, itemId) {
+  const item = _piGet(tmplId, itemId);
+  const listEl = document.getElementById('dt-list-' + tmplId + '-' + itemId);
+  if (!listEl) return;
+  const texts = (item && item.dummyTexts) || [];
+  listEl.innerHTML = texts.map(function(text, i) {
+    return '<div style="display:flex;gap:4px;margin-bottom:4px">'
+      + '<input type="text" value="' + escHtml(text) + '" placeholder="ダミーテキスト（例：※ご契約は自動更新）" '
+      + 'style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit" '
+      + 'oninput="ptItemUpdateDummyText(\'' + tmplId + '\',\'' + itemId + '\',' + i + ',this.value)">'
+      + '<button class="btn-del" style="font-size:10px;padding:2px 7px" onclick="ptItemDeleteDummyText(\'' + tmplId + '\',\'' + itemId + '\',' + i + ')">削除</button>'
+      + '</div>';
+  }).join('');
+}
+
 /* ── Detail render (group-based) ── */
 function pdRenderAll(){
   const el=document.getElementById('plan-detail-list');if(!el)return;
@@ -1217,6 +1275,11 @@ function _pdTypeCard(det,tmpl,type){
         return `<div class="field" style="margin-left:12px;margin-top:4px"><label style="font-size:10px;color:var(--muted)">${escHtml(sbName)}</label><input type="text" value="${escHtml(sbVal)}" oninput="pdSetValue('${det.id}','${escHtml(type)}','${escHtml(sbKey)}',this.value)" placeholder="${escHtml(sbName)}"></div>`;
       }).join('');
       fieldHtml+=sbInputs;
+    }
+    if(item.dummyTexts && item.dummyTexts.length>0){
+      fieldHtml += item.dummyTexts.map(text =>
+        `<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4">${escHtml(text)}</div>`
+      ).join('');
     }
     return fieldHtml;
   }).join('');
