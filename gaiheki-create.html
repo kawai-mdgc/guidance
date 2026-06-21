@@ -3827,23 +3827,24 @@ function saveCase() {
           if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI();
         }
         // URL設定を localStorage に反映してリンクを更新（全URL対象）
-        if (data.loanMediaUrl || data.loanApplicationUrl || data.giftSurveyUrl || data.giftWorkUrl || data.formUrl1 || data.formUrl2) {
-          try {
-            var cur2 = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
-            if (data.loanMediaUrl)       cur2.loanMediaUrl       = data.loanMediaUrl;
-            if (data.loanApplicationUrl) cur2.loanApplicationUrl = data.loanApplicationUrl;
-            if (data.giftSurveyUrl)      cur2.giftSurveyUrl      = data.giftSurveyUrl;
-            if (data.giftWorkUrl)        cur2.giftWorkUrl        = data.giftWorkUrl;
-            if (data.formUrl1)           cur2.formUrl1           = data.formUrl1;
-            if (data.formUrl2)           cur2.formUrl2           = data.formUrl2;
-            localStorage.setItem('gaiheki_settings', JSON.stringify(cur2));
-          } catch(e) {}
-          if (typeof setLink === 'function') {
-            setLink('p-loan-media-url', data.loanMediaUrl       || '');
-            setLink('p-loan-apply-url', data.loanApplicationUrl || '');
-            setLink('p-form1-url',       data.formUrl1           || data.giftSurveyUrl || '');
-            setLink('p-form2-url',       data.formUrl2           || data.giftWorkUrl   || '');
-          }
+        var _urlUpdated = false;
+        try {
+          var cur2 = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
+          var _urlFields = {
+            loanMediaUrl: data.loanMediaUrl, loanApplicationUrl: data.loanApplicationUrl,
+            giftSurveyUrl: data.giftSurveyUrl, giftWorkUrl: data.giftWorkUrl,
+            formUrl1: data.formUrl1, formUrl2: data.formUrl2,
+            loanDocUrl: data.loanDocUrl, loanApplyUrl: data.loanApplyUrl,
+            photoUrl: data.photoUrl, storePageUrl: data.storePageUrl
+          };
+          Object.keys(_urlFields).forEach(function(k) {
+            if (_urlFields[k]) { cur2[k] = _urlFields[k]; _urlUpdated = true; }
+          });
+          if (_urlUpdated) localStorage.setItem('gaiheki_settings', JSON.stringify(cur2));
+        } catch(e) {}
+        if (_urlUpdated && typeof render === 'function') {
+          // localStorage 更新後に render() を呼んでプレビューの全リンクを最新化
+          render();
         }
       })
       .catch(function(e) { /* Firestore 読み込み失敗は無視 */ });
