@@ -879,10 +879,6 @@ a.lb-url:hover { text-decoration: underline; }
         <label>プラン</label>
         <select id="plan" onchange="updatePlanDefaults();render()">
           <option value="">選択してください</option>
-          <option value="light">ライト</option>
-          <option value="basic">ベーシック</option>
-          <option value="pro">プロ</option>
-          <option value="juryou">従量</option>
         </select>
       </div>
       <div id="plan-detail-fields" style="display:none">
@@ -1964,12 +1960,7 @@ function getAreaData() {
 
 /* ── 設定デフォルト値 ── */
 const DEFAULT_SETTINGS = {
-  plans: {
-    light:  { fee: '8万円',  commission: '10%', guarantee: 'なし', monthly: '25〜35件', half: '—', contractPeriod: '6ヶ月契約' },
-    basic:  { fee: '10万円', commission: '5%',  guarantee: '25件',  monthly: '40〜55件', half: '40〜55件', contractPeriod: '6ヶ月契約' },
-    pro:    { fee: '15万円', commission: '3%',  guarantee: '40件',  monthly: '65〜80件', half: '65〜80件', contractPeriod: '6ヶ月契約' },
-    juryou: { fee: '', commission: '', referralFee: '', contractPeriod: '', monthly: '', guarantee: '' },
-  },
+  plans: {},
   holidayText: '弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。',
   excludeText: '・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。',
   staffList: ['恩田雅史', '鈴木宏午', '皆川進太', '中村元彌', '松本そよ', '穴澤萌花', '亀井翼', '染葉健介', '杉本山東'],
@@ -2008,6 +1999,7 @@ const DEFAULT_SETTINGS = {
 };
 
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
+let _firestorePlans = {}; // Firestoreのplansデータ（onAuthStateChanged後に設定）
 
 /* 従量プランの固定フィールド定義 */
 const JURYOU_ITEMS = [
@@ -2033,12 +2025,7 @@ function getSettings() {
       : _storedTmpls;
     return {
       ...DEFAULT_SETTINGS, ...s,
-      plans: {
-        light:  { ...DEFAULT_SETTINGS.plans.light,  ...(s.plans?.light  || {}) },
-        basic:  { ...DEFAULT_SETTINGS.plans.basic,  ...(s.plans?.basic  || {}) },
-        pro:    { ...DEFAULT_SETTINGS.plans.pro,    ...(s.plans?.pro    || {}) },
-        juryou: { ...DEFAULT_SETTINGS.plans.juryou, ...(s.plans?.juryou || {}) },
-      },
+      plans: { ...(s.plans || {}) },
       staffList:     s.staffList?.length     ? s.staffList     : DEFAULT_SETTINGS.staffList,
       csStaff:       s.csStaff?.length       ? s.csStaff       : DEFAULT_SETTINGS.csStaff,
       paymentConfig: s.paymentConfig?.length  ? s.paymentConfig  : DEFAULT_SETTINGS.paymentConfig,
@@ -2359,6 +2346,23 @@ function syncP1Rows() {
     }
   }
 
+  // Firestoreにあるがlight/basic/pro/juryou以外のプラン → 汎用表示
+  const _MONTHLY = ['light','basic','pro'];
+  if (plan && !plan.includes(':') && !plan.startsWith('vp_') && plan !== 'juryou' && !_MONTHLY.includes(plan)) {
+    const _gd = _firestorePlans[plan] || s.plans?.[plan];
+    if (_gd && Object.keys(_gd).some(k => _gd[k])) {
+      fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+      let html = '';
+      Object.keys(_gd).forEach(k => {
+        const raw = _gd[k]; if (!raw) return;
+        const disp = Array.isArray(raw) ? raw.filter(v=>v).join(' / ') : String(raw); if (!disp) return;
+        html += '<tr><td class="k" style="white-space:nowrap">'+esc(k)+'</td><td class="v" colspan="3">'+esc(disp)+'</td></tr>';
+      });
+      if (customBody) customBody.innerHTML = html;
+      return;
+    }
+  }
+
   if (customBody) customBody.innerHTML = '';
   fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display = plan ? '' : 'none'; });
 }
@@ -2512,14 +2516,14 @@ function updatePlanDefaults() {
   const s = getSettings();
   const TYPE_STATIC = {ライト:'light',ベーシック:'basic',プロ:'pro'};
   const applyStatic = (key) => {
-    const d = s.plans?.[key] || DEFAULT_SETTINGS.plans?.[key];
-    // fee が未定義のプラン（例: volume）には適用しない → undefined がフォームに入るのを防ぐ
-    if (!d || d.fee === undefined) return false;
-    document.getElementById('monthly_fee').value = d.fee        ?? '';
-    document.getElementById('commission').value  = d.commission ?? '';
-    document.getElementById('guarantee').value   = d.guarantee  ?? '';
-    document.getElementById('monthly_est').value = d.monthly    ?? '';
-    document.getElementById('half_est').value    = d.half       ?? '';
+    const d = _firestorePlans[key] || s.plans?.[key] || {};
+    if (!Object.keys(d).length) return false;
+    if (d.fee          !== undefined) document.getElementById('monthly_fee').value  = d.fee          ?? '';
+    if (d.commission   !== undefined) document.getElementById('commission').value   = d.commission   ?? '';
+    if (d.guarantee    !== undefined) document.getElementById('guarantee').value    = d.guarantee    ?? '';
+    if (d.monthly      !== undefined) document.getElementById('monthly_est').value  = d.monthly      ?? '';
+    if (d.half         !== undefined) document.getElementById('half_est').value     = d.half         ?? '';
+    if (d.contractPeriod !== undefined) {/* contractPeriod is used in preview via render() */}
     return true;
   };
   if (plan.startsWith('vp_')) {
@@ -2621,16 +2625,22 @@ function populateVolumePlans() {
 function populatePlanSelect() {
   const sel = document.getElementById('plan');
   if (!sel) return;
-  const s = getSettings();
-  const tmpls = s.planTemplates || [];
+  const PLAN_LABELS = {light:'ライト', basic:'ベーシック', pro:'プロ', juryou:'従量'};
   const cur = sel.value;
   sel.innerHTML = '<option value="">選択してください</option>';
-  tmpls.forEach(function(tmpl) {
-    const o = document.createElement('option');
-    o.value = tmpl.id;
-    o.textContent = tmpl.name || tmpl.id;
-    sel.appendChild(o);
-  });
+  const keys = Object.keys(_firestorePlans);
+  if (keys.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = ''; opt.textContent = '（プラン未設定）'; opt.disabled = true;
+    sel.appendChild(opt);
+  } else {
+    keys.forEach(function(key) {
+      const o = document.createElement('option');
+      o.value = key;
+      o.textContent = PLAN_LABELS[key] || key;
+      sel.appendChild(o);
+    });
+  }
   sel.value = cur;
 }
 
@@ -2850,7 +2860,8 @@ function render() {
   set('p-date3', '発行日：' + dateLabel);
   set('p-date4', '発行日：' + dateLabel);
   renderP4();
-  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:({light:'ライト',basic:'ベーシック',pro:'プロ',volume:'従量',juryou:'従量'}[_pv]||planLabel[_pv]||_pv);
+  const _PLAN_LABELS={light:'ライト',basic:'ベーシック',pro:'プロ',volume:'従量',juryou:'従量'};
+  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:(_PLAN_LABELS[_pv]||planLabel[_pv]||_pv);
   setVal('p-plan', _pname);
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
@@ -3440,17 +3451,24 @@ function saveCase() {
           if (el) el.value = data.csAssignee;
           if (typeof renderP4 === 'function') renderP4();
         }
-        if (data.planTemplates && data.planTemplates.length) {
+        // plans を Firestore から読み込んで _firestorePlans にセット
+        if (data.plans && Object.keys(data.plans).length) {
+          _firestorePlans = data.plans;
           try{
             var cpP=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
-            cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
-            if (data.plans && data.plans.juryou) {
-              if (!cpP.plans) cpP.plans={};
-              cpP.plans.juryou=data.plans.juryou;
+            if (data.planTemplates && data.planTemplates.length) {
+              cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
             }
+            cpP.plans = Object.assign(cpP.plans || {}, data.plans);
             localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
           }catch(e){}
-          // プラン選択肢は固定optionのため populatePlanDetails() は呼ばない
+          if (typeof populatePlanSelect === 'function') populatePlanSelect();
+        } else if (data.planTemplates && data.planTemplates.length) {
+          try{
+            var cpP2=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
+            cpP2.planTemplates=data.planTemplates; cpP2.planDetails=data.planDetails||[];
+            localStorage.setItem('gaiheki_settings',JSON.stringify(cpP2));
+          }catch(e){}
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {

@@ -1208,6 +1208,70 @@ function savePlanSection() {
         { planTemplates: JSON.parse(JSON.stringify(planTemplates)), planDetails: JSON.parse(JSON.stringify(planDetails)) }, { merge: true }
       );
     } catch(fe) { console.warn('Firestore plan save:', fe); }
+    // plans.light/basic/pro を月額プランの planDetails から抽出して Firestore に保存
+    try {
+      const _mTmpl = planTemplates.find(t => t.id === 'monthly' || (t.name && t.name.includes('月額')));
+      if (_mTmpl) {
+        const _mDet = planDetails.find(d => d.templateId === _mTmpl.id);
+        if (_mDet) {
+          const _iMap = {};
+          _mTmpl.items.forEach(item => {
+            const L = {'月額費用（継続特典後・税抜）':'fee','月額費用（税抜）':'fee','月額費用':'fee',
+              '成約手数料':'commission','最低補償件数':'guarantee','最低保証':'guarantee',
+              '月間紹介件数（想定）':'monthly','紹介件数想定（月間）':'monthly',
+              '契約期間':'contractPeriod','6ヶ月紹介件数（想定）':'half','紹介件数想定（6ヶ月）':'half'};
+            _iMap[item.id] = L[item.label] || item.id;
+          });
+          const _tMap = {'ライト':'light','ベーシック':'basic','プロ':'pro'};
+          const _plansUpd = {};
+          Object.keys(_mDet.values || {}).forEach(typeName => {
+            const key = _tMap[typeName] || typeName;
+            const vals = _mDet.values[typeName] || {};
+            const pd = {};
+            Object.keys(vals).forEach(iid => {
+              const fn = _iMap[iid] || iid;
+              const v = vals[iid];
+              if (v !== undefined && v !== '') pd[fn] = Array.isArray(v) ? (v.length===1?v[0]:v) : v;
+            });
+            if (Object.keys(pd).length) _plansUpd['plans.' + key] = pd;
+          });
+          if (Object.keys(_plansUpd).length) {
+            firebase.firestore().collection('settings').doc('gaiheki').update(_plansUpd)
+              .catch(() => {
+                const po = {}; Object.keys(_plansUpd).forEach(k => { po[k.split('.')[1]] = _plansUpd[k]; });
+                firebase.firestore().collection('settings').doc('gaiheki').set({ plans: po }, { merge: true });
+              });
+          }
+        }
+      }
+      // plans.juryou を従量プランの planDetails から抽出して Firestore に保存
+      const _vTmpl = planTemplates.find(t => t.name && t.name.includes('従量'));
+      if (_vTmpl) {
+        const _vDet = planDetails.find(d => d.templateId === _vTmpl.id);
+        if (_vDet) {
+          const _ft = Object.keys(_vDet.values || {})[0];
+          if (_ft) {
+            const _vVals = _vDet.values[_ft] || {};
+            const _vL = {'契約期間':'contractPeriod','月額費用':'fee','月額費用（税抜）':'fee',
+              '紹介手数料':'referralFee','成約手数料':'commission',
+              '紹介件数想定（月間）':'monthly','月間紹介件数（想定）':'monthly',
+              '最低保証':'guarantee','最低補償件数':'guarantee'};
+            const _vjMap = {};
+            _vTmpl.items.forEach(item => { _vjMap[item.id] = _vL[item.label] || item.id; });
+            const jd = {};
+            Object.keys(_vVals).forEach(iid => {
+              const fn = _vjMap[iid] || iid;
+              const v = _vVals[iid];
+              if (v !== undefined && v !== '') jd[fn] = Array.isArray(v) ? (v.length===1?v[0]:v) : v;
+            });
+            if (Object.keys(jd).length) {
+              firebase.firestore().collection('settings').doc('gaiheki').update({ 'plans.juryou': jd })
+                .catch(() => firebase.firestore().collection('settings').doc('gaiheki').set({ plans: { juryou: jd } }, { merge: true }));
+            }
+          }
+        }
+      }
+    } catch(_pe) { console.warn('plans Firestore save:', _pe); }
     const t = document.getElementById('toast');
     if(t) { t.textContent='保存しました'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200); }
   } catch(e) { console.error('savePlanSection:', e); }
