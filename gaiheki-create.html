@@ -2642,6 +2642,10 @@ function buildJuryouFields(jd) {
       }
     }
     if (opts) {
+      // 成約手数料は数値昇順（5% → 10% の順）にソート
+      if (item.id === 'commission') {
+        opts = opts.slice().sort(function(a, b) { return parseFloat(a) - parseFloat(b); });
+      }
       // 複数値 → select（最初に「選択してください」）
       var s = '<select id="plan-item-' + item.id + '" onchange="render()" style="' + SEL_STYLE + '">';
       s += '<option value="">選択してください</option>';
