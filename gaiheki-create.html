@@ -2525,18 +2525,29 @@ function updatePlanDefaults() {
   // 従量プラン: buildJuryouFields で複数値→select / 単値→input を自動判定
   if (plan === 'juryou') {
     if (_pf) _pf.style.display = 'none';
-    const jFirestore = s.plans?.juryou || {};
-    const jDefault   = (typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.plans?.juryou) || {};
-    const jd = Object.assign({}, jDefault, jFirestore);
-    if (_cf) {
-      _cf.innerHTML = buildJuryouFields(jd);
-      _cf.style.display = '';
-      // 複数値 select は「選択してください」（value=""）にリセット
-      ['referralFee', 'commission'].forEach(function(id) {
-        var el = document.getElementById('plan-item-' + id);
-        if (el && el.tagName === 'SELECT') el.value = '';
-      });
-    }
+    const jDefault = (typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.plans?.juryou) || {};
+    // まずキャッシュで即描画
+    const _applyJuryou = function(freshData) {
+      const jd = Object.assign({}, jDefault, freshData || {});
+      const cfEl = document.getElementById('plan-custom-fields');
+      const pfEl = document.getElementById('plan-detail-fields');
+      if (cfEl) {
+        cfEl.innerHTML = buildJuryouFields(jd);
+        cfEl.style.display = '';
+        ['referralFee', 'commission'].forEach(function(id) {
+          var el = document.getElementById('plan-item-' + id);
+          if (el && el.tagName === 'SELECT') el.value = '';
+        });
+      }
+      if (pfEl) pfEl.style.display = 'none';
+    };
+    _applyJuryou(s.plans?.juryou || {});
+    // Firestoreから最新値を取得して再描画
+    _refreshPlanFromFirestore('juryou', function(freshData) {
+      if (!freshData) return;
+      _applyJuryou(freshData);
+      render();
+    });
     return;
   }
   if (plan.includes(':')) {
@@ -2581,6 +2592,38 @@ function updatePlanDefaults() {
     return;
   }
   applyStatic(plan);
+  // Firestoreから最新値を取得して月額フォームを上書き
+  _refreshPlanFromFirestore(plan, function(freshData) {
+    if (!freshData) return;
+    var _pfr = document.getElementById('plan-detail-fields');
+    if (_pfr) _pfr.style.display = '';
+    if (freshData.fee          !== undefined) document.getElementById('monthly_fee').value  = freshData.fee          ?? '';
+    if (freshData.commission   !== undefined) document.getElementById('commission').value   = freshData.commission   ?? '';
+    if (freshData.guarantee    !== undefined) document.getElementById('guarantee').value    = freshData.guarantee    ?? '';
+    if (freshData.monthly      !== undefined) document.getElementById('monthly_est').value  = freshData.monthly      ?? '';
+    if (freshData.half         !== undefined) document.getElementById('half_est').value     = freshData.half         ?? '';
+    render();
+  });
+}
+
+/* ── Firestore から最新プランデータを取得してキャッシュ更新 ── */
+function _refreshPlanFromFirestore(key, callback) {
+  try {
+    var user = firebase.auth && firebase.auth().currentUser;
+    if (!user) { callback(null); return; }
+    firebase.firestore().collection('settings').doc('gaiheki').get()
+      .then(function(doc) {
+        if (!doc.exists || !doc.data()) { callback(null); return; }
+        var plans = doc.data().plans || {};
+        try {
+          var ls = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
+          ls.plans = Object.assign(ls.plans || {}, plans);
+          localStorage.setItem('gaiheki_settings', JSON.stringify(ls));
+        } catch(e) {}
+        callback(plans[key] || null);
+      })
+      .catch(function() { callback(null); });
+  } catch(e) { callback(null); }
 }
 
 /* ── planTemplate 検索ヘルパー ──
