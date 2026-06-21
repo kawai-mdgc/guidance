@@ -320,7 +320,6 @@ a.header-logo:hover { opacity: 0.8; }
     <div class="sidenav-label">設定項目</div>
     <button class="sidenav-item active" onclick="showSection('plan', this)">📋 プラン設定</button>
     <button class="sidenav-item" onclick="showSection('staff', this)">👤 担当者設定</button>
-    <button class="sidenav-item" onclick="showSection('text', this)">📝 テキスト設定</button>
     <button class="sidenav-item" onclick="showSection('url', this)">🔗 URL設定</button>
     <button class="sidenav-item" onclick="showSection('cs', this)">👤 CS担当者情報</button>
     <button class="sidenav-item" onclick="showSection('payment', this)">💳 決済手段</button>
@@ -328,7 +327,6 @@ a.header-logo:hover { opacity: 0.8; }
     <select id="section-select" class="section-select" onchange="showSectionById(this.value)">
       <option value="plan">📋 プラン設定</option>
       <option value="staff">👤 担当者設定</option>
-      <option value="text">📝 テキスト設定</option>
       <option value="url">🔗 URL設定</option>
       <option value="cs">👤 CS担当者情報</option>
       <option value="payment">💳 決済手段</option>
@@ -366,25 +364,6 @@ a.header-logo:hover { opacity: 0.8; }
         <button id="btn-save-staff" class="btn-save" onclick="saveStaffSection()">保存</button>
       </div>
     </div>
-
-    <!-- ── テキスト設定 ── -->
-    <div class="section" id="sec-text">
-      <div class="section-title">テキスト設定</div>
-      <div class="section-desc">資料内の固定文言をカスタマイズできます。</div>
-      <div class="field">
-        <label>④ 休業日の文言</label>
-        <textarea id="holiday-text" rows="4"></textarea>
-      </div>
-      <div class="field">
-        <label>⑤ 除外情報の文言</label>
-        <textarea id="exclude-text" rows="7"></textarea>
-      </div>
-      <div class="save-btn-wrap">
-        <span class="dirty-badge" id="dirty-text">未保存の変更があります</span>
-        <button id="btn-save-text" class="btn-save" onclick="saveTextSection()">保存</button>
-      </div>
-    </div>
-
 
     <!-- ── CS担当者情報 ── -->
     <div class="section" id="sec-cs">
@@ -856,11 +835,6 @@ function snapshotSection(sec) {
       case 'staff':
         originalData.staff = staffList.slice();
         break;
-      case 'text': {
-        const st = getSettings();
-        originalData.text = { holidayText: st.holidayText, excludeText: st.excludeText };
-        break;
-      }
       case 'cs':
         originalData.cs = JSON.parse(JSON.stringify(csStaff));
         break;
@@ -898,10 +872,6 @@ function restoreSection(sec) {
         staffList = d.slice();
         renderStaffList();
         break;
-      case 'text':
-        document.getElementById('holiday-text').value = d.holidayText || '';
-        document.getElementById('exclude-text').value = d.excludeText || '';
-        break;
       case 'cs':
         csStaff = JSON.parse(JSON.stringify(d));
         csEditingId = null;
@@ -937,11 +907,6 @@ function gatherCurrent(sec) {
         return { templates: JSON.parse(JSON.stringify(planTemplates)), details: JSON.parse(JSON.stringify(planDetails)) };
       case 'staff':
         return staffList.slice();
-      case 'text':
-        return {
-          holidayText: document.getElementById('holiday-text')?.value || '',
-          excludeText: document.getElementById('exclude-text')?.value || '',
-        };
       case 'cs':
         return JSON.parse(JSON.stringify(csStaff));
       case 'payment':
@@ -1224,23 +1189,6 @@ function saveStaffSection() {
       { staffList: [...staffList] }, { merge: true }
     ).catch(function(e) { console.warn('Firestore staff save:', e); });
   } catch(e) { console.error('saveStaffSection エラー:', e); }
-}
-
-function saveTextSection() {
-  console.log('保存ボタンクリック：テキスト設定');
-  try {
-    const holidayEl = document.getElementById('holiday-text');
-    const excludeEl = document.getElementById('exclude-text');
-    console.log('  #holiday-text =', holidayEl ? holidayEl.value : 'NOT FOUND');
-    console.log('  #exclude-text =', excludeEl ? excludeEl.value : 'NOT FOUND');
-    const data = {
-      holidayText: (holidayEl && holidayEl.value) ? holidayEl.value : DEFAULT_SETTINGS.holidayText,
-      excludeText: (excludeEl && excludeEl.value) ? excludeEl.value : DEFAULT_SETTINGS.excludeText,
-    };
-    clearDirty('text');
-    saveSectionData('text', data);
-    snapshotSection('text');
-  } catch(e) { console.error('saveTextSection エラー:', e); }
 }
 
 function csSectionValidate() {
@@ -1571,8 +1519,6 @@ function saveSettings() {
 
   const settings = {
     plans,
-    holidayText:   document.getElementById('holiday-text').value   || DEFAULT_SETTINGS.holidayText,
-    excludeText:   document.getElementById('exclude-text').value   || DEFAULT_SETTINGS.excludeText,
     staffList:     [...staffList],
     loanDocUrl:    document.getElementById('loan-doc-url').value.trim(),
     loanApplyUrl:  document.getElementById('loan-apply-url').value.trim(),
@@ -1614,8 +1560,6 @@ function escHtml(s) {
   staffList = [...s.staffList];
   renderStaffList();
 
-  document.getElementById('holiday-text').value   = s.holidayText;
-  document.getElementById('exclude-text').value   = s.excludeText;
   document.getElementById('loan-doc-url').value   = s.loanDocUrl;
   document.getElementById('loan-apply-url').value = s.loanApplyUrl;
   document.getElementById('gift-survey-url').value= s.giftSurveyUrl;
@@ -1647,9 +1591,9 @@ function escHtml(s) {
   amgrLoad();
 
   // ── 各セクションの初期状態をスナップショット ──
-  ['plan','staff','text','cs','payment','url','area'].forEach(snapshotSection);
+  ['plan','staff','cs','payment','url','area'].forEach(snapshotSection);
   // ── 未保存変更: セクション別 input イベント委任 ──
-  ['sec-plan','sec-text','sec-url'].forEach(id => {
+  ['sec-plan','sec-url'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => {
       const sec = id.replace('sec-', '');
       checkDirty(sec);
