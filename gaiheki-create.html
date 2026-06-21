@@ -2314,33 +2314,66 @@ function syncP1Rows() {
     return;
   }
 
-  // juryou プラン: plan-item-* フォーム入力値から 2ブロック構成でプレビュー生成
+  // juryou プラン: Firestore planTemplates の items 順でプレビューを動的生成
   if (plan === 'juryou') {
     fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
     const gi = id => { const el=document.getElementById('plan-item-'+id); return el ? el.value.trim() : ''; };
     const r1 = (lbl, val) => val ? '<tr><td class="k" style="white-space:nowrap">'+esc(lbl)+'</td><td class="v" colspan="3">'+esc(val)+'</td></tr>' : '';
-    const r2 = (l1,v1,l2,v2) => (v1||v2) ? '<tr><td class="k2">'+esc(l1)+'</td><td class="v" style="width:25%;vertical-align:middle">'+esc(v1)+'</td><td class="k2">'+esc(l2)+'</td><td class="v" style="width:25%;vertical-align:middle">'+esc(v2)+'</td></tr>' : '';
-    let html = '';
-    html += r1('契約期間', gi('contractPeriod'));
-    html += r1('月額費用', gi('fee'));
-    html += r2('紹介手数料', gi('referralFee')||'—', '成約手数料', gi('commission')||'—');
-    html += r1('紹介件数想定（月間）', gi('monthly')||'—');
-    // 最低保証: rowspan=3 でラベルを縦結合、sublabel+value を3行
+    const r2 = (l1,v1,l2,v2) => '<tr><td class="k2">'+esc(l1)+'</td><td class="v" style="width:25%;vertical-align:middle">'+esc(v1||'—')+'</td><td class="k2">'+esc(l2)+'</td><td class="v" style="width:25%;vertical-align:middle">'+esc(v2||'—')+'</td></tr>';
     const slStyle = 'background:#f5f5f5;color:var(--label);font-size:11px;font-weight:600;padding:6px 14px;border:1px solid var(--border);white-space:nowrap;vertical-align:middle;';
     const svStyle = 'background:var(--white);color:var(--text);font-size:11.5px;padding:7px 12px;border:1px solid var(--border);';
-    html += '<tr>'
-      + '<td rowspan="3" class="k" style="vertical-align:middle">最低保証</td>'
-      + '<td style="'+slStyle+'">日上限件数</td>'
-      + '<td colspan="2" style="'+svStyle+'">'+(gi('dailyLimit')||'—')+'</td>'
-      + '</tr>';
-    html += '<tr>'
-      + '<td style="'+slStyle+'">月上限件数</td>'
-      + '<td colspan="2" style="'+svStyle+'">'+(gi('monthlyLimit')||'—')+'</td>'
-      + '</tr>';
-    html += '<tr>'
-      + '<td style="'+slStyle+'">月上限予算</td>'
-      + '<td colspan="2" style="'+svStyle+'">'+(gi('monthlyBudget')||'—')+'</td>'
-      + '</tr>';
+
+    // Firestore planTemplates の volume テンプレート items 順で表示
+    const volTmpl = findTmplForPlan(plan, s);
+    let html = '';
+    if (volTmpl && volTmpl.items && volTmpl.items.length > 0) {
+      // 明示ペア: 同行にしたい item.id ペアを定義
+      const PAIR_MAP = { contractPeriod: 'fee', fee: null, referralFee: 'commission', commission: null };
+      const rendered = new Set();
+      volTmpl.items.forEach(function(item) {
+        if (rendered.has(item.id)) return;
+        if (item.subBlocks && item.subBlocks.length > 0) {
+          // subBlocks がある項目: rowspan レイアウト
+          const rowspan = item.subBlocks.length;
+          html += '<tr><td rowspan="' + rowspan + '" class="k" style="vertical-align:middle">' + esc(item.label) + '</td>';
+          item.subBlocks.forEach(function(sbName, i) {
+            const sbVal = gi(item.id + '__' + sbName) || '—';
+            if (i === 0) {
+              html += '<td style="' + slStyle + '">' + esc(sbName) + '</td><td colspan="2" style="' + svStyle + '">' + esc(sbVal) + '</td></tr>';
+            } else {
+              html += '<tr><td style="' + slStyle + '">' + esc(sbName) + '</td><td colspan="2" style="' + svStyle + '">' + esc(sbVal) + '</td></tr>';
+            }
+          });
+          rendered.add(item.id);
+        } else if (PAIR_MAP[item.id] !== undefined) {
+          // ペア指定あり: 隣の item を探す
+          const pairedId = PAIR_MAP[item.id];
+          if (pairedId) {
+            const pairedItem = volTmpl.items.find(function(it){ return it.id === pairedId; });
+            if (pairedItem) {
+              html += r2(item.label, gi(item.id), pairedItem.label, gi(pairedItem.id));
+              rendered.add(item.id); rendered.add(pairedItem.id);
+              return;
+            }
+          }
+          // ペアが見つからなければ単独表示
+          html += r1(item.label, gi(item.id) || '—');
+          rendered.add(item.id);
+        } else {
+          html += r1(item.label, gi(item.id) || '—');
+          rendered.add(item.id);
+        }
+      });
+    } else {
+      // フォールバック: JURYOU_ITEMS のハードコード順
+      html += r2('契約期間', gi('contractPeriod'), '月額費用', gi('fee'));
+      html += r2('紹介手数料', gi('referralFee'), '成約手数料', gi('commission'));
+      html += r1('紹介件数想定（月間）', gi('monthly') || '—');
+      html += '<tr><td rowspan="3" class="k" style="vertical-align:middle">最低保証</td>'
+        + '<td style="' + slStyle + '">日上限件数</td><td colspan="2" style="' + svStyle + '">' + (gi('dailyLimit') || '—') + '</td></tr>';
+      html += '<tr><td style="' + slStyle + '">月上限件数</td><td colspan="2" style="' + svStyle + '">' + (gi('monthlyLimit') || '—') + '</td></tr>';
+      html += '<tr><td style="' + slStyle + '">月上限予算</td><td colspan="2" style="' + svStyle + '">' + (gi('monthlyBudget') || '—') + '</td></tr>';
+    }
     if (customBody) customBody.innerHTML = html;
     return;
   }
@@ -2611,14 +2644,13 @@ function updatePlanDefaults() {
   }
   if (plan.includes(':')) {
     const [detId, type] = plan.split(':');
-    const det = s.planDetails && s.planDetails.find(d => d.id === detId);
-    const tmpl = det && s.planTemplates && s.planTemplates.find(t => t.id === det.templateId);
-    if (tmpl && det) {
-      // Generate dynamic form fields
+    const _applyDetPlan = function(sF) {
+      const det = sF.planDetails && sF.planDetails.find(d => d.id === detId);
+      const tmpl = det && sF.planTemplates && sF.planTemplates.find(t => t.id === det.templateId);
+      if (!tmpl || !det) return false;
       if (_cf) { _cf.innerHTML = buildPlanCustomFields(det, tmpl, type); _cf.style.display = ''; }
       if (_pf) _pf.style.display = 'none';
       updatePreviewLabels(tmpl);
-      // Populate fixed fields for preview compatibility
       const tv = (det.values||{})[type] || {};
       const getV = idx => { const it = tmpl.items[idx]; if (!it) return ''; const val = tv[it.id]; return Array.isArray(val)?(val[0]||''):(val||''); };
       document.getElementById('monthly_fee').value  = getV(0);
@@ -2626,8 +2658,15 @@ function updatePlanDefaults() {
       document.getElementById('guarantee').value    = getV(2);
       document.getElementById('monthly_est').value  = getV(3);
       document.getElementById('half_est').value     = getV(5);
-      return;
-    }
+      return true;
+    };
+    // まずキャッシュで描画
+    _applyDetPlan(s);
+    // Firestoreから最新 planTemplates/planDetails を取得して再描画
+    _refreshPlanFromFirestore('__noop__', function() {
+      var sF = getSettings();
+      if (_applyDetPlan(sF)) render();
+    });
     if (_pf) _pf.style.display = '';
     applyStatic(TYPE_STATIC[plan.split(':')[1]] || '');
     return;
@@ -2673,10 +2712,16 @@ function _refreshPlanFromFirestore(key, callback) {
     firebase.firestore().collection('settings').doc('gaiheki').get()
       .then(function(doc) {
         if (!doc.exists || !doc.data()) { callback(null); return; }
-        var plans = doc.data().plans || {};
+        var data = doc.data();
+        var plans = data.plans || {};
         try {
           var ls = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
           ls.plans = Object.assign(ls.plans || {}, plans);
+          // planTemplates/planDetails も最新化
+          if (data.planTemplates && data.planTemplates.length) {
+            ls.planTemplates = data.planTemplates;
+            ls.planDetails   = data.planDetails || [];
+          }
           localStorage.setItem('gaiheki_settings', JSON.stringify(ls));
         } catch(e) {}
         callback(plans[key] || null);
