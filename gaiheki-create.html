@@ -877,7 +877,7 @@ a.lb-url:hover { text-decoration: underline; }
       <div class="f-sec">契約プラン</div>
       <div class="field">
         <label>プラン</label>
-        <select id="plan" onchange="updatePlanDefaults();render()">
+        <select id="plan" onchange="_planSnapshotMode=false;updatePlanDefaults();render()">
           <option value="">選択してください</option>
           <optgroup label="月額プラン">
             <option value="light">ライト</option>
@@ -1989,6 +1989,7 @@ const DEFAULT_SETTINGS = {
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
 let _lastLoadedPlanItems = null; // 保存案件ロード時の planItems（非同期フォーム再描画後に再適用）
 let _planDisplayNames = {light:'ライト', basic:'ベーシック', pro:'プロ', juryou:'従量'}; // Firestoreのplaname取得後に上書き
+let _planSnapshotMode = false; // true=既存案件のスナップショット使用中（Firestoreプラン再取得しない）
 
 /* 従量プランの固定フィールド定義 */
 const JURYOU_ITEMS = [
@@ -2727,12 +2728,14 @@ function updatePlanDefaults() {
       if (pfEl) pfEl.style.display = 'none';
     };
     _applyJuryou(s.plans?.juryou || {});
-    // Firestoreから最新値を取得して再描画
-    _refreshPlanFromFirestore('juryou', function(freshData) {
-      if (!freshData) return;
-      _applyJuryou(freshData);
-      render();
-    });
+    // スナップショットモード（既存案件初期ロード）はFirestore再取得しない
+    if (!_planSnapshotMode) {
+      _refreshPlanFromFirestore('juryou', function(freshData) {
+        if (!freshData) return;
+        _applyJuryou(freshData);
+        render();
+      });
+    }
     return;
   }
   if (plan.includes(':')) {
@@ -2783,18 +2786,20 @@ function updatePlanDefaults() {
     return;
   }
   applyStatic(plan);
-  // Firestoreから最新値を取得して月額フォームを上書き
-  _refreshPlanFromFirestore(plan, function(freshData) {
-    if (!freshData) return;
-    var _pfr = document.getElementById('plan-detail-fields');
-    if (_pfr) _pfr.style.display = '';
-    if (freshData.fee          !== undefined) document.getElementById('monthly_fee').value  = freshData.fee          ?? '';
-    if (freshData.commission   !== undefined) document.getElementById('commission').value   = freshData.commission   ?? '';
-    if (freshData.guarantee    !== undefined) document.getElementById('guarantee').value    = freshData.guarantee    ?? '';
-    if (freshData.monthly      !== undefined) document.getElementById('monthly_est').value  = freshData.monthly      ?? '';
-    if (freshData.half         !== undefined) document.getElementById('half_est').value     = freshData.half         ?? '';
-    render();
-  });
+  // スナップショットモード（既存案件初期ロード）はFirestore再取得しない
+  if (!_planSnapshotMode) {
+    _refreshPlanFromFirestore(plan, function(freshData) {
+      if (!freshData) return;
+      var _pfr = document.getElementById('plan-detail-fields');
+      if (_pfr) _pfr.style.display = '';
+      if (freshData.fee          !== undefined) document.getElementById('monthly_fee').value  = freshData.fee          ?? '';
+      if (freshData.commission   !== undefined) document.getElementById('commission').value   = freshData.commission   ?? '';
+      if (freshData.guarantee    !== undefined) document.getElementById('guarantee').value    = freshData.guarantee    ?? '';
+      if (freshData.monthly      !== undefined) document.getElementById('monthly_est').value  = freshData.monthly      ?? '';
+      if (freshData.half         !== undefined) document.getElementById('half_est').value     = freshData.half         ?? '';
+      render();
+    });
+  }
 }
 
 /* ── juryou フォームに subBlocks 入力欄を追加 ── */
@@ -3387,6 +3392,12 @@ function collectFormData() {
   fields.forEach(f => { const el = document.getElementById(f); if(el) data[f] = el.value; });
   data.areas = [...areas];
   data.planItems = getPlanItemValues();
+  // プランのスナップショット（保存時点のプラン設定を丸ごと保存）
+  const _planKey = v('plan');
+  data.planSnapshot = {
+    planKey: _planKey,
+    data: JSON.parse(JSON.stringify(getSettings().plans?.[_planKey] || {}))
+  };
   return data;
 }
 
@@ -3474,7 +3485,14 @@ function saveCase() {
   if (c.settingsSnapshot) {
     const base = JSON.parse(JSON.stringify(getSettings())); // staffList/csStaff は現在値
     _settingsOverride = Object.assign(base, c.settingsSnapshot);
+    // planSnapshot がある場合、対象プランのデータをさらに上書き
+    if (c.formData && c.formData.planSnapshot && c.formData.planSnapshot.planKey && c.formData.planSnapshot.data) {
+      if (!_settingsOverride.plans) _settingsOverride.plans = {};
+      _settingsOverride.plans[c.formData.planSnapshot.planKey] = c.formData.planSnapshot.data;
+    }
   }
+  // 既存案件はスナップショットモード（Firestoreのプラン設定を再取得しない）
+  _planSnapshotMode = true;
   const d = c.formData;
   ['assignee','cs_assignee','company','contact_name','issue_date','plan','monthly_fee','commission','guarantee',
    'monthly_est','half_est','payment_status','payment_note','login_id'].forEach(f => {
@@ -3584,7 +3602,15 @@ function saveCase() {
         if (c.settingsSnapshot && typeof getSettings === 'function') {
           var base = JSON.parse(JSON.stringify(getSettings()));
           window._settingsOverride = Object.assign(base, c.settingsSnapshot);
+          // planSnapshot がある場合、対象プランのデータをさらに上書き
+          var _fps = c.formData && c.formData.planSnapshot;
+          if (_fps && _fps.planKey && _fps.data) {
+            if (!window._settingsOverride.plans) window._settingsOverride.plans = {};
+            window._settingsOverride.plans[_fps.planKey] = _fps.data;
+          }
         }
+        // 既存案件はスナップショットモード
+        window._planSnapshotMode = true;
 
         // フォームを再描画
         var d = c.formData;
