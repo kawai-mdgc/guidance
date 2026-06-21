@@ -1968,6 +1968,7 @@ const DEFAULT_SETTINGS = {
     light:  { fee: '8万円',  commission: '10%', guarantee: 'なし', monthly: '25〜35件', half: '—', contractPeriod: '6ヶ月契約' },
     basic:  { fee: '10万円', commission: '5%',  guarantee: '25件',  monthly: '40〜55件', half: '40〜55件', contractPeriod: '6ヶ月契約' },
     pro:    { fee: '15万円', commission: '3%',  guarantee: '40件',  monthly: '65〜80件', half: '65〜80件', contractPeriod: '6ヶ月契約' },
+    juryou: { fee: '', commission: '', referralFee: '', contractPeriod: '', monthly: '', guarantee: '' },
   },
   holidayText: '弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。',
   excludeText: '・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。',
@@ -2007,6 +2008,16 @@ const DEFAULT_SETTINGS = {
 };
 
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
+
+/* 従量プランの固定フィールド定義 */
+const JURYOU_ITEMS = [
+  {id:'contractPeriod', label:'契約期間'},
+  {id:'fee',           label:'月額費用'},
+  {id:'referralFee',   label:'紹介手数料'},
+  {id:'commission',    label:'成約手数料'},
+  {id:'monthly',       label:'紹介件数想定（月間）'},
+  {id:'guarantee',     label:'最低保証'},
+];
 let _tplP1Texts = {}; // エディタのテンプレートブロックから取得したP1テキスト
 
 function getSettings() {
@@ -2026,7 +2037,7 @@ function getSettings() {
         light:  { ...DEFAULT_SETTINGS.plans.light,  ...(s.plans?.light  || {}) },
         basic:  { ...DEFAULT_SETTINGS.plans.basic,  ...(s.plans?.basic  || {}) },
         pro:    { ...DEFAULT_SETTINGS.plans.pro,    ...(s.plans?.pro    || {}) },
-        juryou: { ...(s.plans?.juryou || {}) },
+        juryou: { ...DEFAULT_SETTINGS.plans.juryou, ...(s.plans?.juryou || {}) },
       },
       staffList:     s.staffList?.length     ? s.staffList     : DEFAULT_SETTINGS.staffList,
       csStaff:       s.csStaff?.length       ? s.csStaff       : DEFAULT_SETTINGS.csStaff,
@@ -2303,26 +2314,22 @@ function syncP1Rows() {
     return;
   }
 
-  // juryou プラン: plans.juryou から直接表示（setting.html 保存済みデータ優先）
+  // juryou プラン: plan-item-* フォーム入力値から 2ブロック構成でプレビュー生成
   if (plan === 'juryou') {
-    const jd = s.plans && s.plans.juryou;
-    const hasData = jd && Object.keys(jd).some(k => { const v=jd[k]; return v && (Array.isArray(v)?v.some(x=>x):true); });
-    if (hasData) {
-      fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
-      const ORDER=['contractPeriod','fee','referralFee','commission','monthly','guarantee'];
-      const LBLS={contractPeriod:'契約期間',fee:'月額費用',referralFee:'紹介手数料',
-                  commission:'成約手数料',monthly:'紹介件数想定（月間）',guarantee:'最低保証'};
-      let html='';
-      ORDER.forEach(k => {
-        const raw=jd[k]; if(!raw||(Array.isArray(raw)&&!raw.filter(v=>v).length)) return;
-        const disp=Array.isArray(raw)?raw.filter(v=>v).join(' / '):String(raw); if(!disp) return;
-        html+='<tr><td class="k" style="white-space:nowrap">'+esc(LBLS[k]||k)+'</td><td class="v" colspan="3">'+esc(disp)+'</td></tr>';
-      });
-      if(customBody) customBody.innerHTML=html;
-      return;
-    }
+    fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+    const gi = id => { const el=document.getElementById('plan-item-'+id); return el ? el.value.trim() : ''; };
+    const r1 = (lbl, val) => val ? '<tr><td class="k" style="white-space:nowrap">'+esc(lbl)+'</td><td class="v" colspan="3">'+esc(val)+'</td></tr>' : '';
+    const r2 = (l1,v1,l2,v2) => (v1||v2) ? '<tr><td class="k2">'+esc(l1)+'</td><td class="v" style="width:25%;vertical-align:middle">'+esc(v1)+'</td><td class="k2">'+esc(l2)+'</td><td class="v" style="width:25%;vertical-align:middle">'+esc(v2)+'</td></tr>' : '';
+    let html = '';
+    html += r1('契約期間', gi('contractPeriod'));
+    html += r1('月額費用', gi('fee'));
+    html += r2('紹介手数料', gi('referralFee'), '成約手数料', gi('commission'));
+    html += r1('紹介件数想定（月間）', gi('monthly'));
+    html += r1('最低保証', gi('guarantee'));
+    if (customBody) customBody.innerHTML = html;
+    return;
   }
-  // planTemplate ID に一致するプラン（例: "volume","juryou"）— planDetails の値を優先表示
+  // planTemplate ID に一致するプラン（例: "volume"）— planDetails の値を優先表示
   if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
     const planTmpl = findTmplForPlan(plan, s);
     if (planTmpl) {
@@ -2396,6 +2403,15 @@ function buildPlanCustomFields(det, tmpl, type) {
 function getPlanItemValues() {
   const plan = v('plan');
   const s = getSettings();
+  // juryou プラン
+  if (plan === 'juryou') {
+    const res = {};
+    JURYOU_ITEMS.forEach(item => {
+      const el = document.getElementById('plan-item-' + item.id);
+      if (el) res[item.id] = el.value;
+    });
+    return res;
+  }
   // planTemplate ID プラン（例: "volume"）
   if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
     const tmpl = findTmplForPlan(plan, s);
@@ -2441,6 +2457,20 @@ function initPlanCustomFields(planItems) {
   const plan = v('plan');
   if (!plan) return;
   const s = getSettings();
+  // juryou プラン
+  if (plan === 'juryou') {
+    const _cf2 = document.getElementById('plan-custom-fields');
+    const _pf2 = document.getElementById('plan-detail-fields');
+    if (_cf2) { _cf2.innerHTML = buildTemplatePlanFields({id:'juryou', name:'従量プラン', items: JURYOU_ITEMS}); _cf2.style.display = ''; }
+    if (_pf2) _pf2.style.display = 'none';
+    if (planItems && typeof planItems === 'object') {
+      JURYOU_ITEMS.forEach(function(item) {
+        const txt = document.getElementById('plan-item-' + item.id);
+        if (txt && planItems[item.id] !== undefined) txt.value = planItems[item.id] || '';
+      });
+    }
+    return;
+  }
   // planTemplate ID プラン（例: "volume"）— updatePlanDefaults でフィールド生成済み、値のみセット
   if (!plan.includes(':') && !plan.startsWith('vp_')) {
     const tmpl = findTmplForPlan(plan, s);
@@ -2499,6 +2529,17 @@ function updatePlanDefaults() {
     document.getElementById('guarantee').value   = '';
     document.getElementById('monthly_est').value = vp.monthlyEstimate || '';
     document.getElementById('half_est').value    = '';
+    return;
+  }
+  // 従量プラン: JURYOU_ITEMS に基づくフォームフィールドを生成
+  if (plan === 'juryou') {
+    if (_cf) { _cf.innerHTML = buildTemplatePlanFields({id:'juryou', name:'従量プラン', items: JURYOU_ITEMS}); _cf.style.display = ''; }
+    if (_pf) _pf.style.display = 'none';
+    const jd = s.plans?.juryou || {};
+    JURYOU_ITEMS.forEach(item => {
+      const el = document.getElementById('plan-item-' + item.id);
+      if (el && jd[item.id]) el.value = jd[item.id];
+    });
     return;
   }
   if (plan.includes(':')) {

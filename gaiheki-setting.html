@@ -1201,39 +1201,12 @@ function savePlanSection() {
     const existing = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
     existing.planTemplates = JSON.parse(JSON.stringify(planTemplates));
     existing.planDetails   = JSON.parse(JSON.stringify(planDetails));
-    // 従量プランのデータを plans.juryou として保存
-    const _volTmpl = planTemplates.find(t => t.name && t.name.includes('従量'));
-    let _juryou = null;
-    if (_volTmpl) {
-      const _volDet = planDetails.find(d => d.templateId === _volTmpl.id);
-      if (_volDet) {
-        const _ft = Object.keys(_volDet.values || {})[0];
-        const _tv = _ft ? (_volDet.values[_ft] || {}) : {};
-        const _LMAP = {
-          '契約期間':'contractPeriod','月額費用':'fee','月額費用（税抜）':'fee',
-          '月額費用（継続特典後・税抜）':'fee','紹介手数料':'referralFee',
-          '成約手数料':'commission','紹介件数想定（月間）':'monthly',
-          '月間紹介件数（想定）':'monthly','最低保証':'guarantee','最低補償件数':'guarantee'
-        };
-        _juryou = {};
-        _volTmpl.items.forEach(item => {
-          const key = _LMAP[item.label] || item.id;
-          const val = _tv[item.id];
-          if (val !== undefined && val !== '') _juryou[key] = val;
-        });
-        existing.plans = Object.assign(existing.plans || {}, { juryou: _juryou });
-      }
-    }
     localStorage.setItem('gaiheki_settings', JSON.stringify(existing));
     snapshotSection('plan');
     try {
       firebase.firestore().collection('settings').doc('gaiheki').set(
         { planTemplates: JSON.parse(JSON.stringify(planTemplates)), planDetails: JSON.parse(JSON.stringify(planDetails)) }, { merge: true }
       );
-      if (_juryou) {
-        firebase.firestore().collection('settings').doc('gaiheki').update({ 'plans.juryou': _juryou })
-          .catch(() => firebase.firestore().collection('settings').doc('gaiheki').set({ plans: { juryou: _juryou } }, { merge: true }));
-      }
     } catch(fe) { console.warn('Firestore plan save:', fe); }
     const t = document.getElementById('toast');
     if(t) { t.textContent='保存しました'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200); }
