@@ -2699,14 +2699,26 @@ function buildJuryouFields(jd) {
     var inputVal = Array.isArray(rawVal) ? String(rawVal[0] || '') : String(rawVal || '');
     return '<div class="field"><label>' + lbl + '</label><input type="text" id="plan-item-' + item.id + '" value="' + esc(inputVal) + '" placeholder="' + lbl + '" oninput="render()"></div>';
   }
+  // 明示的ペアリング（同行にする項目を指定）
+  var PAIRS = [
+    ['contractPeriod', 'fee'],       // 契約期間 ← 月額費用 (横並び)
+    ['referralFee',    'commission'], // 紹介手数料 ← 成約手数料 (横並び)
+    ['monthly',        null],         // 紹介件数想定（月間）(単独)
+    ['dailyLimit',     'monthlyLimit'], // 日上限件数 ← 月上限件数 (横並び)
+    ['monthlyBudget',  null],         // 月上限予算 (単独)
+  ];
+  var findItem = function(id) { return JURYOU_ITEMS.find(function(it){ return it.id === id; }); };
   var html = '';
-  for (var i = 0; i < JURYOU_ITEMS.length; i += 2) {
-    if (i + 1 < JURYOU_ITEMS.length) {
-      html += '<div class="field-row">' + buildField(JURYOU_ITEMS[i]) + buildField(JURYOU_ITEMS[i+1]) + '</div>';
+  PAIRS.forEach(function(pair) {
+    var item1 = findItem(pair[0]);
+    var item2 = pair[1] ? findItem(pair[1]) : null;
+    if (!item1) return;
+    if (item2) {
+      html += '<div class="field-row">' + buildField(item1) + buildField(item2) + '</div>';
     } else {
-      html += buildField(JURYOU_ITEMS[i]);
+      html += buildField(item1);
     }
-  }
+  });
   return html;
 }
 
