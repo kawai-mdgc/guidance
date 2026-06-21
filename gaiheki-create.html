@@ -3728,7 +3728,7 @@ function saveCase() {
     if(p2El && p2.length>0) p2El.innerHTML=p2.map(_renderBlock).join('');
     // P3: 全ブロックをレンダリング
     var p3El=document.getElementById('p3-content');
-    if(p3El && p3.length>0){p3El.innerHTML=p3.map(_renderBlock).join('');var p3s=document.getElementById('p3-static');if(p3s)p3s.style.display='none';}
+    if(p3El && p3.length>0){p3El.innerHTML=p3.map(_renderBlock).join('');}
     // render()でURLリンクを更新
     if(typeof render==='function') render();
     console.log('[Template] 適用完了 p2='+p2.length+' p3='+p3.length);
@@ -3816,7 +3816,7 @@ function saveCase() {
     }
     if (pages.p3 && pages.p3.blocks && pages.p3.blocks.length > 0) {
       var el3 = document.getElementById('p3-content');
-      if (el3) { el3.innerHTML = renderBlocks(pages.p3.blocks); var p3s=document.getElementById('p3-static'); if(p3s) p3s.style.display='none'; }
+      if (el3) { el3.innerHTML = renderBlocks(pages.p3.blocks); }
     }
     console.log('[Editor] localStorage blocks applied');
   } catch(e) {
