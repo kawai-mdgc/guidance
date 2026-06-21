@@ -2318,7 +2318,7 @@ function syncP1Rows() {
     let html = '';
     html += r1('契約期間', gi('contractPeriod'));
     html += r1('月額費用', gi('fee'));
-    html += r2('紹介手数料', gi('referralFee'), '成約手数料', gi('commission'));
+    html += r2('紹介手数料', gi('referralFee')||'—', '成約手数料', gi('commission')||'—');
     html += r1('紹介件数想定（月間）', gi('monthly'));
     html += r1('最低保証', gi('guarantee'));
     if (customBody) customBody.innerHTML = html;
