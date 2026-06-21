@@ -3826,12 +3826,16 @@ function saveCase() {
           } catch(e) {}
           if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI();
         }
-        // loanMediaUrl / loanApplicationUrl を設定に反映してリンクを更新
-        if (data.loanMediaUrl || data.loanApplicationUrl) {
+        // URL設定を localStorage に反映してリンクを更新（全URL対象）
+        if (data.loanMediaUrl || data.loanApplicationUrl || data.giftSurveyUrl || data.giftWorkUrl || data.formUrl1 || data.formUrl2) {
           try {
             var cur2 = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
             if (data.loanMediaUrl)       cur2.loanMediaUrl       = data.loanMediaUrl;
             if (data.loanApplicationUrl) cur2.loanApplicationUrl = data.loanApplicationUrl;
+            if (data.giftSurveyUrl)      cur2.giftSurveyUrl      = data.giftSurveyUrl;
+            if (data.giftWorkUrl)        cur2.giftWorkUrl        = data.giftWorkUrl;
+            if (data.formUrl1)           cur2.formUrl1           = data.formUrl1;
+            if (data.formUrl2)           cur2.formUrl2           = data.formUrl2;
             localStorage.setItem('gaiheki_settings', JSON.stringify(cur2));
           } catch(e) {}
           if (typeof setLink === 'function') {
