@@ -3947,10 +3947,8 @@ function saveCase() {
           });
           if (_urlUpdated) localStorage.setItem('gaiheki_settings', JSON.stringify(cur2));
         } catch(e) {}
-        if (_urlUpdated && typeof render === 'function') {
-          // localStorage 更新後に render() を呼んでプレビューの全リンクを最新化
-          render();
-        }
+        // URL有無にかかわらず render() を呼んでリンクを最新化
+        if (typeof render === 'function') render();
       })
       .catch(function(e) { /* Firestore 読み込み失敗は無視 */ });
   });
