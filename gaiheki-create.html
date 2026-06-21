@@ -2337,8 +2337,10 @@ function syncP1Rows() {
         const juryouId = LABEL_TO_JURYOU_ID[item.label];
         return juryouId ? gi(juryouId) : '';
       };
-      // 明示ペア: ラベルで照合
+      // 明示ペア: ラベルで照合（primary→secondary）
       const PAIR_LABELS = { '契約期間':'月額費用', '紹介手数料':'成約手数料' };
+      // ペアの副要素: primary が存在するときは単独行を生成しない
+      const SECONDARY_PAIR_OF = { '月額費用':'契約期間', '成約手数料':'紹介手数料' };
       const rendered = new Set();
       volTmpl.items.forEach(function(item) {
         if (rendered.has(item.id)) return;
@@ -2366,6 +2368,14 @@ function syncP1Rows() {
             return;
           }
           html += r1(item.label, giByItem(item) || '—');
+          rendered.add(item.id);
+        } else if (SECONDARY_PAIR_OF[item.label]) {
+          // ペアの副要素: primary が template に存在する場合は単独行を生成しない
+          const primaryLabel = SECONDARY_PAIR_OF[item.label];
+          const primaryExists = volTmpl.items.some(function(it) { return it.label === primaryLabel; });
+          if (!primaryExists) {
+            html += r1(item.label, giByItem(item) || '—');
+          }
           rendered.add(item.id);
         } else {
           html += r1(item.label, giByItem(item) || '—');
