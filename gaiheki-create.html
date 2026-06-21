@@ -776,23 +776,23 @@ a.lb-url:hover { text-decoration: underline; }
 
     <div style="margin-bottom:4px">
       <div style="font-weight:600;margin-bottom:2px">【媒体資料】</div>
-      <a href="https://drive.google.com/file/d/1eYcxVHQ9Bdwpe0sgHwFJ5QHvQeRa-9oX/view?usp=sharing" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:1px 6px;line-height:1.4;text-decoration:none;color:var(--text);font-size:13px;transition:background .12s" onmouseover="this.style.background='#e8eaed'" onmouseout="this.style.background='#f1f3f4'">📄 【madoguchi様】業務協定契約のご提案_Ver2.0_20251201 (1) (1).pdf</a>
+      <a id="p3-loan-doc" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:1px 6px;line-height:1.4;text-decoration:none;color:var(--text);font-size:13px;transition:background .12s" onmouseover="this.style.background='#e8eaed'" onmouseout="this.style.background='#f1f3f4'">📄 【madoguchi様】業務協定契約のご提案</a>
     </div>
 
     <div style="margin-bottom:24px">
       <div style="font-weight:600;margin-bottom:2px">【お申込書】</div>
-      <a href="https://drive.google.com/file/d/1YWvqYl0y2YJdtkg9s-9Umu8nKb_xF_c8/view?usp=sharing" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:1px 6px;line-height:1.4;text-decoration:none;color:var(--text);font-size:13px;transition:background .12s" onmouseover="this.style.background='#e8eaed'" onmouseout="this.style.background='#f1f3f4'">📄 【アプラス】加盟店契約希望申出書.pdf</a>
+      <a id="p3-loan-apply" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:1px 6px;line-height:1.4;text-decoration:none;color:var(--text);font-size:13px;transition:background .12s" onmouseover="this.style.background='#e8eaed'" onmouseout="this.style.background='#f1f3f4'">📄 【アプラス】加盟店契約希望申出書</a>
     </div>
 
     <div style="margin-top:24px;margin-bottom:12px">
       <span style="display:inline-block;background:#e8e6f3;color:var(--main);font-weight:700;padding:3px 10px;border-radius:3px;margin-bottom:8px">【下記、弊社からお支払いをさせて頂きます！】</span><br>
       <strong>アマギフ1000円　現地調査完了＆お見積書提示</strong><br>
-      <a class="url-val" href="https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog" target="_blank">https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog</a>
+      <a id="p3-form1" class="url-val" href="#" target="_blank">（URL未設定）</a>
     </div>
 
     <div style="margin-bottom:24px">
       <strong>作業金額の1%のアマギフ　作業完了後</strong><br>
-      <a class="url-val" href="https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di" target="_blank">https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di</a>
+      <a id="p3-form2" class="url-val" href="#" target="_blank">（URL未設定）</a>
     </div>
 
     <div style="margin-bottom:12px">
@@ -3322,6 +3322,11 @@ function render() {
   setLink('p-gift-survey', s.giftSurveyUrl);
   setLink('p-gift-work',   s.giftWorkUrl);
   setLink('p-login-url',   s.loginUrl);
+  // P3 ページのリンク（Firestoreから動的取得）
+  setCardLink('p3-loan-doc',   s.loanMediaUrl  || s.loanDocUrl  || '', '📄 【madoguchi様】業務協定契約のご提案');
+  setCardLink('p3-loan-apply', s.loanApplicationUrl || s.loanApplyUrl || '', '📄 【アプラス】加盟店契約希望申出書');
+  setLink('p3-form1', s.formUrl1 || s.giftSurveyUrl || '');
+  setLink('p3-form2', s.formUrl2 || s.giftWorkUrl   || '');
   // テンプレートブロックが優先。なければ設定値にフォールバック
   const _proc = function(v){ return String(v||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); };
   const _applyP1Text = function(elId, tplVal, settingVal) {
@@ -3348,6 +3353,16 @@ function setVal(id, val) {
   el.style.color = empty ? 'var(--muted)' : '';
 }
 
+// カード型リンク用：href のみ更新、表示ラベルは固定テキストを使用
+function setCardLink(id, url, label) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const valid = url && url.startsWith('http');
+  el.href = valid ? url : '#';
+  el.textContent = valid ? label : '（URL未設定）';
+  el.style.pointerEvents = valid ? '' : 'none';
+  el.style.opacity = valid ? '' : '0.6';
+}
 function setLink(id, url) {
   const el = document.getElementById(id);
   if (!el) return;
