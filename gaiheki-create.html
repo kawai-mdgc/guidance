@@ -3013,7 +3013,12 @@ function populatePlanSelect() {
   });
 
   // 3. planDetails から「その他」グループに動的追加
-  const HARDCODED = new Set(['light','basic','pro','juryou','volume','']);
+  // ハードコードのプランキー・フィールドIDは除外
+  const HARDCODED = new Set([
+    'light','basic','pro','juryou','volume','',
+    'comm','fee','half','monthly','guarantee','contractPeriod','period','guar',
+    'commission','monthly_fee','half_est','monthly_est','referralFee','dailyLimit','monthlyLimit','monthlyBudget'
+  ]);
   const s = getSettings();
   const planDetails = s.planDetails || [];
   const planTemplates = s.planTemplates || [];
