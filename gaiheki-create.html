@@ -3610,6 +3610,11 @@ function saveCase() {
   const pnEl = document.getElementById('payment_note');
   if (pnEl && d.payment_note) pnEl.value = d.payment_note;
   updatePlanDefaults();
+  // updatePlanDefaults() がフォーム値を上書きするため、保存済み値で再上書き
+  ['monthly_fee','commission','guarantee','monthly_est','half_est'].forEach(f => {
+    const el = document.getElementById(f);
+    if (el && d[f] !== undefined) el.value = d[f];
+  });
   initPlanCustomFields(d.planItems);
   render();
   // planSnapshotHtml が存在する場合は render() 後に確実に適用（二重保護）
@@ -3747,6 +3752,11 @@ function saveCase() {
         var pnEl = document.getElementById('payment_note');
         if (pnEl && d.payment_note) pnEl.value = d.payment_note;
         if (typeof updatePlanDefaults === 'function') updatePlanDefaults();
+        // updatePlanDefaults() がフォーム値を上書きするため、保存済み値で再上書き
+        ['monthly_fee','commission','guarantee','monthly_est','half_est'].forEach(function(f) {
+          var el = document.getElementById(f);
+          if (el && d[f] !== undefined) el.value = d[f];
+        });
         if (typeof initPlanCustomFields === 'function') initPlanCustomFields(d.planItems);
         if (typeof render === 'function') render();
         // planSnapshotHtml が存在する場合は render() 後に確実に適用（二重保護）
