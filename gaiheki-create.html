@@ -3350,10 +3350,10 @@ function render() {
       return '<a href="'+url+'" target="_blank" style="color:#1a73e8;font-size:13px;word-break:break-all;overflow-wrap:break-word;white-space:normal;">'+url+'</a>';
     }
     function _setWrap(id, html) { var el=document.getElementById(id); if(el) el.innerHTML=html; }
-    var u1 = s.loanMaterialUrl   || s.loanMediaUrl  || s.loanDocUrl  || '';
-    var u2 = s.loanApplicationUrl|| s.loanApplyUrl  || '';
-    var u3 = s.inspectionGiftUrl || s.giftSurveyUrl || s.formUrl1    || '';
-    var u4 = s.completionGiftUrl || s.giftWorkUrl   || s.formUrl2    || '';
+    var u1 = s.loanMaterialUrl    || '';
+    var u2 = s.loanApplicationUrl || '';
+    var u3 = s.inspectionGiftUrl  || '';
+    var u4 = s.completionGiftUrl  || '';
     _setWrap('p3b-loan-material-wrap',    _chipHtml(u1, '📄 【madoguchi様】業務協定契約のご提案_Ver2.0_20251201 (1) (1).pdf'));
     _setWrap('p3b-loan-application-wrap', _chipHtml(u2, '📄 【アプラス】加盟店契約希望申出書.pdf'));
     _setWrap('p3b-inspection-gift-wrap',  _formHtml(u3));
@@ -3931,9 +3931,9 @@ function saveCase() {
             giftWorkUrl:   data.giftWorkUrl   || data.formUrl2,
             formUrl1: data.formUrl1, formUrl2: data.formUrl2,
             loanDocUrl: data.loanDocUrl, loanApplyUrl: data.loanApplyUrl,
-            loanMaterialUrl:   data.loanMaterialUrl   || data.loanMediaUrl  || data.loanDocUrl,
-            inspectionGiftUrl: data.inspectionGiftUrl || data.giftSurveyUrl || data.formUrl1,
-            completionGiftUrl: data.completionGiftUrl || data.giftWorkUrl   || data.formUrl2,
+            loanMaterialUrl:   data.loanMaterialUrl,
+            inspectionGiftUrl: data.inspectionGiftUrl,
+            completionGiftUrl: data.completionGiftUrl,
             photoUrl: data.photoUrl, storePageUrl: data.storePageUrl
           };
           Object.keys(_urlFields).forEach(function(k) {
