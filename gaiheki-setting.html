@@ -1376,6 +1376,7 @@ function savePlanSection() {
             const key = _TYPE_KEY[typeName] || typeName;
             const vals = _mDet.values[typeName] || {};
             const pd = {};
+            pd.planName = typeName; // プラン種類名を保存（create.htmlのプルダウン表示名に使用）
             Object.keys(vals).forEach(iid => {
               const fn = _iMap[iid] || iid;
               const v = vals[iid];
@@ -1426,6 +1427,7 @@ function savePlanSection() {
             const _vjMap = {};
             _vTmpl.items.forEach(item => { _vjMap[item.id] = _JURYOU_LABEL_KEY[item.label] || item.id; });
             const jd = {};
+            jd.planName = _ft; // 従量プランの種類名を保存（create.htmlのプルダウン表示名に使用）
             Object.keys(_vVals).forEach(iid => {
               const fn = _vjMap[iid] || iid;
               const v = _vVals[iid];

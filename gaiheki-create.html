@@ -1985,6 +1985,7 @@ const DEFAULT_SETTINGS = {
 
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
 let _lastLoadedPlanItems = null; // 保存案件ロード時の planItems（非同期フォーム再描画後に再適用）
+let _planDisplayNames = {light:'ライト', basic:'ベーシック', pro:'プロ', juryou:'従量'}; // Firestoreのplaname取得後に上書き
 
 /* 従量プランの固定フィールド定義 */
 const JURYOU_ITEMS = [
@@ -2941,9 +2942,15 @@ function populateVolumePlans() {
     sel.appendChild(grp);
   }
 }
-/* ── プランセレクトを planTemplates から動的生成（現在は使用しない） ── */
+/* ── プランセレクトの表示名を _planDisplayNames で更新 ── */
 function populatePlanSelect() {
-  // プルダウンは HTML 固定 option のため何もしない
+  const sel = document.getElementById('plan');
+  if (!sel) return;
+  Array.from(sel.options).forEach(function(opt) {
+    if (opt.value && _planDisplayNames[opt.value]) {
+      opt.textContent = _planDisplayNames[opt.value];
+    }
+  });
 }
 
 /* ── テンプレートアイテムからフォームフィールド生成 ── */
@@ -3223,7 +3230,8 @@ function render() {
   set('p-date4', '発行日：' + dateLabel);
   renderP4();
   const _PLAN_LABELS={light:'ライト',basic:'ベーシック',pro:'プロ',volume:'従量',juryou:'従量'};
-  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:(_PLAN_LABELS[_pv]||planLabel[_pv]||_pv);
+  // Firestoreのplaname → ハードコードラベル → planLabel の順で表示名を決定
+  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:(_planDisplayNames[_pv]||_PLAN_LABELS[_pv]||planLabel[_pv]||_pv);
   // 従量系プランの plan name を Firestore キー名またはデフォルト値で補正
   setVal('p-plan', _pname);
   setVal('p-fee',        v('monthly_fee'));
@@ -3787,6 +3795,15 @@ function saveCase() {
           var el = document.getElementById('cs_assignee');
           if (el) el.value = data.csAssignee;
           if (typeof renderP4 === 'function') renderP4();
+        }
+        // Firestore の planName からプルダウン表示名を更新
+        if (data.plans) {
+          Object.keys(data.plans).forEach(function(key) {
+            if (data.plans[key] && data.plans[key].planName) {
+              _planDisplayNames[key] = data.plans[key].planName;
+            }
+          });
+          if (typeof populatePlanSelect === 'function') populatePlanSelect();
         }
         if (data.planTemplates && data.planTemplates.length) {
           try{
