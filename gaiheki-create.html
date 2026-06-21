@@ -742,7 +742,9 @@ a.lb-url:hover { text-decoration: underline; }
       <div style="font-size:10px;opacity:.85" id="p-date3"></div>
     </div>
   </div>
-  <div class="page-content"><div id="p3-content" style="max-width:760px;margin:0;font-size:11.5px;color:var(--label);line-height:1.9;padding:0 8px">
+  <div class="page-content">
+    <!-- 固定セクション：テンプレートで上書きされない -->
+    <div style="max-width:760px;margin:0;font-size:11.5px;color:var(--label);line-height:1.9;padding:0 8px">
 
     <div style="font-size:20px;font-weight:700;color:var(--text);margin-top:40px;margin-bottom:8px">＜現調 / 成約に繋げるための施策＞</div>
 
@@ -785,12 +787,12 @@ a.lb-url:hover { text-decoration: underline; }
     <div style="margin-top:24px;margin-bottom:12px">
       <span style="display:inline-block;background:#e8e6f3;color:var(--main);font-weight:700;padding:3px 10px;border-radius:3px;margin-bottom:8px">【下記、弊社からお支払いをさせて頂きます！】</span><br>
       <strong>アマギフ1000円　現地調査完了＆お見積書提示</strong><br>
-      <a id="p3-form1" href="https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog" target="_blank" style="color:#1a73e8">https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog" target="_blank" style="color:#1a73e8">https://docs.google.com/forms/d/e/1FAIpQLSfRrZcyFszZbp4Qrb_HJ2NTVMfgzRu-NoAT2buCPvu8tWBvmQ/viewform?usp=dialog</a>
     </div>
 
     <div style="margin-bottom:24px">
       <strong>作業金額の1%のアマギフ　作業完了後</strong><br>
-      <a id="p3-form2" href="https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di" target="_blank" style="color:#1a73e8">https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di" target="_blank" style="color:#1a73e8">https://docs.google.com/forms/d/e/1FAIpQLSc6mL6HfKFGRqIBVfyBSCxbvmeMIZL9Jn6HeThZyb0G_nHV4w/viewform?usp=di</a>
     </div>
 
     <div style="margin-bottom:12px">
@@ -800,7 +802,10 @@ a.lb-url:hover { text-decoration: underline; }
       なお、Amazonギフト自体は弊社から直接お客様にお送りする形となります。
     </div>
 
-  </div></div>
+    </div>
+    <!-- テンプレートで上書きされる領域 -->
+    <div id="p3-content"></div>
+  </div>
 </div><!-- /p3 -->
 
 <!-- ━━━ PAGE 4 ━━━ -->
@@ -3357,11 +3362,7 @@ function render() {
   setLink('p-gift-survey', s.giftSurveyUrl);
   setLink('p-gift-work',   s.giftWorkUrl);
   setLink('p-login-url',   s.loginUrl);
-  // P3 ページのリンク（Firestoreから動的取得）
-  setCardLink('p3-loan-doc',   s.loanMediaUrl  || s.loanDocUrl  || '', '📄 【madoguchi様】業務協定契約のご提案');
-  setCardLink('p3-loan-apply', s.loanApplicationUrl || s.loanApplyUrl || '', '📄 【アプラス】加盟店契約希望申出書');
-  setLink('p3-form1', s.giftSurveyUrl || s.formUrl1 || '');
-  setLink('p3-form2', s.giftWorkUrl   || s.formUrl2 || '');
+  // P3 リンクはハードコード済み（上書き不要）
   // テンプレートブロックが優先。なければ設定値にフォールバック
   const _proc = function(v){ return String(v||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); };
   const _applyP1Text = function(elId, tplVal, settingVal) {
