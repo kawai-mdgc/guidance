@@ -2601,12 +2601,20 @@ function initPlanCustomFields(planItems) {
     const _jd2 = Object.assign({}, _jDef, _jFire);
     if (_cf2) { _cf2.innerHTML = buildJuryouFields(_jd2); _cf2.style.display = ''; }
     if (_pf2) _pf2.style.display = 'none';
-    // 保存済み planItems で値を上書き（select の場合も el.value で対応）
+    // 保存済み planItems で値をセット
+    // SELECT: '' も有効 / INPUT: 非空のみ（空は Firestore デフォルトを維持）
     if (planItems && typeof planItems === 'object') {
-      _lastLoadedPlanItems = planItems; // 非同期再描画後も select 値を維持するために保存
+      _lastLoadedPlanItems = planItems;
       JURYOU_ITEMS.forEach(function(item) {
         const el = document.getElementById('plan-item-' + item.id);
-        if (el && planItems[item.id] !== undefined) el.value = planItems[item.id] || '';
+        if (!el) return;
+        const savedVal = planItems[item.id];
+        if (savedVal === undefined) return;
+        if (el.tagName === 'SELECT') {
+          el.value = savedVal || '';
+        } else if (savedVal !== '') {
+          el.value = savedVal;
+        }
       });
     }
     // subBlocks 入力欄を追加し、保存済み値を復元
@@ -2697,12 +2705,18 @@ function updatePlanDefaults() {
         _addJuryouSubBlockInputs(cfEl, freshData || {});
         // dummyTexts グレーテキストを追加（表示のみ）
         _addJuryouDummyTexts(cfEl);
-        // 保存案件ロード後の非同期再描画でも select 値を復元する
+        // 保存案件ロード後の非同期再描画でも値を復元する
+        // SELECT: '' も含めて常に適用 / INPUT: 空文字は Firestore デフォルトを維持
         if (_lastLoadedPlanItems && typeof _lastLoadedPlanItems === 'object') {
           JURYOU_ITEMS.forEach(function(item) {
             var el = document.getElementById('plan-item-' + item.id);
-            if (el && _lastLoadedPlanItems[item.id] !== undefined) {
-              el.value = _lastLoadedPlanItems[item.id] || '';
+            if (!el) return;
+            var savedVal = _lastLoadedPlanItems[item.id];
+            if (savedVal === undefined) return; // 保存データになし → Firestore デフォルト維持
+            if (el.tagName === 'SELECT') {
+              el.value = savedVal || ''; // select は '' も有効（選択してください）
+            } else if (savedVal !== '') {
+              el.value = savedVal; // input は非空のみ適用（空は Firestore デフォルト維持）
             }
           });
         }
