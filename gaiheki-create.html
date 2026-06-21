@@ -2478,6 +2478,18 @@ function getPlanItemValues() {
       const el = document.getElementById('plan-item-' + item.id);
       if (el) res[item.id] = el.value;
     });
+    // subBlocks の値も収集
+    const volTmpl2 = findTmplForPlan(plan, s);
+    if (volTmpl2 && volTmpl2.items) {
+      volTmpl2.items.forEach(function(item) {
+        if (!item.subBlocks || !item.subBlocks.length) return;
+        item.subBlocks.forEach(function(sbName) {
+          const sbKey = item.id + '__' + sbName;
+          const el = document.getElementById('plan-item-' + sbKey);
+          if (el) res[sbKey] = el.value;
+        });
+      });
+    }
     return res;
   }
   // planTemplate ID プラン（例: "volume"）
@@ -2551,6 +2563,8 @@ function initPlanCustomFields(planItems) {
         if (el && planItems[item.id] !== undefined) el.value = planItems[item.id] || '';
       });
     }
+    // subBlocks 入力欄を追加し、保存済み値を復元
+    _addJuryouSubBlockInputs(_cf2, planItems);
     return;
   }
   // planTemplate ID プラン（例: "volume"）— updatePlanDefaults でフィールド生成済み、値のみセット
@@ -2630,6 +2644,8 @@ function updatePlanDefaults() {
           var el = document.getElementById('plan-item-' + id);
           if (el && el.tagName === 'SELECT') el.value = '';
         });
+        // subBlocks がある項目のサブ入力欄を追加
+        _addJuryouSubBlockInputs(cfEl, null);
       }
       if (pfEl) pfEl.style.display = 'none';
     };
@@ -2701,6 +2717,46 @@ function updatePlanDefaults() {
     if (freshData.monthly      !== undefined) document.getElementById('monthly_est').value  = freshData.monthly      ?? '';
     if (freshData.half         !== undefined) document.getElementById('half_est').value     = freshData.half         ?? '';
     render();
+  });
+}
+
+/* ── juryou フォームに subBlocks 入力欄を追加 ── */
+function _addJuryouSubBlockInputs(cfEl, savedValues) {
+  if (!cfEl) return;
+  var volTmpl = findTmplForPlan('juryou', getSettings());
+  if (!volTmpl || !volTmpl.items) return;
+  volTmpl.items.forEach(function(item) {
+    if (!item.subBlocks || !item.subBlocks.length) return;
+    var parentInput = document.getElementById('plan-item-' + item.id);
+    if (!parentInput) return;
+    var parentField = parentInput.closest ? parentInput.closest('.field') : parentInput.parentElement;
+    if (!parentField) return;
+    // 既存セクションを除去してから追加
+    var existing = parentField.querySelector('.juryou-subblock-section');
+    if (existing) existing.remove();
+    var sbSection = document.createElement('div');
+    sbSection.className = 'juryou-subblock-section';
+    sbSection.style.cssText = 'margin-top:6px;padding-left:14px;border-left:2px solid var(--border)';
+    item.subBlocks.forEach(function(sbName) {
+      var sbKey = item.id + '__' + sbName;
+      var sbDiv = document.createElement('div');
+      sbDiv.className = 'field';
+      sbDiv.style.marginBottom = '4px';
+      var lbl = document.createElement('label');
+      lbl.style.cssText = 'font-size:11px;color:var(--muted)';
+      lbl.textContent = sbName;
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.id = 'plan-item-' + sbKey;
+      inp.placeholder = sbName;
+      inp.setAttribute('oninput', 'render()');
+      inp.style.cssText = 'width:100%;padding:5px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit';
+      if (savedValues && savedValues[sbKey] !== undefined) inp.value = savedValues[sbKey] || '';
+      sbDiv.appendChild(lbl);
+      sbDiv.appendChild(inp);
+      sbSection.appendChild(sbDiv);
+    });
+    parentField.appendChild(sbSection);
   });
 }
 
