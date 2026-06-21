@@ -2680,11 +2680,9 @@ function initPlanCustomFields(planItems) {
 }
 
 function _onPlanChange() {
-  // 新規作成時のみスナップショットモードを解除してFirestoreから再取得する
-  // 既存案件編集時（editId あり）は _planSnapshotMode を維持する
-  if (!new URLSearchParams(location.search).get('id')) {
-    _planSnapshotMode = false;
-  }
+  // プラン変更時は常にスナップショットをクリアして live 生成に切り替え
+  _p1SnapshotHtml = null;
+  _planSnapshotMode = false;
   updatePlanDefaults();
   render();
 }
@@ -3659,6 +3657,8 @@ function saveCase() {
     const _tb = document.getElementById('p1-plan-tbody');
     if (_tb) _tb.innerHTML = _p1SnapshotHtml;
   }
+  // 初期表示完了後にクリア → 以降のフォーム編集は通常の live 生成に切り替え
+  _p1SnapshotHtml = null;
   populateCsAssigneeUI(d.cs_assignee || '');
   scalePreview();
 })();
@@ -3802,6 +3802,8 @@ function saveCase() {
           if (_tb) _tb.innerHTML = window._p1SnapshotHtml;
           console.log('[planSnapshot] ✅ Firestore path 復元完了');
         }
+        // 初期表示完了後にクリア → 以降のフォーム編集は通常の live 生成に切り替え
+        window._p1SnapshotHtml = null;
         if (typeof populateCsAssigneeUI === 'function') populateCsAssigneeUI(d.cs_assignee || ''); else if (typeof renderP4 === 'function') renderP4();
         console.log('[FS] 編集データ読み込み完了:', editId);
       })
