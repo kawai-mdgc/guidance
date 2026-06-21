@@ -2998,7 +2998,7 @@ function buildJuryouFields(jd) {
         opts = opts.slice().sort(function(a, b) { return parseFloat(a) - parseFloat(b); });
       }
       // 複数値 → select（最初に「選択してください」）
-      var s = '<select id="plan-item-' + item.id + '" onchange="render()" style="' + SEL_STYLE + '">';
+      var s = '<select id="plan-item-' + item.id + '" onchange="render()">';
       s += '<option value="">選択してください</option>';
       opts.forEach(function(opt){ s += '<option value="' + esc(opt) + '">' + esc(opt) + '</option>'; });
       s += '</select>';
