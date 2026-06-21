@@ -2452,16 +2452,21 @@ function initPlanCustomFields(planItems) {
   const plan = v('plan');
   if (!plan) return;
   const s = getSettings();
-  // juryou プラン
+  // juryou プラン: buildJuryouFields で複数値→select / 単値→input を自動判定
   if (plan === 'juryou') {
     const _cf2 = document.getElementById('plan-custom-fields');
     const _pf2 = document.getElementById('plan-detail-fields');
-    if (_cf2) { _cf2.innerHTML = buildTemplatePlanFields({id:'juryou', name:'従量プラン', items: JURYOU_ITEMS}); _cf2.style.display = ''; }
+    const _s2 = getSettings();
+    const _jFire = _s2.plans?.juryou || {};
+    const _jDef  = (typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.plans?.juryou) || {};
+    const _jd2 = Object.assign({}, _jDef, _jFire);
+    if (_cf2) { _cf2.innerHTML = buildJuryouFields(_jd2); _cf2.style.display = ''; }
     if (_pf2) _pf2.style.display = 'none';
+    // 保存済み planItems で値を上書き（select の場合も el.value で対応）
     if (planItems && typeof planItems === 'object') {
       JURYOU_ITEMS.forEach(function(item) {
-        const txt = document.getElementById('plan-item-' + item.id);
-        if (txt && planItems[item.id] !== undefined) txt.value = planItems[item.id] || '';
+        const el = document.getElementById('plan-item-' + item.id);
+        if (el && planItems[item.id] !== undefined) el.value = planItems[item.id] || '';
       });
     }
     return;
@@ -2526,19 +2531,13 @@ function updatePlanDefaults() {
     document.getElementById('half_est').value    = '';
     return;
   }
-  // 従量プラン: JURYOU_ITEMS に基づくフォームフィールドを生成
+  // 従量プラン: buildJuryouFields で複数値→select / 単値→input を自動判定
   if (plan === 'juryou') {
-    if (_cf) { _cf.innerHTML = buildTemplatePlanFields({id:'juryou', name:'従量プラン', items: JURYOU_ITEMS}); _cf.style.display = ''; }
     if (_pf) _pf.style.display = 'none';
-    // getSettings() は DEFAULT_SETTINGS.plans.juryou を base として Firestore データをマージ済み
-    // Firestore にデータがない場合は DEFAULT_SETTINGS の値がフォールバックになる
     const jFirestore = s.plans?.juryou || {};
     const jDefault   = (typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.plans?.juryou) || {};
     const jd = Object.assign({}, jDefault, jFirestore);
-    JURYOU_ITEMS.forEach(item => {
-      const el = document.getElementById('plan-item-' + item.id);
-      if (el) el.value = (jd[item.id] !== undefined && jd[item.id] !== null) ? jd[item.id] : '';
-    });
+    if (_cf) { _cf.innerHTML = buildJuryouFields(jd); _cf.style.display = ''; }
     return;
   }
   if (plan.includes(':')) {
@@ -2622,6 +2621,33 @@ function populatePlanSelect() {
 }
 
 /* ── テンプレートアイテムからフォームフィールド生成 ── */
+/* ── 従量プラン専用フォーム生成（複数値はselect、単値はinput） ── */
+function buildJuryouFields(jd) {
+  const MULTI_IDS = ['referralFee', 'commission'];
+  function buildField(item) {
+    const raw = (jd[item.id] !== undefined && jd[item.id] !== null) ? String(jd[item.id]) : '';
+    const lbl = esc(item.label || '');
+    if (MULTI_IDS.includes(item.id) && raw.indexOf(',') !== -1) {
+      // カンマ区切り → select
+      const opts = raw.split(',').map(function(v){ return v.trim(); }).filter(function(v){ return v; });
+      let s = '<select id="plan-item-' + item.id + '" onchange="render()" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit">';
+      opts.forEach(function(opt){ s += '<option value="' + esc(opt) + '">' + esc(opt) + '</option>'; });
+      s += '</select>';
+      return '<div class="field"><label>' + lbl + '</label>' + s + '</div>';
+    }
+    return '<div class="field"><label>' + lbl + '</label><input type="text" id="plan-item-' + item.id + '" value="' + esc(raw) + '" placeholder="' + lbl + '" oninput="render()"></div>';
+  }
+  var html = '';
+  for (var i = 0; i < JURYOU_ITEMS.length; i += 2) {
+    if (i + 1 < JURYOU_ITEMS.length) {
+      html += '<div class="field-row">' + buildField(JURYOU_ITEMS[i]) + buildField(JURYOU_ITEMS[i+1]) + '</div>';
+    } else {
+      html += buildField(JURYOU_ITEMS[i]);
+    }
+  }
+  return html;
+}
+
 function buildTemplatePlanFields(tmpl) {
   if (!tmpl || !tmpl.items) return '';
   var html = '';
