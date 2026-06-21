@@ -641,7 +641,7 @@ a.lb-url:hover { text-decoration: underline; }
             <div class="step-card">
               <div class="step-label step-content"><span>(3)</span> メモ</div>
               <img src="images/gaiheki/Frame%209.png" alt="" style="width:100%;max-width:160px;height:auto;object-fit:contain;background:#f5f5f5;border-radius:6px;border:1px solid #eee;display:block;margin:3px auto 12px">
-              <div style="display:inline-block;text-align:left;font-size:11px;line-height:1.8;margin-top:4px"><span style="display:inline-block;min-width:3em;">ex)</span>6/10 16:00 17:15 18:30 不通<br><span style="display:inline-block;min-width:3em;"></span>6/11 12:30 通電　現調<br><span style="display:inline-block;min-width:3em;"></span>メモ　聞いたことをメモ、番地メモ…</div>
+              <div style="align-self:flex-start;text-align:left;font-size:11px;line-height:1.8;margin-top:4px"><span style="display:inline-block;min-width:1.5em;">ex)</span>6/10 16:00 17:15 18:30 不通<br><span style="display:inline-block;min-width:1.5em;"></span>6/11 12:30 通電　現調<br><span style="display:inline-block;min-width:1.5em;"></span>メモ　聞いたことをメモ、番地メモ…</div>
             </div>
           </div>
         </div>
@@ -3360,8 +3360,8 @@ function render() {
   // P3 ページのリンク（Firestoreから動的取得）
   setCardLink('p3-loan-doc',   s.loanMediaUrl  || s.loanDocUrl  || '', '📄 【madoguchi様】業務協定契約のご提案');
   setCardLink('p3-loan-apply', s.loanApplicationUrl || s.loanApplyUrl || '', '📄 【アプラス】加盟店契約希望申出書');
-  setLink('p3-form1', s.giftSurveyUrl || '');
-  setLink('p3-form2', s.giftWorkUrl   || '');
+  setLink('p3-form1', s.giftSurveyUrl || s.formUrl1 || '');
+  setLink('p3-form2', s.giftWorkUrl   || s.formUrl2 || '');
   // テンプレートブロックが優先。なければ設定値にフォールバック
   const _proc = function(v){ return String(v||'').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); };
   const _applyP1Text = function(elId, tplVal, settingVal) {
@@ -3936,7 +3936,8 @@ function saveCase() {
           var cur2 = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
           var _urlFields = {
             loanMediaUrl: data.loanMediaUrl, loanApplicationUrl: data.loanApplicationUrl,
-            giftSurveyUrl: data.giftSurveyUrl, giftWorkUrl: data.giftWorkUrl,
+            giftSurveyUrl: data.giftSurveyUrl || data.formUrl1,
+            giftWorkUrl:   data.giftWorkUrl   || data.formUrl2,
             formUrl1: data.formUrl1, formUrl2: data.formUrl2,
             loanDocUrl: data.loanDocUrl, loanApplyUrl: data.loanApplyUrl,
             photoUrl: data.photoUrl, storePageUrl: data.storePageUrl
