@@ -1131,6 +1131,8 @@ function ptItemToggleSubBlocks(tmplId, itemId, checked) {
   const container = document.getElementById('sb-container-' + tmplId + '-' + itemId);
   if (container) container.style.display = checked ? '' : 'none';
   _ptRerenderSubBlocks(tmplId, itemId);
+  // プラン詳細の入力欄を再描画して disabled 状態を反映
+  _pdSyncTemplate(tmplId);
 }
 
 function ptItemAddSubBlock(tmplId, itemId) {
@@ -1196,13 +1198,17 @@ function _pdTypeCard(det,tmpl,type){
   const tv=(det.values||{})[type]||{};
   const itemsHtml=tmpl.items.map(item=>{
     const raw=tv[item.id];
+    const hasSubBlocks=item.subBlocks && item.subBlocks.length>0;
+    const disabledAttr=hasSubBlocks?' disabled':'';
+    const disabledStyle=hasSubBlocks?';opacity:0.45;cursor:not-allowed;background:#f5f5f5':'';
     if(item.valueType==='multiple'){
       const vals=Array.isArray(raw)?raw:(raw?[raw]:['']);
-      const inputs=vals.map((v,vi)=>`<div style="display:flex;gap:4px;margin-bottom:4px"><input type="text" value="${escHtml(v)}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit" oninput="pdSetMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi},this.value)">${vi>0?`<button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="pdRemoveMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi})">✕</button>`:''}</div>`).join('');
-      return `<div class="field"><label>${escHtml(item.label)}</label>${inputs}<button class="btn-pm-add" onclick="pdAddMultiValue('${det.id}','${escHtml(type)}','${item.id}')">＋ 項目を追加する</button></div>`;
+      const inputs=vals.map((v,vi)=>`<div style="display:flex;gap:4px;margin-bottom:4px"><input type="text" value="${escHtml(v)}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit${disabledStyle}"${disabledAttr} oninput="pdSetMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi},this.value)">${vi>0&&!hasSubBlocks?`<button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="pdRemoveMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi})">✕</button>`:''}</div>`).join('');
+      const addBtn=hasSubBlocks?'':`<button class="btn-pm-add" onclick="pdAddMultiValue('${det.id}','${escHtml(type)}','${item.id}')">＋ 項目を追加する</button>`;
+      return `<div class="field"><label>${escHtml(item.label)}</label>${inputs}${addBtn}</div>`;
     }
     const val=typeof raw==='string'?raw:(Array.isArray(raw)?(raw[0]||''):'');
-    let fieldHtml=`<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" oninput="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)" placeholder="値を入力"></div>`;
+    let fieldHtml=`<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" style="width:100%${disabledStyle}"${disabledAttr} oninput="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)" placeholder="${hasSubBlocks?'サブブロックで設定':'値を入力'}"></div>`;
     if(item.subBlocks && item.subBlocks.length>0){
       const sbInputs=item.subBlocks.map(sbName=>{
         const sbKey=item.id+'.'+sbName;
