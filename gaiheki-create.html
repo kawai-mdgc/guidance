@@ -882,7 +882,7 @@ a.lb-url:hover { text-decoration: underline; }
           <option value="light">ライト</option>
           <option value="basic">ベーシック</option>
           <option value="pro">プロ</option>
-          <option value="volume">従量</option>
+          <option value="juryou">従量</option>
         </select>
       </div>
       <div id="plan-detail-fields" style="display:none">
@@ -2026,7 +2026,8 @@ function getSettings() {
         light:  { ...DEFAULT_SETTINGS.plans.light,  ...(s.plans?.light  || {}) },
         basic:  { ...DEFAULT_SETTINGS.plans.basic,  ...(s.plans?.basic  || {}) },
         pro:    { ...DEFAULT_SETTINGS.plans.pro,    ...(s.plans?.pro    || {}) },
-          },
+        juryou: { ...(s.plans?.juryou || {}) },
+      },
       staffList:     s.staffList?.length     ? s.staffList     : DEFAULT_SETTINGS.staffList,
       csStaff:       s.csStaff?.length       ? s.csStaff       : DEFAULT_SETTINGS.csStaff,
       paymentConfig: s.paymentConfig?.length  ? s.paymentConfig  : DEFAULT_SETTINGS.paymentConfig,
@@ -2302,7 +2303,26 @@ function syncP1Rows() {
     return;
   }
 
-  // planTemplate ID に一致するプラン（例: "volume"）— planDetails の値を優先表示
+  // juryou プラン: plans.juryou から直接表示（setting.html 保存済みデータ優先）
+  if (plan === 'juryou') {
+    const jd = s.plans && s.plans.juryou;
+    const hasData = jd && Object.keys(jd).some(k => { const v=jd[k]; return v && (Array.isArray(v)?v.some(x=>x):true); });
+    if (hasData) {
+      fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
+      const ORDER=['contractPeriod','fee','referralFee','commission','monthly','guarantee'];
+      const LBLS={contractPeriod:'契約期間',fee:'月額費用',referralFee:'紹介手数料',
+                  commission:'成約手数料',monthly:'紹介件数想定（月間）',guarantee:'最低保証'};
+      let html='';
+      ORDER.forEach(k => {
+        const raw=jd[k]; if(!raw||(Array.isArray(raw)&&!raw.filter(v=>v).length)) return;
+        const disp=Array.isArray(raw)?raw.filter(v=>v).join(' / '):String(raw); if(!disp) return;
+        html+='<tr><td class="k" style="white-space:nowrap">'+esc(LBLS[k]||k)+'</td><td class="v" colspan="3">'+esc(disp)+'</td></tr>';
+      });
+      if(customBody) customBody.innerHTML=html;
+      return;
+    }
+  }
+  // planTemplate ID に一致するプラン（例: "volume","juryou"）— planDetails の値を優先表示
   if (plan && !plan.includes(':') && !plan.startsWith('vp_')) {
     const planTmpl = findTmplForPlan(plan, s);
     if (planTmpl) {
@@ -2533,7 +2553,7 @@ function findTmplForPlan(plan, s) {
   if (!tmpls || !plan) return null;
   const direct = tmpls.find(t => t.id === plan);
   if (direct) return direct;
-  if (plan === 'volume') return tmpls.find(t => t.name && t.name.includes('従量')) || null;
+  if (plan === 'volume' || plan === 'juryou') return tmpls.find(t => t.name && t.name.includes('従量')) || null;
   return null;
 }
 
@@ -2789,7 +2809,7 @@ function render() {
   set('p-date3', '発行日：' + dateLabel);
   set('p-date4', '発行日：' + dateLabel);
   renderP4();
-  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:({light:'ライト',basic:'ベーシック',pro:'プロ',volume:'従量'}[_pv]||planLabel[_pv]||_pv);
+  const _pv=v('plan'),_pname=_pv.includes(':')?_pv.split(':')[1]:({light:'ライト',basic:'ベーシック',pro:'プロ',volume:'従量',juryou:'従量'}[_pv]||planLabel[_pv]||_pv);
   setVal('p-plan', _pname);
   setVal('p-fee',        v('monthly_fee'));
   setVal('p-commission', v('commission'));
@@ -3383,6 +3403,10 @@ function saveCase() {
           try{
             var cpP=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
             cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
+            if (data.plans && data.plans.juryou) {
+              if (!cpP.plans) cpP.plans={};
+              cpP.plans.juryou=data.plans.juryou;
+            }
             localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
           }catch(e){}
           // プラン選択肢は固定optionのため populatePlanDetails() は呼ばない
