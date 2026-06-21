@@ -879,6 +879,10 @@ a.lb-url:hover { text-decoration: underline; }
         <label>プラン</label>
         <select id="plan" onchange="updatePlanDefaults();render()">
           <option value="">選択してください</option>
+          <option value="light">ライト</option>
+          <option value="basic">ベーシック</option>
+          <option value="pro">プロ</option>
+          <option value="juryou">従量</option>
         </select>
       </div>
       <div id="plan-detail-fields" style="display:none">
@@ -2005,14 +2009,6 @@ const DEFAULT_SETTINGS = {
 
 let _settingsOverride = null; // 既存案件編集時に snapshot で上書き
 
-/* Firestore の plans データ（onAuthStateChanged 後に設定、それまでは空） */
-let _firestorePlans = (function() {
-  try {
-    const c = JSON.parse(localStorage.getItem('gaiheki_settings') || '{}');
-    return (c.plans && Object.keys(c.plans).length) ? c.plans : {};
-  } catch(e) { return {}; }
-})();
-
 /* 従量プランの固定フィールド定義 */
 const JURYOU_ITEMS = [
   {id:'contractPeriod', label:'契約期間'},
@@ -2358,40 +2354,6 @@ function syncP1Rows() {
     }
   }
 
-  // Firestore plans から読み込んだ汎用プラン（従量以外）
-  const _isJuryou2 = (plan === 'juryou' || (plan && plan.includes('従量')));
-  const _fp2 = _firestorePlans[plan];
-  if (_fp2 && !_isJuryou2 && !plan.includes(':') && !plan.startsWith('vp_')) {
-    fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display='none'; });
-    // フィールド取得（comm/guar/period と commission/guarantee/contractPeriod の両方に対応）
-    const _gf2 = function() {
-      for (var _i=0; _i<arguments.length; _i++) {
-        var _k=arguments[_i], _v=_fp2[_k];
-        if (_v !== undefined && _v !== '' && _v !== '—' && _v !== 'なし') return _v;
-      }
-      return '';
-    };
-    const feeV    = _gf2('fee');
-    const commV   = _gf2('commission','comm');
-    const periodV = _gf2('contractPeriod','period');
-    const monV    = _gf2('monthly');
-    const halfV   = _gf2('half');
-    const guarV   = _gf2('guarantee','guar');
-    let html = '';
-    if (feeV || commV) {
-      html += '<tr><td class="k2">月額費用</td><td class="v" style="width:25%;vertical-align:middle">'+esc(feeV||'—')+'</td>' +
-              '<td class="k2">成約手数料</td><td class="v" style="width:25%;vertical-align:middle">'+esc(commV||'—')+'</td></tr>';
-    }
-    if (periodV) html += '<tr><td class="k" style="white-space:nowrap">契約期間</td><td class="v" colspan="3">'+esc(periodV)+'</td></tr>';
-    if (monV || halfV) {
-      html += '<tr><td class="k2">紹介件数想定（月間）</td><td class="v" style="width:25%;vertical-align:middle">'+esc(monV||'—')+'</td>' +
-              '<td class="k2">紹介件数想定（6ヶ月）</td><td class="v" style="width:25%;vertical-align:middle">'+esc(halfV||'—')+'</td></tr>';
-    }
-    if (guarV) html += '<tr><td class="k" style="white-space:nowrap">最低保証</td><td class="v" colspan="3">'+esc(guarV)+'</td></tr>';
-    if (customBody) customBody.innerHTML = html;
-    return;
-  }
-
   if (customBody) customBody.innerHTML = '';
   fixedIds.forEach(id => { const r=document.getElementById(id); if(r) r.style.display = plan ? '' : 'none'; });
 }
@@ -2620,25 +2582,6 @@ function updatePlanDefaults() {
     if (_pf) _pf.style.display = 'none';
     return;
   }
-  // Firestore の plans に該当キーがあれば（従量以外）
-  const _isJuryou = (plan === 'juryou' || (plan && plan.includes('従量')));
-  const _fp = _firestorePlans[plan];
-  if (_fp && !_isJuryou) {
-    if (_pf) _pf.style.display = '';
-    if (_cf) _cf.style.display = 'none';
-    const _gf = function() {
-      for (var _i = 0; _i < arguments.length; _i++) {
-        var _k = arguments[_i]; if (_fp[_k] !== undefined && _fp[_k] !== '') return _fp[_k] ?? '';
-      }
-      return '';
-    };
-    document.getElementById('monthly_fee').value  = _gf('fee');
-    document.getElementById('commission').value   = _gf('commission','comm');
-    document.getElementById('guarantee').value    = _gf('guarantee','guar');
-    document.getElementById('monthly_est').value  = _gf('monthly');
-    document.getElementById('half_est').value     = _gf('half');
-    return;
-  }
   applyStatic(plan);
 }
 
@@ -2673,28 +2616,9 @@ function populateVolumePlans() {
     sel.appendChild(grp);
   }
 }
-/* ── プランセレクトを Firestore plans から動的生成 ── */
-const _PLAN_LABEL_MAP = {light:'ライト', basic:'ベーシック', pro:'プロ', juryou:'従量'};
+/* ── プランセレクトを planTemplates から動的生成（現在は使用しない） ── */
 function populatePlanSelect() {
-  const sel = document.getElementById('plan');
-  if (!sel) return;
-  const cur = sel.value;
-  const keys = Object.keys(_firestorePlans);
-  sel.innerHTML = '<option value="">選択してください</option>';
-  if (keys.length === 0) {
-    // Firestore データなし → DEFAULT_SETTINGS フォールバック
-    [['light','ライト'],['basic','ベーシック'],['pro','プロ'],['juryou','従量']].forEach(([v,t]) => {
-      const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o);
-    });
-  } else {
-    keys.forEach(function(key) {
-      const o = document.createElement('option');
-      o.value = key;
-      o.textContent = _PLAN_LABEL_MAP[key] || key;
-      sel.appendChild(o);
-    });
-  }
-  if (cur && Array.from(sel.options).some(o => o.value === cur)) sel.value = cur;
+  // プルダウンは HTML 固定 option のため何もしない
 }
 
 /* ── テンプレートアイテムからフォームフィールド生成 ── */
@@ -3105,7 +3029,6 @@ function saveCase() {
 
 (function init() {
   populateAssigneeSelect();
-  populatePlanSelect();
 
   const editId = new URLSearchParams(location.search).get('id');
   if (!editId) {
@@ -3506,24 +3429,17 @@ function saveCase() {
           if (el) el.value = data.csAssignee;
           if (typeof renderP4 === 'function') renderP4();
         }
-        // Firestore の plans を _firestorePlans にセットしてプルダウンを再生成
-        if (data.plans && Object.keys(data.plans).length) {
-          _firestorePlans = data.plans;
+        if (data.planTemplates && data.planTemplates.length) {
           try{
             var cpP=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
-            if (data.planTemplates && data.planTemplates.length) {
-              cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
+            cpP.planTemplates=data.planTemplates; cpP.planDetails=data.planDetails||[];
+            if (data.plans && data.plans.juryou) {
+              if (!cpP.plans) cpP.plans={};
+              cpP.plans.juryou=data.plans.juryou;
             }
-            cpP.plans = Object.assign(cpP.plans || {}, data.plans);
             localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
           }catch(e){}
-          if (typeof populatePlanSelect === 'function') populatePlanSelect();
-        } else if (data.planTemplates && data.planTemplates.length) {
-          try{
-            var cpP2=JSON.parse(localStorage.getItem('gaiheki_settings')||'{}');
-            cpP2.planTemplates=data.planTemplates; cpP2.planDetails=data.planDetails||[];
-            localStorage.setItem('gaiheki_settings',JSON.stringify(cpP2));
-          }catch(e){}
+          // プラン選択肢は固定optionのため populatePlanDetails() は呼ばない
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {
