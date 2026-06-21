@@ -3001,10 +3001,47 @@ function populateVolumePlans() {
 function populatePlanSelect() {
   const sel = document.getElementById('plan');
   if (!sel) return;
+
+  // 1. 既存ハードコードオプションの表示名を更新
   Array.from(sel.options).forEach(function(opt) {
     if (opt.value && _planDisplayNames[opt.value]) {
       opt.textContent = _planDisplayNames[opt.value];
     }
+  });
+
+  // 2. 動的追加済みオプションを一旦削除（再構築のため）
+  Array.from(sel.options).forEach(function(opt) {
+    if (opt.dataset.dynamic === '1') opt.remove();
+  });
+
+  // 3. planDetails から「その他」グループに動的追加
+  const HARDCODED = new Set(['light','basic','pro','juryou','volume','']);
+  const s = getSettings();
+  const planDetails = s.planDetails || [];
+  const planTemplates = s.planTemplates || [];
+
+  const otherGroup = Array.from(sel.querySelectorAll('optgroup')).find(function(g) {
+    return g.label === 'その他';
+  });
+
+  planDetails.forEach(function(det) {
+    if (!det || !det.id || !det.values) return;
+    const tmpl = planTemplates.find(function(t) { return t.id === det.templateId; });
+    Object.keys(det.values).forEach(function(typeName) {
+      const optVal = det.id + ':' + typeName;
+      // すでに同じ value のオプションがあればスキップ
+      if (Array.from(sel.options).some(function(o) { return o.value === optVal; })) return;
+      const label = typeName + (tmpl ? '（' + tmpl.name + '）' : '');
+      const opt = document.createElement('option');
+      opt.value = optVal;
+      opt.textContent = label;
+      opt.dataset.dynamic = '1';
+      if (otherGroup) {
+        otherGroup.appendChild(opt);
+      } else {
+        sel.appendChild(opt);
+      }
+    });
   });
 }
 
@@ -4008,7 +4045,8 @@ function saveCase() {
             }
             localStorage.setItem('gaiheki_settings',JSON.stringify(cpP));
           }catch(e){}
-          // プラン選択肢は固定optionのため populatePlanDetails() は呼ばない
+          // planDetails 追加後にプルダウンを更新
+          if (typeof populatePlanSelect === 'function') populatePlanSelect();
         }
         // csInfo (CS担当者詳細) をlocalStorageに反映
         if (data.csInfo && data.csInfo.length) {
