@@ -3729,6 +3729,7 @@ function saveCase() {
     // P3: 全ブロックをレンダリング
     var p3El=document.getElementById('p3-content');
     if(p3El && p3.length>0){p3El.innerHTML=p3.map(_renderBlock).join('');}
+    (function(){var s=document.getElementById('p3-static'),c=document.getElementById('p3-content');if(s&&c){s.style.display=c.innerHTML.trim()?'none':'';}})();
     // render()でURLリンクを更新
     if(typeof render==='function') render();
     console.log('[Template] 適用完了 p2='+p2.length+' p3='+p3.length);
@@ -3818,6 +3819,7 @@ function saveCase() {
       var el3 = document.getElementById('p3-content');
       if (el3) { el3.innerHTML = renderBlocks(pages.p3.blocks); }
     }
+    (function(){var s=document.getElementById('p3-static'),c=document.getElementById('p3-content');if(s&&c){s.style.display=c.innerHTML.trim()?'none':'';}})();
     console.log('[Editor] localStorage blocks applied');
   } catch(e) {
     console.warn('[Editor] localStorage load error:', e);
