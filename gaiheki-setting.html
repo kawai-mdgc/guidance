@@ -499,7 +499,7 @@ const DEFAULT_SETTINGS = {
       { id:'pg4', label:null, notes:['末締め翌月20日引き落とし'] },
     ]},
   ],
-  csStaff: [{ id:'cs1', name:'飯塚来己',  nameEn:'', title:'カスタマーサクセス', bio:'お客様に寄り添ったサポートを心がけています。', phone:'', mission:'', personality:'', hobby:'', career:'', responseSpeed:'', oneWord:'', photoUrl:'', lineQrUrl:'' }],
+  csStaff: [{ id:'cs1', name:'飯塚来己',  nameEn:'', title:'カスタマーサクセス', bio:'お客様に寄り添ったサポートを心がけています。', phone:'', mission:'', personality:'', hobby:'', career:'', responseSpeed:'', oneWord:'' }],
 };
 
 function getSettings() {
@@ -565,10 +565,6 @@ function csRenderList() {
     </div>
     <div class="field"><label>一言</label><textarea rows="2" oninput="csUpdate('${st.id}','oneWord',this.value)">${csEsc(st.oneWord||'')}</textarea><span class="field-hint">20〜40文字</span></div>
     <div class="field"><label>電話番号</label><input type="text" value="${csEsc(st.phone||'')}" oninput="csUpdate('${st.id}','phone',this.value)" placeholder="ハイフンなしで入力"></div>
-    <div class="field-row">
-      <div class="field"><label>写真URL</label><input type="text" value="${csEsc(st.photoUrl||'')}" oninput="csUpdate('${st.id}','photoUrl',this.value)" placeholder="https://..."></div>
-      <div class="field"><label>LINE QR URL</label><input type="text" value="${csEsc(st.lineQrUrl||'')}" oninput="csUpdate('${st.id}','lineQrUrl',this.value)" placeholder="https://..."></div>
-    </div>
   </div>
 </div>`;
   }).join('');
@@ -590,7 +586,7 @@ function csDelete(id) {
 }
 function csAdd() {
   const id = csNewId();
-  csStaff.push({ id, name: '', nameEn: '', title: 'カスタマーサクセス', bio: '', phone: '', mission: '', personality: '', hobby: '', career: '', responseSpeed: '', oneWord: '', photoUrl: '', lineQrUrl: '' });
+  csStaff.push({ id, name: '', nameEn: '', title: 'カスタマーサクセス', bio: '', phone: '', mission: '', personality: '', hobby: '', career: '', responseSpeed: '', oneWord: '' });
   checkDirty('cs');
   csEditingId = id;
   csRenderList();
