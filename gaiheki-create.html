@@ -879,10 +879,14 @@ a.lb-url:hover { text-decoration: underline; }
         <label>プラン</label>
         <select id="plan" onchange="updatePlanDefaults();render()">
           <option value="">選択してください</option>
-          <option value="light">ライト</option>
-          <option value="basic">ベーシック</option>
-          <option value="pro">プロ</option>
-          <option value="juryou">従量</option>
+          <optgroup label="月額プラン">
+            <option value="light">ライト</option>
+            <option value="basic">ベーシック</option>
+            <option value="pro">プロ</option>
+          </optgroup>
+          <optgroup label="その他">
+            <option value="juryou">従量</option>
+          </optgroup>
         </select>
       </div>
       <div id="plan-detail-fields" style="display:none">
