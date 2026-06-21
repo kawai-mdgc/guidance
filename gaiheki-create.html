@@ -2344,16 +2344,17 @@ function syncP1Rows() {
         return juryouId ? gi(juryouId) : '';
       };
       const DT_STYLE = 'font-size:11px;color:#888';
-      // dummyTexts インライン/改行サフィックス（2ブロック行など同一セル内用）
+      // dummyTexts インライン/2行目サフィックス（2ブロック行など同一セル内用）
       const dtSuffix = function(item) {
         const dts = (item && item.dummyTexts) || [];
         if (!dts.length) return '';
         if (dts.length === 1) {
           return '　<span style="' + DT_STYLE + '">' + esc(dts[0]) + '</span>';
         }
-        return dts.map(function(t){ return '<br><span style="' + DT_STYLE + '">' + esc(t) + '</span>'; }).join('');
+        // 2件以上: 全テキストを全角スペース区切りで1行に
+        return '<br>' + dts.map(function(t){ return '<span style="' + DT_STYLE + '">' + esc(t) + '</span>'; }).join('　');
       };
-      // r1dt: 1件→同一セルインライン、2件以上→rowspanで別行
+      // r1dt: 1件→同一セルインライン、2件以上→rowspan2行目に全テキスト横並び
       const r1dt = function(lbl, val, item) {
         if (!val) return '';
         const dts = (item && item.dummyTexts) || [];
@@ -2366,13 +2367,13 @@ function syncP1Rows() {
             + '　<span style="' + DT_STYLE + '">' + esc(dts[0]) + '</span>'
             + '</td></tr>';
         } else {
-          var html = '<tr><td class="k" rowspan="' + (dts.length + 1)
-            + '" style="white-space:nowrap;vertical-align:middle">' + esc(lbl) + '</td>'
-            + '<td class="v" colspan="3">' + esc(val) + '</td></tr>';
-          dts.forEach(function(t) {
-            html += '<tr><td class="v" colspan="3" style="' + DT_STYLE + ';padding-top:2px">' + esc(t) + '</td></tr>';
-          });
-          return html;
+          // 2件以上: 値行 + 全テキストを全角スペース区切りで2行目に並べる
+          const textsHtml = dts.map(function(t){
+            return '<span style="' + DT_STYLE + '">' + esc(t) + '</span>';
+          }).join('　');
+          return '<tr><td class="k" rowspan="2" style="white-space:nowrap;vertical-align:middle">' + esc(lbl) + '</td>'
+            + '<td class="v" colspan="3">' + esc(val) + '</td></tr>'
+            + '<tr><td class="v" colspan="3" style="padding-top:2px">' + textsHtml + '</td></tr>';
         }
       };
       // r2dt: 4列2ブロック行はインラインで付加（行追加は複雑すぎるため）
@@ -3305,10 +3306,12 @@ function render() {
         el.style.marginLeft = '4px';
         el.innerHTML = '<span style="' + DTS + '">' + esc(texts[0]) + '</span>';
       } else {
-        // 2件以上: 改行して縦に並べる
+        // 2件以上: 全テキストを全角スペース区切りで1行に表示
         el.style.display = 'block';
         el.style.marginLeft = '';
-        el.innerHTML = texts.map(function(t){ return '<div style="' + DTS + '">' + esc(t) + '</div>'; }).join('');
+        el.innerHTML = texts.map(function(t){
+          return '<span style="' + DTS + '">' + esc(t) + '</span>';
+        }).join('　');
       }
     }
     _renderDT('p-period-dummytexts',    _dts.contractPeriod || []);

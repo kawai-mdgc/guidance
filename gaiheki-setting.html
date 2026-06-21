@@ -1228,7 +1228,14 @@ function _pdTypeCard(det,tmpl,type){
       const vals=Array.isArray(raw)?raw:(raw?[raw]:['']);
       const inputs=vals.map((v,vi)=>`<div style="display:flex;gap:4px;margin-bottom:4px"><input type="text" value="${escHtml(v)}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit${disabledStyle}"${disabledAttr} oninput="pdSetMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi},this.value)">${vi>0&&!hasSubBlocks?`<button class="btn-del" style="font-size:10px;padding:2px 7px;flex-shrink:0" onclick="pdRemoveMultiValue('${det.id}','${escHtml(type)}','${item.id}',${vi})">✕</button>`:''}</div>`).join('');
       const addBtn=hasSubBlocks?'':`<button class="btn-pm-add" onclick="pdAddMultiValue('${det.id}','${escHtml(type)}','${item.id}')">＋ 項目を追加する</button>`;
-      return `<div class="field"><label>${escHtml(item.label)}</label>${inputs}${addBtn}</div>`;
+      let multiHtml = `<div class="field"><label>${escHtml(item.label)}</label>${inputs}${addBtn}`;
+      if(item.dummyTexts && item.dummyTexts.length>0){
+        multiHtml += item.dummyTexts.map(text =>
+          `<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4">📋 ${escHtml(text)}</div>`
+        ).join('');
+      }
+      multiHtml += `</div>`;
+      return multiHtml;
     }
     const val=typeof raw==='string'?raw:(Array.isArray(raw)?(raw[0]||''):'');
     let fieldHtml=`<div class="field"><label>${escHtml(item.label)}</label><input type="text" value="${escHtml(val)}" style="width:100%${disabledStyle}"${disabledAttr} oninput="pdSetValue('${det.id}','${escHtml(type)}','${item.id}',this.value)" placeholder="${hasSubBlocks?'サブブロックで設定':'値を入力'}"></div>`;
@@ -1243,7 +1250,7 @@ function _pdTypeCard(det,tmpl,type){
     }
     if(item.dummyTexts && item.dummyTexts.length>0){
       fieldHtml += item.dummyTexts.map(text =>
-        `<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4">${escHtml(text)}</div>`
+        `<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4">📋 ${escHtml(text)}</div>`
       ).join('');
     }
     return fieldHtml;
