@@ -2319,8 +2319,8 @@ function syncP1Rows() {
     html += r1('契約期間', gi('contractPeriod'));
     html += r1('月額費用', gi('fee'));
     html += r2('紹介手数料', gi('referralFee')||'—', '成約手数料', gi('commission')||'—');
-    html += r1('紹介件数想定（月間）', gi('monthly'));
-    html += r1('最低保証', gi('guarantee'));
+    html += r1('紹介件数想定（月間）', gi('monthly')||'—');
+    html += r1('最低保証', gi('guarantee')||'—');
     if (customBody) customBody.innerHTML = html;
     return;
   }
@@ -2537,7 +2537,15 @@ function updatePlanDefaults() {
     const jFirestore = s.plans?.juryou || {};
     const jDefault   = (typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.plans?.juryou) || {};
     const jd = Object.assign({}, jDefault, jFirestore);
-    if (_cf) { _cf.innerHTML = buildJuryouFields(jd); _cf.style.display = ''; }
+    if (_cf) {
+      _cf.innerHTML = buildJuryouFields(jd);
+      _cf.style.display = '';
+      // 複数値 select は「選択してください」（value=""）にリセット
+      ['referralFee', 'commission'].forEach(function(id) {
+        var el = document.getElementById('plan-item-' + id);
+        if (el && el.tagName === 'SELECT') el.value = '';
+      });
+    }
     return;
   }
   if (plan.includes(':')) {
