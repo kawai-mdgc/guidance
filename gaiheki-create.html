@@ -2137,16 +2137,23 @@ function renderP4() {
   </div>`;
 }
 
+var _navLockTimer = null;
+var _navLocked = false;
 function scrollToPage(id) {
   const el = document.getElementById(id);
   const preview = document.getElementById('preview-scroll');
+  // 即座にアクティブ表示
+  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('nav-' + id)?.classList.add('active');
+  // IntersectionObserver による上書きを 600ms 抑制
+  _navLocked = true;
+  if (_navLockTimer) clearTimeout(_navLockTimer);
+  _navLockTimer = setTimeout(function() { _navLocked = false; }, 600);
   if (el && preview) {
     const elRect = el.getBoundingClientRect();
     const pvRect = preview.getBoundingClientRect();
     preview.scrollBy({top: elRect.top - pvRect.top, behavior: 'smooth'});
   }
-  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-  document.getElementById('nav-' + id)?.classList.add('active');
 }
 
 
@@ -3821,20 +3828,27 @@ function saveCase() {
   var preview = document.getElementById('preview-scroll');
   if (!preview || !window.IntersectionObserver) return;
 
-  var PAGE_IDS = ['p1', 'p-manual', 'p-manual-2', 'p2', 'p3', 'p4'];
+  var PAGE_IDS = ['p1', 'p-manual', 'p-manual-2', 'p2', 'p3b', 'p4'];
   var visibleSet = new Set();
 
   function syncNav() {
-    // p1→p4 の順で最初に visible なページをアクティブに
-    var activeId = null;
-    for (var i = 0; i < PAGE_IDS.length; i++) {
-      if (visibleSet.has(PAGE_IDS[i])) { activeId = PAGE_IDS[i]; break; }
-    }
-    if (!activeId) return;
+    if (typeof _navLocked !== 'undefined' && _navLocked) return;
+    // 可視ページのうちプレビュー上端に最も近いページをアクティブに
+    var pvRect = preview.getBoundingClientRect();
+    var bestId = null;
+    var bestDist = Infinity;
+    PAGE_IDS.forEach(function(id) {
+      if (!visibleSet.has(id)) return;
+      var el = document.getElementById(id);
+      if (!el) return;
+      var dist = Math.abs(el.getBoundingClientRect().top - pvRect.top);
+      if (dist < bestDist) { bestDist = dist; bestId = id; }
+    });
+    if (!bestId) return;
     document.querySelectorAll('.nav-item').forEach(function (btn) {
       btn.classList.remove('active');
     });
-    var navEl = document.getElementById('nav-' + activeId);
+    var navEl = document.getElementById('nav-' + bestId);
     if (navEl) navEl.classList.add('active');
   }
 
@@ -3848,8 +3862,8 @@ function saveCase() {
     });
     syncNav();
   }, {
-    root: preview,       // プレビューペインを基準
-    threshold: 0.15      // 15%以上見えたらアクティブ
+    root: preview,
+    threshold: 0.1
   });
 
   PAGE_IDS.forEach(function (id) {
