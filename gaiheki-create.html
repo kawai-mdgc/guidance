@@ -879,6 +879,10 @@ a.lb-url:hover { text-decoration: underline; }
         <label>プラン</label>
         <select id="plan" onchange="updatePlanDefaults();render()">
           <option value="">選択してください</option>
+          <option value="light">ライト</option>
+          <option value="basic">ベーシック</option>
+          <option value="pro">プロ</option>
+          <option value="juryou">従量</option>
         </select>
       </div>
       <div id="plan-detail-fields" style="display:none">
@@ -1960,7 +1964,12 @@ function getAreaData() {
 
 /* ── 設定デフォルト値 ── */
 const DEFAULT_SETTINGS = {
-  plans: {},
+  plans: {
+    light:  { fee: '8万円',  commission: '10%', guarantee: 'なし', monthly: '25〜35件', half: '—', contractPeriod: '6ヶ月契約' },
+    basic:  { fee: '10万円', commission: '5%',  guarantee: '25件',  monthly: '40〜55件', half: '40〜55件', contractPeriod: '6ヶ月契約' },
+    pro:    { fee: '15万円', commission: '3%',  guarantee: '40件',  monthly: '65〜80件', half: '65〜80件', contractPeriod: '6ヶ月契約' },
+    juryou: { fee: '', commission: '', referralFee: '', contractPeriod: '', monthly: '', guarantee: '' },
+  },
   holidayText: '弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。',
   excludeText: '・30日以内の、同一人物からの重複申込\n・使用されていない電話番号\n・別人の人（例：山田 太郎）\n上記にあてはまるお客様情報については、お手数ですが私までご報告ください。',
   staffList: ['恩田雅史', '鈴木宏午', '皆川進太', '中村元彌', '松本そよ', '穴澤萌花', '亀井翼', '染葉健介', '杉本山東'],
