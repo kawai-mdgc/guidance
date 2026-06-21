@@ -2530,10 +2530,14 @@ function updatePlanDefaults() {
   if (plan === 'juryou') {
     if (_cf) { _cf.innerHTML = buildTemplatePlanFields({id:'juryou', name:'従量プラン', items: JURYOU_ITEMS}); _cf.style.display = ''; }
     if (_pf) _pf.style.display = 'none';
-    const jd = s.plans?.juryou || {};
+    // getSettings() は DEFAULT_SETTINGS.plans.juryou を base として Firestore データをマージ済み
+    // Firestore にデータがない場合は DEFAULT_SETTINGS の値がフォールバックになる
+    const jFirestore = s.plans?.juryou || {};
+    const jDefault   = (typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.plans?.juryou) || {};
+    const jd = Object.assign({}, jDefault, jFirestore);
     JURYOU_ITEMS.forEach(item => {
       const el = document.getElementById('plan-item-' + item.id);
-      if (el && jd[item.id]) el.value = jd[item.id];
+      if (el) el.value = (jd[item.id] !== undefined && jd[item.id] !== null) ? jd[item.id] : '';
     });
     return;
   }
