@@ -2023,9 +2023,8 @@ function printDoc() {
   }
   // document.title を変更してPDFのデフォルトファイル名を設定
   const origTitle = document.title;
-  const co = (v('company') || v('contact_name') || '会社名').replace(/[/\\:*?"<>|]/g, '_');
-  const dt = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g, '');
-  document.title = `${co}_ガイダンス資料_${dt}`;
+  const co = v('company') || v('contact_name') || '（会社名未設定）';
+  document.title = `${co} 様【gaiheki+キックオフミーティング】`;
   // afterprint で元の状態に戻す
   const restore = () => {
     document.title = origTitle;
