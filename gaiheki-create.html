@@ -488,7 +488,7 @@ a.lb-url:hover { text-decoration: underline; }
       </tr>
       <tr id="p1-period-row">
         <td id="p-lbl-period" class="k" style="vertical-align:middle">契約期間</td>
-        <td class="v" colspan="3" style="vertical-align:middle"><span id="p-period">—</span><div style="font-size:10px;color:var(--muted);margin-top:2px">※ご契約は自動更新　※退会希望の場合、14日前に管理画面から申請が必要</div></td>
+        <td class="v" colspan="3" style="vertical-align:middle"><span id="p-period">—</span><div id="p-period-dummytexts"></div></td>
       </tr>
       <tr id="p1-monthly-row">
         <td id="p-lbl-monthly" class="k2">紹介件数想定（月間）</td>
@@ -498,7 +498,7 @@ a.lb-url:hover { text-decoration: underline; }
       </tr>
       <tr id="p1-guarantee-row">
         <td id="p-lbl-guarantee" class="k">最低保証</td>
-        <td class="v" colspan="3"><span id="p-guarantee">—</span><span class="sub-note">※返金がある場合は６ヶ月後となります。</span></td>
+        <td class="v" colspan="3"><span id="p-guarantee">—</span><div id="p-guarantee-dummytexts"></div></td>
       </tr>
       <tbody id="p1-custom-rows"></tbody>
 
@@ -1941,9 +1941,12 @@ function getAreaData() {
 /* ── 設定デフォルト値 ── */
 const DEFAULT_SETTINGS = {
   plans: {
-    light:  { fee: '8万円',  commission: '10%', guarantee: 'なし', monthly: '25〜35件', half: '—', contractPeriod: '6ヶ月契約' },
-    basic:  { fee: '10万円', commission: '5%',  guarantee: '25件',  monthly: '40〜55件', half: '40〜55件', contractPeriod: '6ヶ月契約' },
-    pro:    { fee: '15万円', commission: '3%',  guarantee: '40件',  monthly: '65〜80件', half: '65〜80件', contractPeriod: '6ヶ月契約' },
+    light:  { fee: '8万円',  commission: '10%', guarantee: 'なし', monthly: '25〜35件', half: '—', contractPeriod: '6ヶ月契約',
+              dummyTexts: { contractPeriod: ['※ご契約は自動更新', '※退会希望の場合、14日前に管理画面から申請が必要'], guarantee: ['※返金がある場合は６ヶ月後となります。'] } },
+    basic:  { fee: '10万円', commission: '5%',  guarantee: '25件',  monthly: '40〜55件', half: '40〜55件', contractPeriod: '6ヶ月契約',
+              dummyTexts: { contractPeriod: ['※ご契約は自動更新', '※退会希望の場合、14日前に管理画面から申請が必要'], guarantee: ['※返金がある場合は６ヶ月後となります。'] } },
+    pro:    { fee: '15万円', commission: '3%',  guarantee: '40件',  monthly: '65〜80件', half: '65〜80件', contractPeriod: '6ヶ月契約',
+              dummyTexts: { contractPeriod: ['※ご契約は自動更新', '※退会希望の場合、14日前に管理画面から申請が必要'], guarantee: ['※返金がある場合は６ヶ月後となります。'] } },
     juryou: { contractPeriod: 'フリー', fee: '0円', referralFee: '15,000円/20,000円', commission: '5%/10%', monthly: '', dailyLimit: '', monthlyLimit: '', monthlyBudget: '' },
   },
   holidayText: '弊社は基本的にカレンダー通りの営業となるため、土日祝日は営業しておりません。\n配信内容の変更等を含め、ご連絡は平日 09:00〜19:00 の間にお願いいたします。',
@@ -3261,6 +3264,22 @@ function render() {
       setVal('p-period', periodVal);
     }
   }
+  // dummyTexts をプレビューに反映（Firestoreデータ優先、なければDEFAULT_SETTINGS）
+  (function() {
+    const _plan = v('plan');
+    const _pd = s.plans?.[_plan] || DEFAULT_SETTINGS.plans?.[_plan] || {};
+    const _dts = _pd.dummyTexts || {};
+    const _dtStyle = 'font-size:11px;color:#888;margin-top:2px;line-height:1.6';
+    function _renderDT(elId, texts) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.innerHTML = (texts && texts.length)
+        ? texts.map(function(t){ return '<div style="' + _dtStyle + '">' + esc(t) + '</div>'; }).join('')
+        : '';
+    }
+    _renderDT('p-period-dummytexts',    _dts.contractPeriod || []);
+    _renderDT('p-guarantee-dummytexts', _dts.guarantee      || []);
+  })();
   setVal('p-monthly',    v('monthly_est'));
   setVal('p-half',       v('half_est'));
   const isVpPlan = v('plan').startsWith('vp_');

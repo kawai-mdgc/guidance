@@ -1007,9 +1007,9 @@ const DEFAULT_PLAN_TEMPLATES = [{
   items:[
     {id:'fee',   label:'月額費用（継続特典後・税抜）', valueType:'single', choices:[]},
     {id:'comm',  label:'成約手数料',                  valueType:'single', choices:[]},
-    {id:'guar',  label:'最低補償件数',                valueType:'single', choices:[]},
+    {id:'guar',  label:'最低補償件数',                valueType:'single', choices:[], dummyTexts:['※返金がある場合は６ヶ月後となります。']},
     {id:'monthly',label:'月間紹介件数（想定）',        valueType:'single', choices:[]},
-    {id:'period',label:'契約期間',                    valueType:'single', choices:[]},
+    {id:'period',label:'契約期間',                    valueType:'single', choices:[], dummyTexts:['※ご契約は自動更新', '※退会希望の場合、14日前に管理画面から申請が必要']},
     {id:'half',  label:'6ヶ月紹介件数（想定）',        valueType:'single', choices:[]},
   ]
 }];
@@ -1382,6 +1382,15 @@ function savePlanSection() {
               const v = vals[iid];
               if (v !== undefined && v !== '') pd[fn] = Array.isArray(v) ? (v.length===1 ? v[0] : v) : v;
             });
+            // 各内訳項目の dummyTexts を plans データに含める
+            const _dummyTextsMap = {};
+            _mTmpl.items.forEach(item => {
+              if (item.dummyTexts && item.dummyTexts.length > 0) {
+                const fieldName = _iMap[item.id] || item.id;
+                _dummyTextsMap[fieldName] = item.dummyTexts;
+              }
+            });
+            if (Object.keys(_dummyTextsMap).length > 0) pd.dummyTexts = _dummyTextsMap;
             console.log('[plans save] plans.' + key + ':', pd);
             if (Object.keys(pd).length) _plansUpd['plans.' + key] = pd;
           });
