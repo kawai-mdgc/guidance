@@ -1269,7 +1269,8 @@ function savePlanSection() {
         '契約期間':'contractPeriod','月額費用':'fee','月額費用（税抜）':'fee',
         '紹介手数料':'referralFee','成約手数料':'commission',
         '紹介件数想定（月間）':'monthly','月間紹介件数（想定）':'monthly',
-        '最低保証':'guarantee','最低補償件数':'guarantee'
+        '最低保証':'guarantee','最低補償件数':'guarantee',
+        '日上限件数':'dailyLimit','月上限件数':'monthlyLimit','月上限予算':'monthlyBudget'
       };
       const _vTmpl = planTemplates.find(t => t.name && t.name.includes('従量'));
       if (_vTmpl) {
