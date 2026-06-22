@@ -39,13 +39,16 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
 <script>
 const ALLOWED = 'madoguchi.inc';
 const EMAIL_REDIRECT = {
-  'r.iizuka@madoguchi.inc':  'gaiheki.html',
-  'm.kawai@madoguchi.inc':   'gaiheki.html',
-  'tomeki@madoguchi.inc':    'fuyouhin.html',
-  'nanae.a@madoguchi.inc':   'fuyouhin.html',
-  'obara@madoguchi.inc':     'fuyouhin.html',
-  'n.tebika@madoguchi.inc':  'osouji.html',
-  'a.tanaka@madoguchi.inc':  'osouji.html',
+  'r.iizuka@madoguchi.inc':    'gaiheki.html',
+  'm.kawai@madoguchi.inc':     'gaiheki.html',
+  'shimizu@madoguchi.inc':     'gaiheki.html',
+  'tomeki@madoguchi.inc':      'fuyouhin.html',
+  'nanae.a@madoguchi.inc':     'fuyouhin.html',
+  'obara@madoguchi.inc':       'fuyouhin.html',
+  'k.takeshita@madoguchi.inc': 'fuyouhin.html',
+  'n.tebika@madoguchi.inc':    'osouji.html',
+  'a.tanaka@madoguchi.inc':    'osouji.html',
+  'ono@madoguchi.inc':         'osouji.html',
 };
 function getRedirect(email) {
   return EMAIL_REDIRECT[email] || 'gaiheki.html';
@@ -94,7 +97,7 @@ document.getElementById('btn').style.display = 'none';
 document.getElementById('loading').style.display = 'block';
 auth.onAuthStateChanged(user => {
   if (user && (user.email || '').endsWith('@' + ALLOWED)) {
-    location.href = 'gaiheki.html';
+    location.href = getRedirect(user.email);
   } else {
     document.getElementById('btn').style.display = '';
     document.getElementById('loading').style.display = 'none';
