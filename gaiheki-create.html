@@ -2016,28 +2016,40 @@ function getSettings() {
 /* ── 共有URL生成 ── */
 
 function printDoc() {
-  const wasFormMode = document.body.classList.contains('sp-form-mode');
-  if (wasFormMode) {
-    document.body.classList.remove('sp-form-mode');
-    const tb = document.getElementById('sp-toggle-btn');
-    if (tb) tb.textContent = '📝';
-  }
-  // document.title を変更してPDFのデフォルトファイル名を設定
-  const origTitle = document.title;
-  const co = v('company') || v('contact_name') || '（会社名未設定）';
-  document.title = `${co} 様【gaiheki+キックオフミーティング】`;
-  // afterprint で元の状態に戻す
-  const restore = () => {
-    document.title = origTitle;
+  const btn = document.querySelector('.btn-pdf');
+  const origBtnHtml = btn ? btn.innerHTML : '';
+
+  const doPrint = () => {
+    if (btn) { btn.innerHTML = origBtnHtml; btn.disabled = false; }
+    const wasFormMode = document.body.classList.contains('sp-form-mode');
     if (wasFormMode) {
-      document.body.classList.add('sp-form-mode');
+      document.body.classList.remove('sp-form-mode');
       const tb = document.getElementById('sp-toggle-btn');
-      if (tb) tb.textContent = '📄';
+      if (tb) tb.textContent = '📝';
     }
-    window.removeEventListener('afterprint', restore);
+    const origTitle = document.title;
+    const co = v('company') || v('contact_name') || '（会社名未設定）';
+    document.title = `${co} 様【gaiheki+キックオフミーティング】`;
+    const restore = () => {
+      document.title = origTitle;
+      if (wasFormMode) {
+        document.body.classList.add('sp-form-mode');
+        const tb = document.getElementById('sp-toggle-btn');
+        if (tb) tb.textContent = '📄';
+      }
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    window.print();
   };
-  window.addEventListener('afterprint', restore);
-  window.print();
+
+  // Firestore 保存してから印刷
+  if (typeof window.saveCaseForPdf === 'function') {
+    if (btn) { btn.innerHTML = '保存中...'; btn.disabled = true; }
+    window.saveCaseForPdf(doPrint);
+  } else {
+    doPrint();
+  }
 }
 
 function toggleSPView() {
@@ -3685,6 +3697,33 @@ function saveCase() {
       .catch(function (e) {
         console.error('[FS] 案件保存失敗:', e.code, e.message);
         alert('保存に失敗しました: ' + e.message);
+      });
+  };
+
+  /* PDF用保存：リダイレクトせずコールバックを呼ぶ */
+  window.saveCaseForPdf = function (callback) {
+    if (!v('company') || !v('assignee')) { callback(); return; }
+    var editId = new URLSearchParams(location.search).get('id');
+    var id = editId || Date.now().toString();
+    var existingCase = _cache.find(function (c) { return c.id === id; });
+    var caseData = {
+      id: id,
+      assignee: v('assignee'),
+      company: v('company') || v('contact_name'),
+      plan: v('plan').includes(':') ? v('plan').split(':')[1] : v('plan'),
+      guidance_status: (document.querySelector('input[name="guidance_status"]:checked') || {}).value || '未実施',
+      createdAt: existingCase ? existingCase.createdAt : new Date().toISOString().split('T')[0],
+      formData: collectFormData(),
+      settingsSnapshot: collectSettingsSnapshot()
+    };
+    firebase.firestore().collection('cases_gaiheki').doc(id).set(caseData)
+      .then(function () {
+        if (!editId) history.replaceState(null, '', '?id=' + id);
+        callback();
+      })
+      .catch(function (e) {
+        console.warn('[FS] PDF用保存失敗:', e.message);
+        callback(); // 保存失敗でもPDFは開く
       });
   };
 
