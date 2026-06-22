@@ -500,5 +500,10 @@ function closeModals(){document.getElementById('ov').style.display='none';['add-
 /* ── Init ── */
 load(); renderTabs(); renderEditor(); renderPreview();
 </script>
+
+<!-- 開発中オーバーレイ解除時は以下を削除 -->
+<div id="dev-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:not-allowed;pointer-events:all;">
+  <span style="font-size:24px;color:#fff;font-weight:600;letter-spacing:0.1em;">開発中</span>
+</div>
 </body>
 </html>
