@@ -3057,24 +3057,34 @@ function populatePlanSelect() {
   if (!sel) return;
 
   if (_planForms && _planForms.length > 0) {
+    // フィールドIDとして使われる語をプラン種類名から除外
+    const _FIELD_IDS = new Set([
+      'fee','commission','guarantee','monthly','half','contractPeriod','period','guar',
+      'comm','referralFee','dailyLimit','monthlyLimit','monthlyBudget',
+      'light','basic','pro','juryou','volume',''
+    ]);
     // planForms がある場合: 動的に選択肢を生成
     const curVal = sel.value;
     sel.innerHTML = '<option value="">選択してください</option>';
     _planForms.forEach(function(form, fi) {
-      if (!form.plans || form.plans.length === 0) return;
-      if (form.plans.length === 1) {
-        // 1プランのみ → 「その他」グループに追加
+      if (!Array.isArray(form.plans) || form.plans.length === 0) return;
+      // 有効なプラン（planName がフィールドIDでないもの）だけに絞る
+      const validPlans = form.plans.filter(function(p) {
+        return p && p.planName && !_FIELD_IDS.has(p.planName);
+      });
+      if (validPlans.length === 0) return;
+      if (validPlans.length === 1) {
         let otherGrp = sel.querySelector('optgroup[label="その他"]');
         if (!otherGrp) { otherGrp = document.createElement('optgroup'); otherGrp.label = 'その他'; sel.appendChild(otherGrp); }
         const o = document.createElement('option');
-        o.value = 'pf:' + fi + ':0';
-        o.textContent = form.plans[0].planName || form.formName;
+        o.value = 'pf:' + fi + ':' + form.plans.indexOf(validPlans[0]);
+        o.textContent = validPlans[0].planName || form.formName;
         otherGrp.appendChild(o);
       } else {
-        // 複数プラン → optgroup
         const grp = document.createElement('optgroup');
         grp.label = form.formName;
-        form.plans.forEach(function(plan, pi) {
+        validPlans.forEach(function(plan) {
+          const pi = form.plans.indexOf(plan);
           const o = document.createElement('option');
           o.value = 'pf:' + fi + ':' + pi;
           o.textContent = plan.planName;
@@ -3083,7 +3093,6 @@ function populatePlanSelect() {
         sel.appendChild(grp);
       }
     });
-    // 現在値を復元
     if (curVal) sel.value = curVal;
   } else {
     // planForms なし → 表示名のみ更新（ハードコード固定）

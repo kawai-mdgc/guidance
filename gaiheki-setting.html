@@ -1454,7 +1454,9 @@ function savePlanSection() {
         const _iMap = {};
         (tmpl.items || []).forEach(function(item) { _iMap[item.id] = _ALL_LABEL_KEY[item.label] || item.label; });
         const plans = Object.keys(det.values).map(function(planName) {
-          const vals = det.values[planName] || {};
+          const vals = det.values[planName];
+          // vals がオブジェクトでない場合（フラット構造）はスキップ
+          if (!vals || typeof vals !== 'object' || Array.isArray(vals)) return null;
           const fields = {};
           Object.keys(vals).forEach(function(iid) {
             const fn = _iMap[iid] || iid;
@@ -1462,7 +1464,7 @@ function savePlanSection() {
             if (v !== undefined && v !== '') fields[fn] = Array.isArray(v) && v.length === 1 ? v[0] : v;
           });
           return { planName: planName, fields: fields };
-        }).filter(function(p) { return Object.keys(p.fields).length > 0; });
+        }).filter(function(p) { return p && Object.keys(p.fields).length > 0; });
         return plans.length > 0 ? { formName: tmpl.name || tmpl.id, plans: plans } : null;
       }).filter(Boolean);
       if (_planForms.length > 0) {
