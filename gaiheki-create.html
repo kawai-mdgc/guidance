@@ -1973,6 +1973,7 @@ let _planDisplayNames = {light:'ライト', basic:'ベーシック', pro:'プロ
 // 既存案件編集時（editId あり）は初期化時点でスナップショットモードを有効化
 let _planSnapshotMode = !!new URLSearchParams(location.search).get('id');
 var _p1SnapshotHtml = null; // 保存時点の「① 料金について」テーブルHTML（nullなら通常生成）
+var _planForms = null;     // Firestoreから読み込んだ planForms 構造
 
 /* 従量プランの固定フィールド定義 */
 const JURYOU_ITEMS = [
@@ -2242,6 +2243,26 @@ function syncP1Rows() {
   const s = getSettings();
   const customBody = document.getElementById('p1-custom-rows');
   const fixedIds = ['p1-fee-row','p1-period-row','p1-monthly-row','p1-guarantee-row'];
+
+  // planForms ベースのプラン（pf:formIndex:planIndex）→ 静的プランと同様に描画
+  if (plan && plan.startsWith('pf:')) {
+    const parts = plan.split(':');
+    const pfForm = (_planForms || [])[parseInt(parts[1], 10)];
+    const pfPlan = pfForm && pfForm.plans[parseInt(parts[2], 10)];
+    const pfName = pfPlan ? pfPlan.planName : plan;
+    fixedIds.forEach(id => { const r = document.getElementById(id); if(r) r.style.display = ''; });
+    ['p1-vp-referral-row','p1-vp-limits-row','p1-vp-budget-row'].forEach(id => { const r = document.getElementById(id); if(r) r.style.display = 'none'; });
+    if(customBody) customBody.innerHTML = '';
+    const setTd = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val || '—'; };
+    setTd('p-plan', pfName);
+    setTd('p-fee',        v('monthly_fee')  || '—');
+    setTd('p-commission', v('commission')   || '—');
+    setTd('p-period',     v('guarantee')    || '—');
+    setTd('p-monthly',    v('monthly_est')  || '—');
+    setTd('p-half',       v('half_est')     || '—');
+    setTd('p-guarantee',  v('guarantee')    || '—');
+    return;
+  }
 
   if (plan && plan.includes(':')) {
     const [detId, type] = plan.split(':');
@@ -2719,6 +2740,25 @@ function updatePlanDefaults() {
     document.getElementById('half_est').value    = d.half       ?? '';
     return true;
   };
+  // planForms ベースのプラン（pf:formIndex:planIndex）
+  if (plan.startsWith('pf:')) {
+    const parts = plan.split(':');
+    const fi = parseInt(parts[1], 10), pi = parseInt(parts[2], 10);
+    const form = (_planForms || [])[fi];
+    const planData = form && form.plans[pi];
+    if (planData) {
+      const f = planData.fields || {};
+      if (f.fee          !== undefined) document.getElementById('monthly_fee').value  = f.fee;
+      if (f.commission   !== undefined) document.getElementById('commission').value   = f.commission;
+      if (f.guarantee    !== undefined) document.getElementById('guarantee').value    = f.guarantee;
+      if (f.monthly      !== undefined) document.getElementById('monthly_est').value  = f.monthly;
+      if (f.half         !== undefined) document.getElementById('half_est').value     = f.half;
+    }
+    if (_pf) _pf.style.display = plan ? '' : 'none';
+    if (_cf) _cf.style.display = 'none';
+    render();
+    return;
+  }
   if (plan.startsWith('vp_')) {
     const vp = (s.volumePlans || []).find(p => p.id === plan) || {};
     document.getElementById('monthly_fee').value = '0円';
@@ -3011,16 +3051,48 @@ function populateVolumePlans() {
     sel.appendChild(grp);
   }
 }
-/* ── プランセレクトの表示名を _planDisplayNames で更新 ── */
+/* ── プランセレクトの表示名を更新 / planForms がある場合は選択肢を動的生成 ── */
 function populatePlanSelect() {
   const sel = document.getElementById('plan');
   if (!sel) return;
-  // 表示名のみ更新（選択肢はハードコード固定）
-  Array.from(sel.options).forEach(function(opt) {
-    if (opt.value && _planDisplayNames[opt.value]) {
-      opt.textContent = _planDisplayNames[opt.value];
-    }
-  });
+
+  if (_planForms && _planForms.length > 0) {
+    // planForms がある場合: 動的に選択肢を生成
+    const curVal = sel.value;
+    sel.innerHTML = '<option value="">選択してください</option>';
+    _planForms.forEach(function(form, fi) {
+      if (!form.plans || form.plans.length === 0) return;
+      if (form.plans.length === 1) {
+        // 1プランのみ → 「その他」グループに追加
+        let otherGrp = sel.querySelector('optgroup[label="その他"]');
+        if (!otherGrp) { otherGrp = document.createElement('optgroup'); otherGrp.label = 'その他'; sel.appendChild(otherGrp); }
+        const o = document.createElement('option');
+        o.value = 'pf:' + fi + ':0';
+        o.textContent = form.plans[0].planName || form.formName;
+        otherGrp.appendChild(o);
+      } else {
+        // 複数プラン → optgroup
+        const grp = document.createElement('optgroup');
+        grp.label = form.formName;
+        form.plans.forEach(function(plan, pi) {
+          const o = document.createElement('option');
+          o.value = 'pf:' + fi + ':' + pi;
+          o.textContent = plan.planName;
+          grp.appendChild(o);
+        });
+        sel.appendChild(grp);
+      }
+    });
+    // 現在値を復元
+    if (curVal) sel.value = curVal;
+  } else {
+    // planForms なし → 表示名のみ更新（ハードコード固定）
+    Array.from(sel.options).forEach(function(opt) {
+      if (opt.value && _planDisplayNames[opt.value]) {
+        opt.textContent = _planDisplayNames[opt.value];
+      }
+    });
+  }
 }
 
 /* ── テンプレートアイテムからフォームフィールド生成 ── */
@@ -4035,8 +4107,13 @@ function saveCase() {
           if (el) el.value = data.csAssignee;
           if (typeof renderP4 === 'function') renderP4();
         }
-        // Firestore の planName からプルダウン表示名を更新
-        if (data.plans) {
+        // planForms を読み込んでプルダウンを更新
+        if (data.planForms && data.planForms.length) {
+          _planForms = data.planForms;
+          if (typeof populatePlanSelect === 'function') populatePlanSelect();
+        }
+        // Firestore の planName からプルダウン表示名を更新（planForms がない場合のフォールバック）
+        if (data.plans && !_planForms) {
           Object.keys(data.plans).forEach(function(key) {
             if (data.plans[key] && data.plans[key].planName) {
               _planDisplayNames[key] = data.plans[key].planName;

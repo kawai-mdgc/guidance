@@ -1438,6 +1438,40 @@ function savePlanSection() {
         console.log('[plans save] 従量プランテンプレートなし（スキップ）');
       }
     } catch(_pe) { console.error('[plans save] 予期しないエラー:', _pe); }
+
+    // ── planForms 構造を生成して Firestore に保存 ──
+    try {
+      const _ALL_LABEL_KEY = {
+        '月額費用（継続特典後・税抜）':'fee','月額費用（税抜）':'fee','月額費用':'fee',
+        '成約手数料':'commission','最低補償件数':'guarantee','最低保証':'guarantee',
+        '月間紹介件数（想定）':'monthly','紹介件数想定（月間）':'monthly',
+        '契約期間':'contractPeriod','6ヶ月紹介件数（想定）':'half','紹介件数想定（6ヶ月）':'half',
+        '紹介手数料':'referralFee','日上限件数':'dailyLimit','月上限件数':'monthlyLimit','月上限予算':'monthlyBudget'
+      };
+      const _planForms = planTemplates.map(function(tmpl) {
+        const det = planDetails.find(function(d) { return d.templateId === tmpl.id; });
+        if (!det || !det.values) return null;
+        const _iMap = {};
+        (tmpl.items || []).forEach(function(item) { _iMap[item.id] = _ALL_LABEL_KEY[item.label] || item.label; });
+        const plans = Object.keys(det.values).map(function(planName) {
+          const vals = det.values[planName] || {};
+          const fields = {};
+          Object.keys(vals).forEach(function(iid) {
+            const fn = _iMap[iid] || iid;
+            const v = vals[iid];
+            if (v !== undefined && v !== '') fields[fn] = Array.isArray(v) && v.length === 1 ? v[0] : v;
+          });
+          return { planName: planName, fields: fields };
+        }).filter(function(p) { return Object.keys(p.fields).length > 0; });
+        return plans.length > 0 ? { formName: tmpl.name || tmpl.id, plans: plans } : null;
+      }).filter(Boolean);
+      if (_planForms.length > 0) {
+        firebase.firestore().collection('settings').doc('gaiheki').set({ planForms: _planForms }, { merge: true })
+          .then(function() { console.log('[planForms] ✅ 保存成功 forms:', _planForms.length); })
+          .catch(function(e) { console.warn('[planForms] 保存失敗:', e.message); });
+      }
+    } catch(_pfe) { console.warn('[planForms] 生成エラー:', _pfe); }
+
     const t = document.getElementById('toast');
     if(t) { t.textContent='保存しました'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200); }
   } catch(e) { console.error('savePlanSection:', e); }
