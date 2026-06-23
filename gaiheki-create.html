@@ -3073,6 +3073,15 @@ function populatePlanSelect() {
         return p && p.planName && !_FIELD_IDS.has(p.planName);
       });
       if (validPlans.length === 0) return;
+      // 既知プラン名を優先順でソート
+      const _PLAN_ORDER = ['ライト','ベーシック','プロ'];
+      validPlans.sort(function(a, b) {
+        const ai = _PLAN_ORDER.indexOf(a.planName), bi = _PLAN_ORDER.indexOf(b.planName);
+        if (ai === -1 && bi === -1) return 0;
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
       if (validPlans.length === 1) {
         let otherGrp = sel.querySelector('optgroup[label="その他"]');
         if (!otherGrp) { otherGrp = document.createElement('optgroup'); otherGrp.label = 'その他'; sel.appendChild(otherGrp); }
