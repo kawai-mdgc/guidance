@@ -22,8 +22,8 @@
 body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:var(--dark);font-size:14px;line-height:1.6}
 
 /* ── ページ全体 ── */
-.app{display:flex;flex-direction:column;padding:16px;gap:16px;min-height:100vh}
-.app-body{display:flex;gap:16px;align-items:flex-start;flex:1}
+.app{display:flex;flex-direction:column;padding:16px;gap:16px;height:100vh;overflow:hidden;box-sizing:border-box}
+.app-body{display:flex;gap:16px;flex:1;overflow:hidden;min-height:0}
 
 /* ── ヘッダー ── */
 .header{background:var(--white);border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;padding:12px 24px;gap:16px}
@@ -40,7 +40,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
 .btn-new svg{width:15px;height:15px;flex-shrink:0}
 
 /* ── サイドバー ── */
-.sidebar{background:var(--purple);border-radius:16px;width:280px;flex-shrink:0;padding:20px 14px;display:flex;flex-direction:column;min-height:calc(100vh - 100px);position:sticky;top:16px}
+.sidebar{background:var(--purple);border-radius:16px;width:280px;flex-shrink:0;padding:20px 14px;display:flex;flex-direction:column;overflow-y:auto;}
 .sidebar-section{font-size:11px;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.6);padding:4px 10px 10px;text-transform:uppercase}
 
 .filter-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;border-radius:10px;border:none;background:none;font-size:13px;font-weight:500;color:rgba(255,255,255,.9);cursor:pointer;text-align:left;margin-bottom:4px;transition:background .12s}
@@ -52,7 +52,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
 .filter-select{display:none;width:100%;padding:8px 10px;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:13px;font-family:inherit;background:rgba(255,255,255,.15);color:var(--white);cursor:pointer;appearance:none;-webkit-appearance:none;margin-top:4px}
 
 /* ── メインエリア ── */
-.main{flex:1;min-width:0;overflow-y:visible}
+.main{flex:1;min-width:0;overflow-y:auto}
 .main-bar{display:flex;align-items:center;margin-bottom:16px;gap:12px}
 .main-title{font-size:15px;font-weight:700}
 .total-badge{font-size:11px;color:var(--gray-text);font-weight:400}
