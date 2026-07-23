@@ -1484,7 +1484,7 @@ function saveStaffSection() {
   console.log('  staffList =', staffList);
   try {
     clearDirty('staff');
-    saveSectionData('staffList', { staffList: [...staffList] });
+    saveSectionData('staffList', { staffList: staffList.filter(m => m && m.trim()) });
     snapshotSection('staff');
     firebase.firestore().collection('settings').doc('gaiheki').set(
       { staffList: [...staffList] }, { merge: true }
