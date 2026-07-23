@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gaiheki+ ガイダンス一覧 v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design Tokens (Figmaより) ── */
+    :root {
+      --purple:        #685ba8;
+      --purple-dark:   #54478f;
+      --purple-mid:    #958cc2;
+      --purple-avatar: #7b1ea2;
+      --bg:            #f7f8fc;
+      --dark:          #2c2c36;
+      --gray:          #898c95;
+      --border:        #cbd2da;
+      --white:         #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--dark);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── ページレイアウト ── */
+    .page { padding: 30px; }
+
+    /* ── ヘッダー ── */
+    .header {
+      background: var(--white);
+      border-radius: 13px;
+      padding: 15px 30px 15px 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    /* BizDropdown */
+    .biz-dropdown { position: relative; }
+    .biz-dd-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+    }
+    .biz-dd-btn img { display: block; }
+    .biz-dd-arrow { font-size: 10px; color: var(--gray); transition: transform .15s; }
+    .biz-dd-btn.open .biz-dd-arrow { transform: rotate(180deg); }
+    .biz-dd-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+      min-width: 200px;
+      overflow: hidden;
+      z-index: 100;
+    }
+    .biz-dd-menu.open { display: block; }
+    .biz-dd-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dark);
+      text-decoration: none;
+      transition: background .12s;
+    }
+    .biz-dd-item:hover { background: var(--bg); }
+    .biz-dd-item.active { font-weight: 700; color: var(--purple); }
+    .biz-dd-check { width: 16px; flex-shrink: 0; }
+
+    /* Header actions */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .btn-settings {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .13s;
+      flex-shrink: 0;
+    }
+    .btn-settings:hover { background: var(--bg); }
+    .btn-settings img { width: 30px; height: 30px; }
+
+    .btn-new {
+      background: var(--purple);
+      border: none;
+      border-radius: 8px;
+      height: 54px;
+      width: 219px;
+      display: flex;
+      align-items: center;
+      padding: 5px;
+      cursor: pointer;
+      color: var(--white);
+      box-shadow: 0 1px 1px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.1);
+      transition: background .13s;
+      flex-shrink: 0;
+    }
+    .btn-new:hover { background: var(--purple-dark); }
+    .btn-new-icon {
+      background: var(--purple-dark);
+      border-radius: 8px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .btn-new-icon img { width: 20px; height: 20px; }
+    .btn-new-label {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: .08em;
+    }
+
+    /* ── ページ本体 ── */
+    .page-body {
+      display: flex;
+      gap: 58px;
+      align-items: flex-start;
+    }
+
+    /* ── サイドバー ── */
+    .sidebar {
+      background: var(--purple);
+      border-radius: 13px;
+      width: 251px;
+      flex-shrink: 0;
+      padding: 30px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: 600px;
+      max-height: calc(100vh - 60px);
+      position: sticky;
+      top: 30px;
+    }
+
+    .sidebar-section-header {
+      padding: 10px 10px;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+
+    .sidebar-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      padding-bottom: 30px;
+      min-height: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .sidebar-list::-webkit-scrollbar { display: none; }
+
+    .sidebar-item {
+      height: 40px;
+      width: 196px;
+      display: flex;
+      align-items: center;
+      padding-left: 20px;
+      border-radius: 8px;
+      color: var(--white);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background .12s;
+      flex-shrink: 0;
+    }
+    .sidebar-item:hover { background: rgba(255,255,255,.15); }
+    .sidebar-item.active { background: var(--purple-mid); }
+
+    /* Sidebar user widget */
+    .sidebar-footer { flex-shrink: 0; }
+
+    .sidebar-divider {
+      height: 1px;
+      background: rgba(255,255,255,.25);
+      margin-bottom: 20px;
+    }
+
+    .sidebar-user-card {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 15px 17px 15px 11px;
+      width: 211px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--purple-avatar);
+      color: var(--white);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .user-info { min-width: 0; flex: 1; }
+    .user-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #000;
+      letter-spacing: .05em;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .user-email {
+      font-size: 10px;
+      color: var(--gray);
+      letter-spacing: .05em;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .user-popup {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+      overflow: hidden;
+      z-index: 20;
+    }
+    .user-popup.open { display: block; }
+    .btn-logout {
+      display: block;
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e53935;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background .12s;
+    }
+    .btn-logout:hover { background: #ffeaea; }
+
+    /* ── メインコンテンツ ── */
+    .main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* タイトル行 */
+    .main-title-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .title-primary {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    .title-secondary {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* ── フィルターエリア ── */
+    .filter-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .filter-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* 共通インプットスタイル（Figmaより：rounded-13px, border #cbd2da, height 45px） */
+    .fi {
+      height: 45px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--white);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--dark);
+      outline: none;
+      transition: border-color .12s;
+    }
+    .fi:focus { border-color: var(--purple-mid); }
+    .fi::placeholder { color: var(--border); }
+
+    /* キーワード検索（アイコン付き） */
+    .filter-search-wrap {
+      position: relative;
+      width: 378px;
+      flex-shrink: 0;
+    }
+    .filter-search-wrap .fi-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .filter-search-wrap .fi-icon img { width: 18px; height: 18px; }
+    .filter-search-input {
+      width: 100%;
+      padding: 0 15px 0 49px;
+    }
+
+    /* 実施状況フィルター */
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .filter-label {
+      font-size: 11px;
+      color: var(--gray);
+      font-weight: 500;
+      padding-left: 4px;
+    }
+
+    .filter-select-wrap {
+      position: relative;
+    }
+    .filter-select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--gray);
+      pointer-events: none;
+    }
+    .filter-status {
+      padding: 0 36px 0 15px;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      min-width: 150px;
+      font-size: 14px;
+    }
+
+    /* 発行日（From/To） */
+    .filter-date-wrap {
+      position: relative;
+    }
+    .filter-date-wrap .fi-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .filter-date-wrap .fi-icon img { width: 18px; height: 20px; }
+    .filter-date-input {
+      padding: 0 15px 0 49px;
+      min-width: 175px;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--gray);
+    }
+    .filter-date-input:valid { color: var(--dark); }
+
+    /* ── カードグリッド ── */
+    .card-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    /* 新規作成カード */
+    .card-new {
+      width: 300px;
+      height: 133px;
+      border: 3px dashed var(--purple);
+      background: var(--white);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+    .card-new:hover { background: #f0edf9; }
+    .card-new-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-new-icon img { width: 20px; height: 20px; }
+    .card-new-label {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--purple);
+    }
+
+    /* 案件カード */
+    .card {
+      width: 300px;
+      background: var(--white);
+      border-radius: 8px;
+      padding: 15px 15px 15px 15px;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow .15s, transform .15s;
+      flex-shrink: 0;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(104,91,168,.15);
+      transform: translateY(-1px);
+    }
+
+    .card-content {
+      padding-left: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-company {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--dark);
+      letter-spacing: .05em;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .card-assignee {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--purple-mid);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .card-date {
+      font-size: 12px;
+      color: var(--gray);
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+
+    .card-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 13px 0 8px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      padding-right: 5px;
+      gap: 8px;
+    }
+
+    .card-status {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+      margin-right: auto;
+    }
+    .card-status.pending { background: #f3f3f3; color: var(--gray); }
+    .card-status.done    { background: #e6f7ef; color: #2a7a50; }
+
+    .card-delete {
+      background: none;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      letter-spacing: .03em;
+      transition: all .12s;
+      font-family: inherit;
+    }
+    .card-delete:hover { background: #fff0f0; color: #e53935; }
+
+    /* ローディング */
+    .loading-state {
+      padding: 48px 0;
+      text-align: center;
+      color: var(--gray);
+      font-size: 13px;
+    }
+
+    /* ── レスポンシブ ── */
+    @media (max-width: 960px) {
+      .page { padding: 16px; }
+      .header { padding: 12px 16px; }
+      .page-body { flex-direction: column; gap: 16px; }
+      .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: static;
+        max-height: none;
+        border-radius: 13px;
+      }
+      .sidebar-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-bottom: 0;
+      }
+      .sidebar-item { width: auto; padding: 0 16px; }
+      .sidebar-footer { display: none; }
+      .filter-search-wrap { width: 100%; max-width: 378px; }
+      .card-new, .card { width: calc(50% - 15px); }
+    }
+    @media (max-width: 600px) {
+      .card-new, .card { width: 100%; }
+      .btn-new-label { font-size: 15px; }
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <script>
+  /* ── Firebase初期化 + 認証チェック ── */
+  (function() {
+    firebase.initializeApp({
+      apiKey:            "AIzaSyCtKA71KjRHQvMPtYcURVjuSKaOanoEh7Y",
+      authDomain:        "madoguchi-guidance.firebaseapp.com",
+      projectId:         "madoguchi-guidance",
+      storageBucket:     "madoguchi-guidance.firebasestorage.app",
+      messagingSenderId: "1080989158935",
+      appId:             "1:1080989158935:web:4b75da9e3252e8086a5652"
+    });
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user || !(user.email || '').endsWith('@madoguchi.inc')) {
+        location.replace('login.html');
+      }
+    });
+  })();
+  </script>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── ヘッダー ── -->
+  <header class="header">
+    <div class="biz-dropdown" id="biz-dropdown">
+      <button class="biz-dd-btn" id="biz-dd-btn" onclick="toggleBizDD()">
+        <img src="gaiheki-logo.png" alt="gaiheki+" height="38">
+        <span class="biz-dd-arrow">▼</span>
+      </button>
+      <div class="biz-dd-menu" id="biz-dd-menu">
+        <a href="gaiheki-v2-test.html" class="biz-dd-item active">
+          <span class="biz-dd-check">✓</span>🧱 gaiheki+
+        </a>
+        <a href="osouji.html" class="biz-dd-item">
+          <span class="biz-dd-check"></span>🧼 おそうじ合衆国
+        </a>
+        <a href="fuyouhin.html" class="biz-dd-item">
+          <span class="biz-dd-check"></span>📦 不用品回収の窓口
+        </a>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="gaiheki-setting.html" class="btn-settings" title="設定">
+        <img src="figma-icon-settings.svg" alt="設定">
+      </a>
+      <button class="btn-new" onclick="goToCreate()">
+        <div class="btn-new-icon">
+          <img src="figma-icon-plus-btn.svg" alt="+">
+        </div>
+        <span class="btn-new-label">新規作成</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── ページ本体 ── -->
+  <div class="page-body">
+
+    <!-- ── サイドバー ── -->
+    <aside class="sidebar">
+      <div class="sidebar-section-header">担当者フィルター</div>
+      <div class="sidebar-list" id="filter-list">
+        <!-- JavaScriptで生成 -->
+      </div>
+      <div class="sidebar-footer" id="sidebar-user" style="display:none">
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-user-card" onclick="togglePopup()">
+          <div class="user-popup" id="user-popup">
+            <button class="btn-logout" onclick="signOut()">ログアウト</button>
+          </div>
+          <div class="user-row">
+            <div class="user-avatar" id="user-avatar">?</div>
+            <div class="user-info">
+              <div class="user-name" id="user-name">—</div>
+              <div class="user-email" id="user-email">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── メインコンテンツ ── -->
+    <main class="main">
+
+      <!-- タイトル -->
+      <div class="main-title-row">
+        <span class="title-primary" id="title-primary">すべて</span>
+        <div class="title-secondary">
+          <span>の案件</span>
+          <span id="title-count">( 0 )</span>
+        </div>
+      </div>
+
+      <!-- フィルターエリア -->
+      <div class="filter-area">
+
+        <!-- 行1: キーワード検索 -->
+        <div class="filter-row">
+          <div class="filter-search-wrap">
+            <span class="fi-icon">
+              <img src="figma-icon-search.svg" alt="">
+            </span>
+            <input
+              type="text"
+              class="fi filter-search-input"
+              id="f-search"
+              placeholder="キーワードを入力してください"
+              oninput="renderCards()"
+            >
+          </div>
+        </div>
+
+        <!-- 行2: 実施状況 + 発行日（From〜To） -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <span class="filter-label">実施状況</span>
+            <div class="filter-select-wrap">
+              <select class="fi filter-status" id="f-status" onchange="renderCards()">
+                <option value="all">すべて</option>
+                <option value="未実施" selected>未実施</option>
+                <option value="実施済み">実施済み</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">発行日（開始）</span>
+            <div class="filter-date-wrap">
+              <span class="fi-icon">
+                <img src="figma-icon-calendar.svg" alt="">
+              </span>
+              <input
+                type="date"
+                class="fi filter-date-input"
+                id="f-date-from"
+                onchange="renderCards()"
+              >
+            </div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">発行日（終了）</span>
+            <div class="filter-date-wrap">
+              <span class="fi-icon">
+                <img src="figma-icon-calendar.svg" alt="">
+              </span>
+              <input
+                type="date"
+                class="fi filter-date-input"
+                id="f-date-to"
+                onchange="renderCards()"
+              >
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /filter-area -->
+
+      <!-- カードグリッド -->
+      <div class="card-grid" id="card-grid">
+        <div class="loading-state">読み込み中...</div>
+      </div>
+
+    </main>
+  </div><!-- /page-body -->
+</div><!-- /page -->
+
+
+<!-- ══════════════════════════════════════
+     アプリロジック
+══════════════════════════════════════ -->
+<script>
+let currentFilter = 'all';
+
+const DEFAULT_SETTINGS = {
+  staffList: ['恩田雅史', '鈴木宏午', '皆川進太', '中村元彌', '松本そよ', '穴澤萌花', '亀井翼', '染葉健介', '杉本山東'],
+};
+
+function getSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('gaiheki_settings') || 'null');
+    if (!s) return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS, ...s, staffList: s.staffList?.length ? s.staffList : DEFAULT_SETTINGS.staffList };
+  } catch(e) { return { ...DEFAULT_SETTINGS }; }
+}
+
+function goToCreate() {
+  const url = currentFilter === 'all'
+    ? 'gaiheki-create.html'
+    : 'gaiheki-create.html?staff=' + encodeURIComponent(currentFilter);
+  location.href = url;
+}
+
+/* Firestoreスクリプト側でオーバーライドされる */
+function getCases() {
+  try { return JSON.parse(localStorage.getItem('gaiheki_cases') || '[]'); } catch(e) { return []; }
+}
+
+function deleteCase(id, e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!confirm('この案件を削除しますか？')) return;
+  const cases = getCases().filter(c => c.id !== id);
+  localStorage.setItem('gaiheki_cases', JSON.stringify(cases));
+  renderPage();
+}
+
+function getPlanTag(raw) {
+  const name = (raw || '').includes(':') ? raw.split(':')[1] : (raw || '');
+  const disp = name.replace(/プラン$/, '').trim();
+  const MAP = {
+    light:     { label: 'LIGHT', bg: '#EDFFD6', color: '#4A8C00' },
+    basic:     { label: 'BASIC', bg: '#FFF0E0', color: '#E07000' },
+    pro:       { label: 'PRO',   bg: '#E0F4FF', color: '#0077B6' },
+    juryou:    { label: 'FREE',  bg: '#EDE7F6', color: '#6A1B9A' },
+    'ライト':   { label: 'LIGHT', bg: '#EDFFD6', color: '#4A8C00' },
+    'ベーシック':{ label: 'BASIC', bg: '#FFF0E0', color: '#E07000' },
+    'プロ':     { label: 'PRO',   bg: '#E0F4FF', color: '#0077B6' },
+  };
+  if (name.includes('従量')) return { label: 'FREE', bg: '#EDE7F6', color: '#6A1B9A' };
+  if (MAP[name]) return MAP[name];
+  const P = [
+    { bg: '#E8F5E9', color: '#2E7D32' }, { bg: '#FFF3E0', color: '#E65100' },
+    { bg: '#E3F2FD', color: '#1565C0' }, { bg: '#FCE4EC', color: '#880E4F' },
+    { bg: '#F3E5F5', color: '#6A1B9A' }, { bg: '#E0F7FA', color: '#00695C' },
+    { bg: '#FFF9C4', color: '#F57F17' }, { bg: '#EFEBE9', color: '#4E342E' },
+  ];
+  let h = 0;
+  for (let i = 0; i < disp.length; i++) h = (h * 31 + disp.charCodeAt(i)) & 0xffff;
+  const p = P[h % P.length];
+  return { label: disp || name, bg: p.bg, color: p.color };
+}
+
+function setFilter(filter) {
+  currentFilter = filter;
+  renderPage();
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderSidebar() {
+  const cases   = getCases();
+  const members = getSettings().staffList;
+  const list    = document.getElementById('filter-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'sidebar-item' + (currentFilter === 'all' ? ' active' : '');
+  allBtn.textContent = 'すべて';
+  allBtn.onclick = () => setFilter('all');
+  list.appendChild(allBtn);
+
+  members.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'sidebar-item' + (currentFilter === m ? ' active' : '');
+    btn.textContent = m;
+    btn.onclick = () => setFilter(m);
+    list.appendChild(btn);
+  });
+}
+
+function renderPage() {
+  renderSidebar();
+  renderCards();
+}
+
+function renderCards() {
+  const cases = getCases();
+  let filtered = currentFilter === 'all' ? cases : cases.filter(c => c.assignee === currentFilter);
+
+  const fSearch   = (document.getElementById('f-search')?.value   || '').trim().toLowerCase();
+  const fStatus   = document.getElementById('f-status')?.value    || 'all';
+  const fDateFrom = document.getElementById('f-date-from')?.value || '';
+  const fDateTo   = document.getElementById('f-date-to')?.value   || '';
+
+  if (fSearch) {
+    filtered = filtered.filter(c =>
+      (c.company  || '').toLowerCase().includes(fSearch) ||
+      (c.assignee || '').toLowerCase().includes(fSearch)
+    );
+  }
+  if (fStatus !== 'all') filtered = filtered.filter(c => (c.guidance_status || '未実施') === fStatus);
+  if (fDateFrom) filtered = filtered.filter(c => ((c.formData?.issue_date || c.createdAt || '') >= fDateFrom));
+  if (fDateTo)   filtered = filtered.filter(c => ((c.formData?.issue_date || c.createdAt || '') <= fDateTo));
+
+  /* タイトル更新 */
+  const titlePrimary = document.getElementById('title-primary');
+  const titleCount   = document.getElementById('title-count');
+  if (titlePrimary) titlePrimary.textContent = currentFilter === 'all' ? 'すべて' : currentFilter;
+  if (titleCount)   titleCount.textContent   = `( ${filtered.length} )`;
+
+  const grid = document.getElementById('card-grid');
+  if (!grid) return;
+
+  const newUrl = currentFilter === 'all'
+    ? 'gaiheki-create.html'
+    : 'gaiheki-create.html?staff=' + encodeURIComponent(currentFilter);
+
+  const newCardHtml = `
+    <a href="${newUrl}" class="card-new">
+      <div class="card-new-inner">
+        <div class="card-new-icon"><img src="figma-icon-plus.svg" alt="+" width="20" height="20"></div>
+        <div class="card-new-label">新規作成</div>
+      </div>
+    </a>`;
+
+  const caseCardsHtml = filtered.map(c => {
+    const issueDate = (c.formData && c.formData.issue_date) || c.createdAt || '';
+    const dateStr   = issueDate ? issueDate.replace(/-/g, '/') : '—';
+    const status    = c.guidance_status || '未実施';
+    const statusCls = status === '実施済み' ? 'done' : 'pending';
+    return `
+      <a href="gaiheki-create.html?id=${escHtml(c.id)}&business=gaiheki" class="card">
+        <div class="card-content">
+          <div class="card-company">${escHtml(c.company || '（会社名未入力）')}</div>
+          <div class="card-meta">
+            <div class="card-assignee">👤 ${escHtml(c.assignee || '—')}</div>
+            <div class="card-date">${dateStr}</div>
+          </div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-footer">
+          <span class="card-status ${statusCls}">${escHtml(status)}</span>
+          <button class="card-delete" onclick="deleteCase('${escHtml(c.id)}', event)">削除</button>
+        </div>
+      </a>`;
+  }).join('');
+
+  grid.innerHTML = newCardHtml + caseCardsHtml;
+}
+
+/* 初期描画（Firestoreデータ到着前のローカルフォールバック） */
+renderPage();
+
+/* ── ユーザーポップアップ ── */
+function togglePopup() {
+  const popup = document.getElementById('user-popup');
+  if (popup) popup.classList.toggle('open');
+}
+function signOut() {
+  firebase.auth().signOut().then(function() { location.replace('login.html'); });
+}
+document.addEventListener('click', function(e) {
+  const su = document.getElementById('sidebar-user');
+  if (su && !su.contains(e.target)) {
+    const p = document.getElementById('user-popup');
+    if (p) p.classList.remove('open');
+  }
+});
+</script>
+
+
+<!-- ══════════════════════════════════════
+     Firestore 連携
+     （getCases / deleteCase をオーバーライドし
+       cases_gaiheki コレクションをリアルタイム同期）
+══════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+  var _cache = [];
+
+  /* 古い localStorage データをクリア */
+  localStorage.removeItem('gaiheki_cases');
+
+  /* getCases をオーバーライド：Firestoreキャッシュのみ返す */
+  window.getCases = function() { return _cache; };
+
+  /* deleteCase をオーバーライド：Firestoreから削除 */
+  window.deleteCase = function(id, e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('この案件を削除しますか？')) return;
+    firebase.firestore().collection('cases_gaiheki').doc(id).delete()
+      .then(function() { console.log('[FS] 案件削除:', id); })
+      .catch(function(err) { console.error('[FS] 削除エラー:', err.code, err.message); });
+  };
+
+  /* ローディング表示 */
+  var grid = document.getElementById('card-grid');
+  if (grid) {
+    grid.innerHTML = '<div class="loading-state">読み込み中...</div>';
+  }
+
+  /* 認証後にFirestoreリスナーを設定 */
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) return;
+
+    /* ── サイドバーのユーザー情報を表示 ── */
+    var name    = user.displayName || (user.email || '').split('@')[0];
+    var initial = (name.charAt(0) || '?').toUpperCase();
+    var avatarEl = document.getElementById('user-avatar');
+    var nameEl   = document.getElementById('user-name');
+    var emailEl  = document.getElementById('user-email');
+    var widgetEl = document.getElementById('sidebar-user');
+
+    if (avatarEl) {
+      if (user.photoURL) {
+        avatarEl.innerHTML = '<img src="' + user.photoURL + '" alt="' + initial + '">';
+      } else {
+        avatarEl.textContent = initial;
+      }
+    }
+    if (nameEl)   nameEl.textContent  = name;
+    if (emailEl)  emailEl.textContent = user.email || '';
+    if (widgetEl) widgetEl.style.display = '';
+
+    /* ── cases_gaiheki をリアルタイム監視 ── */
+    console.log('[FS] Firestore監視開始');
+    var db = firebase.firestore();
+    db.collection('cases_gaiheki').onSnapshot(
+      function(snap) {
+        _cache = snap.docs.map(function(d) {
+          return Object.assign({ id: d.id }, d.data());
+        });
+        _cache.sort(function(a, b) {
+          var dA = (a.formData && a.formData.issue_date) || a.createdAt || '';
+          var dB = (b.formData && b.formData.issue_date) || b.createdAt || '';
+          return dB.localeCompare(dA);
+        });
+        console.log('[FS] cases_gaiheki 更新:', _cache.length, '件');
+        if (typeof renderPage === 'function') renderPage();
+      },
+      function(err) {
+        console.error('[FS] snapshotエラー:', err.code, err.message);
+        if (grid) {
+          grid.innerHTML = '<div class="loading-state" style="color:#c00">データの読み込みに失敗しました</div>';
+        }
+      }
+    );
+  });
+})();
+
+/* ── BizDropdown ── */
+function toggleBizDD() {
+  var btn  = document.getElementById('biz-dd-btn');
+  var menu = document.getElementById('biz-dd-menu');
+  if (btn)  btn.classList.toggle('open');
+  if (menu) menu.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('biz-dropdown');
+  if (dd && !dd.contains(e.target)) {
+    var btn  = document.getElementById('biz-dd-btn');
+    var menu = document.getElementById('biz-dd-menu');
+    if (btn)  btn.classList.remove('open');
+    if (menu) menu.classList.remove('open');
+  }
+});
+</script>
+
+</body>
+</html>
