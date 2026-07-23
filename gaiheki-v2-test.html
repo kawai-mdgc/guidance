@@ -33,17 +33,17 @@
     }
 
     /* ── ページレイアウト ── */
-    .page { padding: 30px; }
+    .page { padding: 20px; }
 
     /* ── ヘッダー ── */
     .header {
       background: var(--white);
       border-radius: 13px;
-      padding: 15px 30px 15px 50px;
+      padding: 10px 24px 10px 36px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     /* BizDropdown */
@@ -101,8 +101,8 @@
       background: var(--white);
       border: 1px solid var(--border);
       border-radius: 8px;
-      width: 54px;
-      height: 54px;
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -112,17 +112,17 @@
       flex-shrink: 0;
     }
     .btn-settings:hover { background: var(--bg); }
-    .btn-settings img { width: 30px; height: 30px; }
+    .btn-settings img { width: 24px; height: 24px; }
 
     .btn-new {
       background: var(--purple);
       border: none;
       border-radius: 8px;
-      height: 54px;
-      width: 219px;
+      height: 44px;
+      width: 176px;
       display: flex;
       align-items: center;
-      padding: 5px;
+      padding: 4px;
       cursor: pointer;
       color: var(--white);
       box-shadow: 0 1px 1px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.1);
@@ -132,19 +132,19 @@
     .btn-new:hover { background: var(--purple-dark); }
     .btn-new-icon {
       background: var(--purple-dark);
-      border-radius: 8px;
-      width: 44px;
-      height: 44px;
+      border-radius: 6px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
-    .btn-new-icon img { width: 20px; height: 20px; }
+    .btn-new-icon img { width: 16px; height: 16px; }
     .btn-new-label {
       flex: 1;
       text-align: center;
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 500;
       letter-spacing: .08em;
     }
@@ -152,7 +152,7 @@
     /* ── ページ本体 ── */
     .page-body {
       display: flex;
-      gap: 58px;
+      gap: 30px;
       align-items: flex-start;
     }
 
@@ -160,20 +160,20 @@
     .sidebar {
       background: var(--purple);
       border-radius: 13px;
-      width: 251px;
+      width: 210px;
       flex-shrink: 0;
-      padding: 30px 20px 20px;
+      padding: 20px 14px 16px;
       display: flex;
       flex-direction: column;
-      min-height: 600px;
+      min-height: 400px;
       max-height: calc(100vh - 60px);
       position: sticky;
-      top: 30px;
+      top: 20px;
     }
 
     .sidebar-section-header {
-      padding: 10px 10px;
-      font-size: 15px;
+      padding: 6px 8px;
+      font-size: 12px;
       font-weight: 400;
       color: var(--white);
       flex-shrink: 0;
@@ -184,8 +184,8 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 13px;
-      padding-bottom: 30px;
+      gap: 6px;
+      padding-bottom: 16px;
       min-height: 0;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -193,14 +193,14 @@
     .sidebar-list::-webkit-scrollbar { display: none; }
 
     .sidebar-item {
-      height: 40px;
-      width: 196px;
+      height: 32px;
+      width: 100%;
       display: flex;
       align-items: center;
-      padding-left: 20px;
-      border-radius: 8px;
+      padding-left: 14px;
+      border-radius: 7px;
       color: var(--white);
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       border: none;
@@ -227,8 +227,8 @@
     .sidebar-user-card {
       background: var(--white);
       border-radius: 8px;
-      padding: 15px 17px 15px 11px;
-      width: 211px;
+      padding: 10px 12px 10px 10px;
+      width: 100%;
       cursor: pointer;
       position: relative;
     }
@@ -319,17 +319,17 @@
     .main-title-row {
       display: flex;
       align-items: flex-end;
-      gap: 5px;
-      margin-bottom: 20px;
+      gap: 4px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
     .title-primary {
-      font-size: 20px;
+      font-size: 16px;
       font-weight: 500;
       color: var(--dark);
     }
     .title-secondary {
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 500;
       color: var(--gray);
       display: flex;
@@ -341,25 +341,25 @@
     .filter-area {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 30px;
+      gap: 8px;
+      margin-bottom: 20px;
     }
 
     .filter-row {
       display: flex;
       align-items: flex-end;
-      gap: 20px;
+      gap: 14px;
       flex-wrap: wrap;
     }
 
-    /* 共通インプットスタイル（Figmaより：rounded-13px, border #cbd2da, height 45px） */
+    /* 共通インプットスタイル */
     .fi {
-      height: 45px;
+      height: 36px;
       border: 1px solid var(--border);
-      border-radius: 13px;
+      border-radius: 10px;
       background: var(--white);
       font-family: inherit;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 500;
       color: var(--dark);
       outline: none;
@@ -371,22 +371,22 @@
     /* キーワード検索（アイコン付き） */
     .filter-search-wrap {
       position: relative;
-      width: 378px;
+      width: 300px;
       flex-shrink: 0;
     }
     .filter-search-wrap .fi-icon {
       position: absolute;
-      left: 15px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
       display: flex;
       align-items: center;
     }
-    .filter-search-wrap .fi-icon img { width: 18px; height: 18px; }
+    .filter-search-wrap .fi-icon img { width: 15px; height: 15px; }
     .filter-search-input {
       width: 100%;
-      padding: 0 15px 0 49px;
+      padding: 0 12px 0 38px;
     }
 
     /* 実施状況フィルター */
@@ -417,12 +417,12 @@
       pointer-events: none;
     }
     .filter-status {
-      padding: 0 36px 0 15px;
+      padding: 0 30px 0 12px;
       appearance: none;
       -webkit-appearance: none;
       cursor: pointer;
-      min-width: 150px;
-      font-size: 14px;
+      min-width: 130px;
+      font-size: 13px;
     }
 
     /* 発行日（From/To） */
@@ -431,18 +431,18 @@
     }
     .filter-date-wrap .fi-icon {
       position: absolute;
-      left: 15px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
       display: flex;
       align-items: center;
     }
-    .filter-date-wrap .fi-icon img { width: 18px; height: 20px; }
+    .filter-date-wrap .fi-icon img { width: 14px; height: 16px; }
     .filter-date-input {
-      padding: 0 15px 0 49px;
-      min-width: 175px;
-      font-size: 14px;
+      padding: 0 12px 0 36px;
+      min-width: 150px;
+      font-size: 13px;
       cursor: pointer;
       color: var(--gray);
     }
@@ -452,13 +452,13 @@
     .card-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 30px;
+      gap: 20px;
     }
 
     /* 新規作成カード */
     .card-new {
-      width: 300px;
-      height: 133px;
+      width: 260px;
+      height: 110px;
       border: 3px dashed var(--purple);
       background: var(--white);
       border-radius: 8px;
@@ -475,21 +475,21 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
-    .card-new-icon img { width: 20px; height: 20px; }
+    .card-new-icon img { width: 16px; height: 16px; }
     .card-new-label {
-      font-size: 20px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--purple);
     }
 
     /* 案件カード */
     .card {
-      width: 300px;
+      width: 260px;
       background: var(--white);
       border-radius: 8px;
-      padding: 15px 15px 15px 15px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       text-decoration: none;
@@ -503,17 +503,17 @@
     }
 
     .card-content {
-      padding-left: 10px;
+      padding-left: 8px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .card-company {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--dark);
-      letter-spacing: .05em;
+      letter-spacing: .04em;
       line-height: 1.4;
       word-break: break-all;
     }
@@ -521,26 +521,26 @@
     .card-meta {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
     .card-assignee {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       background: var(--purple-mid);
       color: var(--white);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
-      padding: 5px 10px;
+      padding: 3px 8px;
       border-radius: 3px;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
     .card-date {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--gray);
       letter-spacing: .03em;
       white-space: nowrap;
@@ -549,20 +549,20 @@
     .card-divider {
       height: 1px;
       background: var(--border);
-      margin: 13px 0 8px;
+      margin: 10px 0 6px;
     }
 
     .card-footer {
       display: flex;
       align-items: center;
-      padding-right: 5px;
-      gap: 8px;
+      padding-right: 4px;
+      gap: 6px;
     }
 
     .card-status {
       font-size: 10px;
       font-weight: 600;
-      padding: 2px 8px;
+      padding: 2px 6px;
       border-radius: 10px;
       white-space: nowrap;
       margin-right: auto;
@@ -654,7 +654,7 @@
   <header class="header">
     <div class="biz-dropdown" id="biz-dropdown">
       <button class="biz-dd-btn" id="biz-dd-btn" onclick="toggleBizDD()">
-        <img src="gaiheki-logo.png" alt="gaiheki+" height="38">
+        <img src="gaiheki-logo.png" alt="gaiheki+" height="30">
         <span class="biz-dd-arrow">▼</span>
       </button>
       <div class="biz-dd-menu" id="biz-dd-menu">
