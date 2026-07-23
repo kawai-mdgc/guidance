@@ -58,13 +58,15 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
 .total-badge{font-size:11px;color:var(--gray-text);font-weight:400}
 
 /* ── フィルターバー ── */
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end}
+.filter-bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end}
+.filter-search{padding:6px 12px;border:1px solid var(--gray-border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--dark);min-height:34px;width:220px;outline:none}
+.filter-search:focus{border-color:var(--purple-mid)}
+.filter-date-range{display:flex;align-items:center;gap:6px}
+.filter-date-range input[type="date"]{padding:6px 10px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;font-family:inherit;background:var(--white);color:var(--dark);min-height:34px;outline:none;cursor:pointer}
+.filter-date-range input[type="date"]:focus{border-color:var(--purple-mid)}
+.filter-date-sep{font-size:13px;color:var(--gray-text)}
 .filter-group{display:flex;flex-direction:column;gap:3px}
 .filter-label{font-size:11px;color:var(--gray-text);font-weight:500;padding-left:2px}
-.filter-bar input[type="date"]{padding:6px 10px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;font-family:inherit;background:var(--white);color:var(--dark);min-height:34px;cursor:pointer;outline:none}
-.filter-bar input[type="date"]:focus{border-color:var(--purple-mid)}
-.filter-bar select{padding:6px 28px 6px 10px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;font-family:inherit;background:var(--white);color:var(--dark);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%239ca3af' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;min-height:34px;outline:none}
-.filter-bar select:focus{border-color:var(--purple-mid)}
 
 /* ── カードグリッド ── */
 .card-grid{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
@@ -226,20 +228,16 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
   </div>
   <div class="filter-bar">
     <div class="filter-group">
-      <span class="filter-label">実施状況</span>
-      <select id="f-status" onchange="renderCards()">
-        <option value="all">すべて</option>
-        <option value="未実施" selected>未実施</option>
-        <option value="実施済み">実施済み</option>
-      </select>
+      <span class="filter-label">キーワード</span>
+      <input type="text" id="f-search" class="filter-search" placeholder="会社名・担当者名" oninput="renderCards()">
     </div>
     <div class="filter-group">
-      <span class="filter-label">発行日（開始）</span>
-      <input type="date" id="f-date-from" onchange="renderCards()">
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">発行日（終了）</span>
-      <input type="date" id="f-date-to" onchange="renderCards()">
+      <span class="filter-label">発行日</span>
+      <div class="filter-date-range">
+        <input type="date" id="f-date-from" onchange="renderCards()">
+        <span class="filter-date-sep">〜</span>
+        <input type="date" id="f-date-to" onchange="renderCards()">
+      </div>
     </div>
   </div>
   <div class="card-grid" id="card-grid"></div>
@@ -349,10 +347,10 @@ function renderCards() {
   const cases = getCases();
   let filtered = currentFilter === 'all' ? cases : cases.filter(c => c.assignee === currentFilter);
 
-  const fStatus    = document.getElementById('f-status')?.value    || 'all';
-  const fDateFrom  = document.getElementById('f-date-from')?.value  || '';
-  const fDateTo    = document.getElementById('f-date-to')?.value    || '';
-  if (fStatus   !== 'all') filtered = filtered.filter(c => (c.guidance_status || '未実施') === fStatus);
+  const fSearch   = (document.getElementById('f-search')?.value || '').trim();
+  const fDateFrom = document.getElementById('f-date-from')?.value || '';
+  const fDateTo   = document.getElementById('f-date-to')?.value   || '';
+  if (fSearch)   filtered = filtered.filter(c => (c.company || '').includes(fSearch) || (c.assignee || '').includes(fSearch));
   if (fDateFrom) filtered = filtered.filter(c => ((c.formData?.issue_date || c.createdAt || '') >= fDateFrom));
   if (fDateTo)   filtered = filtered.filter(c => ((c.formData?.issue_date || c.createdAt || '') <= fDateTo));
 
