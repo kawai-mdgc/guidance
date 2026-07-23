@@ -366,28 +366,16 @@ function renderCards() {
   const newCard = `<a href="${newUrl}" class="card-new"><div class="card-new-inner"><div class="card-new-icon">＋</div><div class="card-new-label">新規作成</div></div></a>`;
 
   grid.innerHTML = newCard + filtered.map(c => {
-    const tag = getPlanTag(c.plan);
-    const areas = c.formData?.areas || [];
-    const areaText = areas.length
-      ? areas.map(a => typeof a === 'string' ? a : (a.city || a.pref || '')).filter(Boolean).join('、')
-      : 'エリア未設定';
     const issueDate = c.formData?.issue_date || c.createdAt || '';
     const dateStr = issueDate ? issueDate.replace(/-/g, '/') : '—';
-    const status = c.guidance_status || '未実施';
-    const statusClass = status === '実施済み' ? 'done' : 'pending';
     return `
       <a href="gaiheki-create.html?id=${c.id}&business=gaiheki" class="card">
-        <div class="card-top">
-          <div class="card-company">${escHtml(c.company || '（会社名未入力）')}</div>
-          <div class="card-plan" style="background:${tag.bg};color:${tag.color}">${tag.label}</div>
-        </div>
+        <div class="card-company">${escHtml(c.company || '（会社名未入力）')}</div>
         <div class="card-meta">
           <div class="card-assignee">👤 ${escHtml(c.assignee || '—')}</div>
-          <span class="card-status ${statusClass}">${escHtml(status)}</span>
           <div class="card-date">${dateStr}</div>
         </div>
         <div class="card-footer">
-          <div class="card-areas">📍 ${escHtml(areaText)}</div>
           <button class="card-delete" onclick="deleteCase('${c.id}', event)">削除</button>
         </div>
       </a>`;
