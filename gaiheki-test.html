@@ -6,176 +6,141 @@
 <title>gaiheki+ ガイダンス一覧</title>
 <style>
 :root {
-  --purple: #3F3277;
+  --purple:       #685BA8;
+  --purple-dark:  #54478f;
+  --purple-mid:   #958CC2;
   --purple-light: #eeecf8;
-  --purple-mid: #a99ed4;
-  --green: #3db87a;
-  --green-light: #eafaf2;
-  --gray-bg: #f5f4f1;
-  --gray-border: #e2e0db;
-  --gray-text: #999;
-  --dark: #1a1a1a;
-  --mid: #555;
-  --white: #fff;
-  --sidebar-w: 200px;
+  --bg:           #F7F8FC;
+  --gray-border:  #e5e7eb;
+  --gray-text:    #9ca3af;
+  --dark:         #111827;
+  --mid:          #6b7280;
+  --white:        #ffffff;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--gray-bg);color:var(--dark);font-size:14px;line-height:1.6}
 
-/* ── レイアウト ── */
-.app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:56px 1fr;height:100vh;overflow:hidden}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:var(--dark);font-size:14px;line-height:1.6}
+
+/* ── ページ全体 ── */
+.app{display:flex;flex-direction:column;padding:16px;gap:16px;min-height:100vh}
+.app-body{display:flex;gap:16px;align-items:flex-start;flex:1}
 
 /* ── ヘッダー ── */
-.header{grid-column:1/-1;background:var(--white);border-bottom:1px solid var(--gray-border);display:flex;align-items:center;height:56px;padding:0 24px;gap:16px;position:sticky;top:0;z-index:10}
-.header-logo{font-size:18px;font-weight:800;letter-spacing:-0.5px;margin-right:auto}
+.header{background:var(--white);border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;padding:12px 24px;gap:16px}
 .biz-dropdown{margin-right:auto}
-.header-logo span{color:var(--purple)}
-.header-logo .sub{font-size:10px;color:var(--gray-text);font-weight:400;margin-left:6px;letter-spacing:0}
-.btn-new{display:flex;align-items:center;gap:5px;padding:8px 16px;background:#7c6fb5;color:var(--white);border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:background 0.13s}
-.btn-new:hover{background:#3F3277}
-.btn-settings{display:flex;align-items:center;gap:4px;padding:8px 14px;background:none;color:var(--mid);border:1px solid var(--gray-border);border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:all 0.13s}
-.btn-settings:hover{background:var(--gray-bg);color:var(--purple)}
 
-/* ── 左サイドバー ── */
-.sidebar{background:var(--white);border-right:1px solid var(--gray-border);overflow-y:auto;padding:16px 10px;display:flex;flex-direction:column}
-.sidebar-section{font-size:9px;font-weight:700;letter-spacing:0.08em;color:var(--gray-text);padding:6px 8px 4px;text-transform:uppercase}
-.filter-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 10px;border-radius:6px;border:none;background:none;font-size:13px;font-weight:500;color:var(--mid);cursor:pointer;text-align:left;margin-bottom:2px;transition:all 0.12s}
-.filter-item:hover{background:var(--gray-bg)}
-.filter-item.active{background:var(--purple-light);color:var(--purple);font-weight:700}
-.filter-count{font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;background:var(--gray-bg);color:var(--gray-text)}
-.filter-item.active .filter-count{background:var(--purple);color:var(--white)}
-.filter-select{display:none;width:100%;padding:8px 10px;border:1px solid var(--gray-border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--dark);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23999' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;margin-top:4px}
+/* Settings ボタン（アイコンのみ） */
+.btn-settings{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--white);border:1px solid var(--gray-border);border-radius:12px;color:var(--gray-text);cursor:pointer;text-decoration:none;transition:background .12s;flex-shrink:0}
+.btn-settings:hover{background:#f9fafb}
+.btn-settings svg{width:20px;height:20px}
+
+/* 新規作成ボタン（ピル型） */
+.btn-new{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--purple);color:var(--white);border:none;border-radius:9999px;font-size:14px;font-weight:500;cursor:pointer;transition:background .13s;flex-shrink:0}
+.btn-new:hover{background:var(--purple-dark)}
+.btn-new svg{width:15px;height:15px;flex-shrink:0}
+
+/* ── サイドバー ── */
+.sidebar{background:var(--purple);border-radius:16px;width:280px;flex-shrink:0;padding:20px 14px;display:flex;flex-direction:column;min-height:calc(100vh - 100px);position:sticky;top:16px}
+.sidebar-section{font-size:11px;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.6);padding:4px 10px 10px;text-transform:uppercase}
+
+.filter-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;border-radius:10px;border:none;background:none;font-size:13px;font-weight:500;color:rgba(255,255,255,.9);cursor:pointer;text-align:left;margin-bottom:4px;transition:background .12s}
+.filter-item:hover{background:var(--purple-mid)}
+.filter-item.active{background:var(--white);color:var(--purple);font-weight:600}
+.filter-count{font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.filter-item.active .filter-count{background:var(--purple-light);color:var(--purple)}
+
+.filter-select{display:none;width:100%;padding:8px 10px;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:13px;font-family:inherit;background:rgba(255,255,255,.15);color:var(--white);cursor:pointer;appearance:none;-webkit-appearance:none;margin-top:4px}
 
 /* ── メインエリア ── */
-.main{overflow-y:auto;padding:24px}
-.main-bar{display:flex;align-items:center;margin-bottom:20px;gap:12px}
+.main{flex:1;min-width:0;overflow-y:visible}
+.main-bar{display:flex;align-items:center;margin-bottom:16px;gap:12px}
 .main-title{font-size:15px;font-weight:700}
 .total-badge{font-size:11px;color:var(--gray-text);font-weight:400}
 
-/* ── カードグリッド ── */
-.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-items:stretch}
+/* ── フィルターバー ── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:3px}
+.filter-label{font-size:11px;color:var(--gray-text);font-weight:500;padding-left:2px}
+.filter-bar input[type="date"]{padding:6px 10px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;font-family:inherit;background:var(--white);color:var(--dark);min-height:34px;cursor:pointer;outline:none}
+.filter-bar input[type="date"]:focus{border-color:var(--purple-mid)}
+.filter-bar select{padding:6px 28px 6px 10px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;font-family:inherit;background:var(--white);color:var(--dark);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%239ca3af' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;min-height:34px;outline:none}
+.filter-bar select:focus{border-color:var(--purple-mid)}
 
-.card{background:var(--white);border-radius:10px;border:1px solid var(--gray-border);padding:16px 18px;cursor:pointer;transition:all 0.15s;text-decoration:none;color:inherit;display:block}
-.card:hover{border-color:var(--purple-mid);box-shadow:0 4px 14px rgba(124,92,191,0.12);transform:translateY(-1px)}
+/* ── カードグリッド ── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;align-items:stretch}
+
+.card{background:var(--white);border-radius:12px;border:1px solid var(--gray-border);padding:16px 18px;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit;display:block}
+.card:hover{border-color:var(--purple-mid);box-shadow:0 4px 14px rgba(104,91,168,.12);transform:translateY(-1px)}
 
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
 .card-company{font-size:14px;font-weight:700;line-height:1.4;flex:1;margin-right:8px}
 .card-plan{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
 
 .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.card-assignee{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--purple);background:var(--purple-light);padding:2px 8px;border-radius:4px}
+.card-assignee{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--white);background:var(--purple-mid);padding:3px 10px;border-radius:6px}
 .card-date{font-size:11px;color:var(--gray-text);margin-left:auto}
 
 .card-footer{margin-top:10px;padding-top:10px;border-top:1px solid var(--gray-border);display:flex;align-items:center;justify-content:space-between}
 .card-areas{font-size:11px;color:var(--mid);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;margin-right:8px}
-.card-delete{background:none;border:none;font-size:11px;color:var(--gray-text);cursor:pointer;padding:2px 6px;border-radius:4px;transition:all 0.12s;flex-shrink:0}
+.card-delete{background:none;border:none;font-size:11px;color:var(--gray-text);cursor:pointer;padding:2px 6px;border-radius:4px;transition:all .12s;flex-shrink:0}
 .card-delete:hover{background:#fff0f0;color:#e53935}
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end}
-.filter-group{display:flex;flex-direction:column;gap:3px}
-.filter-label{font-size:11px;color:var(--gray-text);font-weight:500;padding-left:2px}
-.filter-bar input[type="date"]{padding:5px 8px;border:1px solid var(--gray-border);border-radius:6px;font-size:12px;font-family:inherit;background:var(--white);color:var(--dark);min-height:32px;cursor:pointer}
-.filter-bar input[type="date"]:focus{outline:none;border-color:var(--purple)}
-.filter-bar select{padding:5px 28px 5px 10px;border:1px solid var(--gray-border);border-radius:6px;font-size:12px;font-family:inherit;background:var(--white);color:var(--dark);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23999' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;min-height:32px}
+
 .card-status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.card-status.pending{background:#f3f3f3;color:#999}
+.card-status.pending{background:#f3f4f6;color:var(--gray-text)}
 .card-status.done{background:#e6f7ef;color:#2a7a50}
 
 /* ── 新規作成カード ── */
-.card-new{border:2px dashed var(--purple-mid);background:transparent;display:flex;align-items:center;justify-content:center;border-radius:10px;text-decoration:none;transition:all 0.15s;color:inherit;min-height:130px}
+.card-new{border:2px dashed var(--purple-mid);background:transparent;display:flex;align-items:center;justify-content:center;border-radius:12px;text-decoration:none;transition:all .15s;color:inherit;min-height:130px}
 .card-new:hover{border-color:var(--purple);background:var(--purple-light);transform:translateY(-1px)}
 .card-new-inner{display:flex;flex-direction:column;align-items:center;gap:6px}
 .card-new-icon{font-size:28px;font-weight:300;color:var(--purple);line-height:1}
 .card-new-label{font-size:13px;font-weight:600;color:var(--purple)}
 
-/* ── Responsive ── */
-@media (max-width: 1023px) {
-  :root { --sidebar-w: 160px; }
-  .card-grid { grid-template-columns: repeat(2, 1fr); }
-  .filter-item { padding: 6px 8px; font-size: 12px; }
-}
-@media (max-width: 767px) {
-  body { overflow-x: hidden; }
-  .app {
-    grid-template-columns: 1fr;
-    grid-template-rows: 56px auto 1fr;
-    height: 100vh;
-  }
-  .header { grid-column: 1 / -1; height: 56px; padding: 0 16px; gap: 12px; }
-  .header-logo img { height: 28px; }
-  .sidebar {
-    grid-column: 1;
-    grid-row: 2;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 6px 12px;
-    border-right: none;
-    border-bottom: 1px solid var(--gray-border);
-    gap: 4px;
-    flex-wrap: nowrap;
-    min-height: 0;
-  }
-  .sidebar-section { display: none; }
-  #filter-list {
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    flex-wrap: nowrap;
-  }
-  .filter-item {
-    white-space: nowrap;
-    border-radius: 20px;
-    padding: 8px 14px;
-    flex-shrink: 0;
-    min-height: 36px;
-    margin-bottom: 0;
-  }
-  .main { grid-column: 1; grid-row: 3; padding: 16px; }
-  .card-grid { grid-template-columns: 1fr; }
-  .btn-new, .btn-settings { min-height: 44px; }
-  .header-logo .sub { display: none; }
-  .main-bar { margin-bottom: 8px; }
-  .filter-bar { gap: 6px; flex-wrap: nowrap; }
-  .filter-group { flex: 1; min-width: 0; }
-  .filter-bar select { width: 100%; font-size: 11px; padding: 4px 22px 4px 6px; min-height: 28px; background-position: right 6px center; }
-  .filter-label { font-size: 10px; }
-  .card-new { display: none !important; }
-  #filter-list { display: none; }
-  .filter-select { display: block; }
-  .sidebar { padding: 8px 12px; }
-}
-
 /* ── ユーザー情報 ── */
-.sidebar-user{margin-top:auto;padding:12px 10px;border-top:1px solid var(--gray-border);position:relative}
-.user-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .12s}
-.user-row:hover{background:var(--gray-bg)}
-.user-avatar{width:32px;height:32px;border-radius:50%;background:#3F3277;color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.sidebar-user{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.2);position:relative}
+.user-row{display:flex;align-items:center;gap:10px;padding:12px;background:var(--white);border-radius:14px;cursor:pointer;transition:opacity .12s}
+.user-row:hover{opacity:.9}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:var(--purple);color:var(--white);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
 .user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .user-info{flex:1;min-width:0}
-.user-name{font-size:12px;font-weight:600;color:var(--dark);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.user-name{font-size:13px;font-weight:700;color:var(--dark);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .user-email{font-size:10px;color:var(--gray-text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.user-popup{display:none;position:absolute;bottom:calc(100% + 4px);left:10px;right:10px;background:var(--white);border:1px solid var(--gray-border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);overflow:hidden;z-index:20}
+.user-popup{display:none;position:absolute;bottom:calc(100% + 4px);left:0;right:0;background:var(--white);border:1px solid var(--gray-border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);overflow:hidden;z-index:20}
 .user-popup.open{display:block}
 .btn-logout{display:block;width:100%;padding:11px 14px;font-size:13px;font-weight:600;color:#e53935;background:none;border:none;cursor:pointer;text-align:left;transition:background .12s}
 .btn-logout:hover{background:#ffeaea}
 
-
-
 /* ── 事業部ドロップダウン ── */
 .biz-dropdown{position:relative;display:flex;align-items:center}
 .biz-dd-btn{display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:4px 8px 4px 0;border-radius:6px;font-size:13px;font-weight:600;color:var(--dark);transition:background .12s}
-.biz-dd-btn:hover{background:var(--gray-bg)}
+.biz-dd-btn:hover{background:#f3f4f6}
 .biz-dd-arrow{font-size:10px;color:var(--gray-text);transition:transform .15s}
 .biz-dd-btn.open .biz-dd-arrow{transform:rotate(180deg)}
-.biz-dd-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--white);border:1px solid var(--gray-border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:100}
+.biz-dd-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--white);border:1px solid var(--gray-border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:100}
 .biz-dd-menu.open{display:block}
 .biz-dd-item{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;font-weight:500;color:var(--dark);text-decoration:none;transition:background .12s;cursor:pointer}
-.biz-dd-item:hover{background:var(--gray-bg)}
+.biz-dd-item:hover{background:#f9fafb}
 .biz-dd-item.active{font-weight:700;color:var(--purple)}
 .biz-dd-check{font-size:13px;width:16px;flex-shrink:0}
 
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .app-body{flex-direction:column}
+  .sidebar{width:100%;min-height:auto;position:static;border-radius:14px}
+  #filter-list{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px}
+  .filter-item{width:auto;padding:7px 14px;margin-bottom:0;border-radius:20px}
+  .sidebar-user{display:none}
+}
+@media (max-width: 600px) {
+  .app{padding:10px;gap:10px}
+  .header{padding:10px 16px}
+  .btn-new span{display:none}
+  .card-grid{grid-template-columns:1fr}
+  .card-new{display:none!important}
+  .filter-bar{flex-direction:column}
+  .filter-group{width:100%}
+  .filter-bar select,.filter-bar input[type="date"]{width:100%}
+}
 </style>
 <!-- Firebase Auth (認証チェックのみ) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -207,18 +172,30 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
 <div class="header">
   <div class="biz-dropdown" id="biz-dropdown">
     <button class="biz-dd-btn" id="biz-dd-btn" onclick="toggleBizDD()">
-      <img src="gaiheki-logo.png" alt="gaiheki+" height="32" style="display:block;margin-bottom:2px">
+      <img src="gaiheki-logo.png" alt="gaiheki+" height="30" style="display:block">
       <span class="biz-dd-arrow">▼</span>
     </button>
     <div class="biz-dd-menu" id="biz-dd-menu">
-    <a href="gaiheki.html" class="biz-dd-item active"><span class="biz-dd-check">✓</span>🧱 gaiheki+</a>
-    <a href="osouji.html" class="biz-dd-item"><span class="biz-dd-check"></span>🧼 おそうじ合衆国</a>
-    <a href="fuyouhin.html" class="biz-dd-item"><span class="biz-dd-check"></span>📦 不用品回収の窓口</a>
+      <a href="gaiheki-test.html" class="biz-dd-item active"><span class="biz-dd-check">✓</span>🧱 gaiheki+</a>
+      <a href="osouji.html" class="biz-dd-item"><span class="biz-dd-check"></span>🧼 おそうじ合衆国</a>
+      <a href="fuyouhin.html" class="biz-dd-item"><span class="biz-dd-check"></span>📦 不用品回収の窓口</a>
     </div>
   </div>
-  <a href="gaiheki-setting.html" class="btn-settings">⚙ 設定</a>
-  <button class="btn-new" onclick="goToCreate()">＋ 新規作成</button>
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="gaiheki-setting.html" class="btn-settings" title="設定">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </a>
+    <button class="btn-new" onclick="goToCreate()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span>新規作成</span>
+    </button>
+  </div>
 </div>
+
+<!-- ── サイドバー＋メイン ── -->
+<div class="app-body">
 
 <!-- ── 左サイドバー ── -->
 <div class="sidebar">
@@ -268,6 +245,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;backgroun
   <div class="card-grid" id="card-grid"></div>
 </div>
 
+</div><!-- /app-body -->
 </div><!-- /app -->
 
 <script>
